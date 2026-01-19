@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .h1 { @apply text-4xl font-title text-primary tracking-wide; }
+  .h2 { @apply text-2xl font-title text-primary; }
+  .h3 { @apply text-xl font-title text-secondary italic; }
+
+  .text-body { @apply text-base font-body text-text; }
+  .placeholder { @apply text-sm text-muted; }
+
+  .section { @apply space-y-4 text-center; }
+
+  .btn {
+    @apply inline-flex items-center gap-2 px-6 py-2 rounded-full font-body border border-primary hover:bg-primary hover:text-white transition;
+  }
+}
