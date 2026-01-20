@@ -20,7 +20,6 @@ export default function RSVP() {
       <h2 className="h2">Conferma la tua presenza!</h2>
 
       <input className="w-full border rounded-lg px-4 py-2 text-body" placeholder={event.placeholder_name} name="name" value={form.name} onChange={handleChange} required />
-      <input className="w-full border rounded-lg px-4 py-2 text-body" type="number" min="1" name="guests" value={form.guests} onChange={handleChange} placeholder="Numero invitati" />
       
       <label className="flex items-center justify-center gap-2 text-body">
         <input type="checkbox" name="attending" checked={form.attending} onChange={handleChange} /> Sarò presente
