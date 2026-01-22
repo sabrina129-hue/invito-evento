@@ -20,6 +20,9 @@ export default {
       spacing: {
         section: "2rem",
       },
+      animation: {
+        'fade-in': 'fadeIn 0.25s ease-out',
+      },
     },
   },
   plugins: [],
