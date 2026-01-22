@@ -1,6 +1,6 @@
 export const event = {
-  title: "Sabrina",
-  subtitle: "Ti invita ad aspettare insieme il suo compleanno!🥂✨",
+  title: "💌 Ho un invito per te ! 💌 ",
+  subtitle: "Aspettiamo insieme la mezzanotte:un nuovo anno per me, un momento speciale da condividere con te. ✨",
   //description: "Ti invita a festeggiare il suo compleanno",
   date: "31 Gennaio 2026",
   time: "Ore 22:00",
@@ -15,7 +15,7 @@ export const event = {
     }*/
   },
   images: [
-    "/images/img.png",
+    "/images/img.jpeg",
     //"/images/img2.jpg",
     //"/images/img3.jpg"
   ],
