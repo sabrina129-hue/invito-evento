@@ -4,40 +4,92 @@ import { event } from "../data/event";
 export default function RSVP() {
   const [form, setForm] = useState({ name: "", guests: 1, attending: true, notes: "" });
   const [showSuccess, setShowSuccess] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = e => {
     const { name, value, type, checked } = e.target;
-    setForm({ ...form, [name]: type === "checkbox" ? checked : value });
+
+    setForm(prev => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+      ...(name === "attending" && !checked ? { guests: 0 } : {}),
+      ...(name === "attending" && checked ? { guests: 1 } : {}),
+    }));
   };
 
   const handleSubmit = async e => {
     e.preventDefault();
-    await fetch("/api/rsvp", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: form.name,
-        partecipate: form.attending,
-        guests: form.guests,
-        message: form.notes,
-      }),
-    });
-    setShowSuccess(true);
+    setSubmitting(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/rsvp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          partecipate: form.attending,
+          guests: form.attending ? Number(form.guests) : 0,
+          message: form.notes,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Invio non riuscito");
+      }
+
+      setShowSuccess(true);
+      setForm({ name: "", guests: 1, attending: true, notes: "" });
+    } catch {
+      setError("Non sono riuscito a inviare la risposta. Riprova tra poco.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="section">
       <h2 className="h2">Conferma la tua presenza!</h2>
 
-      <input className="w-full border rounded-lg px-4 py-2 text-body" placeholder={event.placeholder_name} name="name" value={form.name} onChange={handleChange} required />
+      <input
+        className="w-full border rounded-lg px-4 py-2 text-body"
+        placeholder={event.placeholder_name}
+        name="name"
+        value={form.name}
+        onChange={handleChange}
+        required
+      />
 
       <label className="flex items-center justify-center gap-2 text-body">
         <input type="checkbox" name="attending" checked={form.attending} onChange={handleChange} /> Sarò presente
       </label>
 
-      <textarea className="w-full border rounded-lg px-4 py-2 text-body" name="notes" value={form.notes} onChange={handleChange} placeholder={event.placeholder_textBox} />
+      {form.attending && (
+        <input
+          className="w-full border rounded-lg px-4 py-2 text-body"
+          type="number"
+          min="1"
+          name="guests"
+          value={form.guests}
+          onChange={handleChange}
+          aria-label="Numero partecipanti"
+        />
+      )}
 
-      <button type="submit" className="btn w-full mt-2 flex items-center justify-center">Invia 💌</button>
+      <textarea
+        className="w-full border rounded-lg px-4 py-2 text-body"
+        name="notes"
+        value={form.notes}
+        onChange={handleChange}
+        placeholder={event.placeholder_textBox}
+      />
+
+      {error && <p className="text-sm text-red-600">{error}</p>}
+
+      <button type="submit" disabled={submitting} className="btn w-full mt-2 flex items-center justify-center disabled:opacity-60">
+        {submitting ? "Invio..." : "Invia 💌"}
+      </button>
 
       {showSuccess && (
         <div
@@ -67,7 +119,6 @@ export default function RSVP() {
           </div>
         </div>
       )}
-
     </form>
   );
 }

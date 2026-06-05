@@ -5,7 +5,7 @@ import { event } from "./data/event";
 import Admin from "./pages/Admin.jsx";
 import { HashRouter, Routes, Route } from "react-router-dom";
 import AdminLogin from "./pages/AdminLogin.jsx";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 function Home() {
   return (
@@ -25,16 +25,12 @@ function Home() {
 }
 
 function AdminProtected() {
-  const [ok, setOk] = useState(false);
-
-  useEffect(() => {
-    setOk(!!localStorage.getItem("adminToken"));
-  }, []);
+  const [ok, setOk] = useState(() => !!localStorage.getItem("adminToken"));
 
   return ok ? <Admin /> : <AdminLogin onLogin={() => setOk(true)} />;
 }
 
-//Pagina web pre mostrare all'organizzatore le risposte all'invito
+// Pagina web per mostrare all'organizzatore le risposte all'invito
 export default function App() {
   return (
     <HashRouter>

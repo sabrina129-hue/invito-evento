@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+const MotionImage = motion.img;
+
 export default function Hero({ images, children }) {
   const [index, setIndex] = useState(0);
 
@@ -12,7 +14,7 @@ export default function Hero({ images, children }) {
   return (
     <div className="relative h-80 w-full overflow-hidden rounded-t-card">
       <AnimatePresence mode="wait">
-        <motion.img
+        <MotionImage
           key={index}
           src={images[index]}
           alt="Hero"

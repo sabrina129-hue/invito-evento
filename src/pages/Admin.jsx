@@ -1,98 +1,106 @@
 import { useEffect, useState } from "react";
 
+const emptyParticipant = {
+    name: "",
+    partecipate: true,
+    guests: 1,
+    message: "",
+};
+
 export default function Admin() {
     const [partecipanti, setPartecipanti] = useState([]);
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(null);
     const [adding, setAdding] = useState(false);
     const [toDelete, setToDelete] = useState(null);
-
-    const [newParticipant, setNewParticipant] = useState({
-        name: "",
-        partecipate: true,
-        guests: 1,
-        message: "",
-    });
+    const [error, setError] = useState("");
+    const [newParticipant, setNewParticipant] = useState(emptyParticipant);
 
     const token = localStorage.getItem("adminToken");
+
     useEffect(() => {
         fetch("/api/rsvps", {
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` }
         })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error("Caricamento non riuscito");
+                return res.json();
+            })
             .then(result => {
                 setPartecipanti(result.data || []);
                 setLoading(false);
             })
             .catch(() => {
+                setError("Non sono riuscito a caricare le risposte.");
                 setPartecipanti([]);
                 setLoading(false);
             });
-    }, []);
+    }, [token]);
 
-    const handleDelete = async (id) => {
+    const handleDelete = async () => {
         if (!toDelete) return;
 
-        await fetch("/api/rsvps", {
+        const res = await fetch("/api/rsvps", {
             method: "DELETE",
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
             body: JSON.stringify({ id: toDelete.id }),
         });
 
-        setPartecipanti(prev =>
-            prev.filter(p => p.id !== toDelete.id)
-        );
+        if (!res.ok) {
+            setError("Errore durante l'eliminazione.");
+            return;
+        }
 
+        setPartecipanti(prev => prev.filter(p => p.id !== toDelete.id));
         setToDelete(null);
     };
 
     const handleSaveEdit = async () => {
-        await fetch("/api/rsvps", {
+        const res = await fetch("/api/rsvps", {
             method: "PUT",
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
             body: JSON.stringify(editing),
         });
+        const result = await res.json();
+
+        if (!res.ok) {
+            setError("Errore durante il salvataggio.");
+            return;
+        }
 
         setPartecipanti(prev =>
-            prev.map(p => (p.id === editing.id ? editing : p))
+            prev.map(p => (p.id === editing.id ? result.data : p))
         );
-
         setEditing(null);
     };
 
-    const handleAdd = async (newParticipant) => {
+    const handleAdd = async () => {
         const res = await fetch("/api/rsvps", {
             method: "POST",
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
             body: JSON.stringify(newParticipant),
         });
-
         const result = await res.json();
 
         if (!res.ok) {
-            alert("Errore durante l'inserimento");
+            setError("Errore durante l'inserimento.");
             return;
         }
 
-        // ✅ aggiorni la UI 
-        setPartecipanti(prev => [
-            { ...newParticipant, id: Date.now() }, // id temporaneo
-            ...prev,
-        ]);
-
+        setPartecipanti(prev => [result.data, ...prev]);
+        setNewParticipant(emptyParticipant);
         setAdding(false);
     };
 
     const handleLogout = () => {
         localStorage.removeItem("adminToken");
-        window.location.reload(); // oppure redirect
+        window.location.reload();
     };
-
 
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <p className="text-gray-500">Caricamento…</p>
+                <p className="text-gray-500">Caricamento...</p>
             </div>
         );
     }
@@ -107,14 +115,17 @@ export default function Admin() {
         <div className="min-h-screen bg-gray-100 p-6">
             <div className="max-w-6xl mx-auto space-y-6">
 
-                <div className="bg-white rounded-xl shadow p-6">
-                    <h1 className="text-2xl font-bold">Dashboard Organizzatore</h1>
-                    <div className="mt-2 flex gap-6 text-sm">
-                        <span>Totale Risposte: <b>{totaleRisposte}</b></span>
-                        <span className="text-green-600">Partecipanti: <b>{risposteSi}</b></span>
-                        <span className="text-red-600">Assenti: <b>{risposteNo}</b></span>
-                    </div>
-                    <div className="flex justify-between items-center">
+                <div className="bg-white rounded-xl shadow p-6 space-y-3">
+                    <div className="flex flex-wrap justify-between gap-4">
+                        <div>
+                            <h1 className="text-2xl font-bold">Dashboard Organizzatore</h1>
+                            <div className="mt-2 flex flex-wrap gap-6 text-sm">
+                                <span>Totale Risposte: <b>{totaleRisposte}</b></span>
+                                <span className="text-green-600">Partecipanti: <b>{risposteSi}</b></span>
+                                <span className="text-red-600">Assenti: <b>{risposteNo}</b></span>
+                            </div>
+                        </div>
+
                         <button
                             onClick={handleLogout}
                             className="text-sm text-red-600 hover:underline"
@@ -123,6 +134,7 @@ export default function Admin() {
                         </button>
                     </div>
 
+                    {error && <p className="text-sm text-red-600">{error}</p>}
                 </div>
 
                 <div className="bg-white rounded-xl shadow overflow-x-auto">
@@ -140,10 +152,10 @@ export default function Admin() {
                             {partecipanti.map(p => (
                                 <tr key={p.id}>
                                     <td className="p-4 font-medium">{p.name}</td>
-                                    <td className="p-4">{p.partecipate ? "✅" : "❌"}</td>
+                                    <td className="p-4">{p.partecipate ? "Sì" : "No"}</td>
                                     <td className="p-4">{p.guests ?? 0}</td>
                                     <td className="p-4 max-w-md break-words">
-                                        {p.message || "—"}
+                                        {p.message || "-"}
                                     </td>
                                     <td className="p-4 flex gap-2">
                                         <button onClick={() => setEditing(p)} className="text-blue-600">
@@ -155,13 +167,19 @@ export default function Admin() {
                                         >
                                             Elimina
                                         </button>
-
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
+
+                <button
+                    onClick={() => setAdding(true)}
+                    className="mt-4 bg-green-600 text-white px-4 py-2 rounded"
+                >
+                    + Aggiungi partecipante
+                </button>
 
                 {toDelete && (
                     <div
@@ -212,11 +230,12 @@ export default function Admin() {
                             />
                             <select
                                 className="w-full border p-2 rounded"
-                                value={editing.partecipate}
+                                value={String(editing.partecipate)}
                                 onChange={e =>
                                     setEditing({
                                         ...editing,
                                         partecipate: e.target.value === "true",
+                                        guests: e.target.value === "true" ? Math.max(1, editing.guests || 1) : 0,
                                     })
                                 }
                             >
@@ -230,7 +249,7 @@ export default function Admin() {
                                 disabled={!editing.partecipate}
                                 className="w-full border p-2"
                                 value={editing.guests}
-                                onChange={e => setEditing({ ...editing, guests: editing.partecipate ? Math.max(1, Number(e.target.value)) : 0, })}
+                                onChange={e => setEditing({ ...editing, guests: editing.partecipate ? Math.max(1, Number(e.target.value)) : 0 })}
                             />
                             <textarea
                                 className="w-full border p-2"
@@ -246,12 +265,6 @@ export default function Admin() {
                         </div>
                     </div>
                 )}
-                <button
-                    onClick={() => setAdding(true)}
-                    className="mt-4 bg-green-600 text-white px-4 py-2 rounded"
-                >
-                    + Aggiungi partecipante
-                </button>
 
                 {adding && (
                     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
@@ -270,11 +283,12 @@ export default function Admin() {
 
                             <select
                                 className="w-full border p-2 rounded"
-                                value={newParticipant.partecipate}
+                                value={String(newParticipant.partecipate)}
                                 onChange={e =>
                                     setNewParticipant({
                                         ...newParticipant,
                                         partecipate: e.target.value === "true",
+                                        guests: e.target.value === "true" ? Math.max(1, newParticipant.guests || 1) : 0,
                                     })
                                 }
                             >
@@ -316,7 +330,7 @@ export default function Admin() {
                                 </button>
                                 <button
                                     className="bg-green-600 text-white px-4 py-2 rounded"
-                                    onClick={() => handleAdd(newParticipant)}
+                                    onClick={handleAdd}
                                 >
                                     Aggiungi
                                 </button>
