@@ -4,18 +4,21 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: "#883650",
-        secondary: "#684855",
-        background: "#FAFAFA",
-        text: "#1F2937",
-        muted: "#6B7280",
+        primary: "var(--color-primary)",
+        secondary: "var(--color-secondary)",
+        background: "var(--color-background)",
+        surface: "var(--color-surface)",
+        text: "var(--color-text)",
+        muted: "var(--color-muted)",
       },
       fontFamily: {
-        title: ["Playfair Display", "serif"],
-        body: ["Inter", "sans-serif"],
+        title: ["var(--font-title)"],
+        body: ["var(--font-body)"],
       },
       borderRadius: {
-        card: "1.5rem",
+        card: "var(--radius-card)",
+        input: "var(--radius-input)",
+        button: "var(--radius-button)",
       },
       spacing: {
         section: "2rem",

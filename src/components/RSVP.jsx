@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { event } from "../data/event";
 
-export default function RSVP() {
+export default function RSVP({ config }) {
   const [form, setForm] = useState({ name: "", guests: 1, attending: true, notes: "" });
   const [showSuccess, setShowSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -42,7 +41,7 @@ export default function RSVP() {
       setShowSuccess(true);
       setForm({ name: "", guests: 1, attending: true, notes: "" });
     } catch {
-      setError("Non sono riuscito a inviare la risposta. Riprova tra poco.");
+      setError(config.errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -50,11 +49,11 @@ export default function RSVP() {
 
   return (
     <form onSubmit={handleSubmit} className="section">
-      <h2 className="h2">Conferma la tua presenza!</h2>
+      <h2 className="h2">{config.title}</h2>
 
       <input
-        className="w-full border rounded-lg px-4 py-2 text-body"
-        placeholder={event.placeholder_name}
+        className="w-full border rounded-input px-4 py-2 text-body"
+        placeholder={config.namePlaceholder}
         name="name"
         value={form.name}
         onChange={handleChange}
@@ -62,33 +61,33 @@ export default function RSVP() {
       />
 
       <label className="flex items-center justify-center gap-2 text-body">
-        <input type="checkbox" name="attending" checked={form.attending} onChange={handleChange} /> Sarò presente
+        <input type="checkbox" name="attending" checked={form.attending} onChange={handleChange} /> {config.attendingLabel}
       </label>
 
       {form.attending && (
         <input
-          className="w-full border rounded-lg px-4 py-2 text-body"
+          className="w-full border rounded-input px-4 py-2 text-body"
           type="number"
           min="1"
           name="guests"
           value={form.guests}
           onChange={handleChange}
-          aria-label="Numero partecipanti"
+          aria-label={config.guestsLabel}
         />
       )}
 
       <textarea
-        className="w-full border rounded-lg px-4 py-2 text-body"
+        className="w-full border rounded-input px-4 py-2 text-body"
         name="notes"
         value={form.notes}
         onChange={handleChange}
-        placeholder={event.placeholder_textBox}
+        placeholder={config.notesPlaceholder}
       />
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       <button type="submit" disabled={submitting} className="btn w-full mt-2 flex items-center justify-center disabled:opacity-60">
-        {submitting ? "Invio..." : "Invia 💌"}
+        {submitting ? config.submittingLabel : config.submitLabel}
       </button>
 
       {showSuccess && (
@@ -100,21 +99,21 @@ export default function RSVP() {
             className="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full text-center space-y-4"
             onClick={e => e.stopPropagation()}
           >
-            <div className="text-4xl">🎉</div>
+            <div className="text-4xl">{config.successIcon}</div>
 
             <h2 className="text-xl font-bold text-gray-900">
-              Grazie per aver risposto! 💖
+              {config.successTitle}
             </h2>
 
             <p className="text-gray-600">
-              Abbiamo ricevuto la tua conferma di partecipazione.
+              {config.successMessage}
             </p>
 
             <button
               onClick={() => setShowSuccess(false)}
               className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
             >
-              OK
+              {config.successButton}
             </button>
           </div>
         </div>

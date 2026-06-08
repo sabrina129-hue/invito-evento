@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-primary: #883650;
+  --color-secondary: #684855;
+  --color-background: #FAFAFA;
+  --color-surface: #FFFFFF;
+  --color-text: #1F2937;
+  --color-muted: #6B7280;
+  --font-title: "Playfair Display", serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --radius-card: 1.5rem;
+  --radius-input: 0.5rem;
+  --radius-button: 999px;
+}
+
 @layer components {
   .h1 { @apply text-4xl font-title text-primary tracking-wide; }
   .h2 { @apply text-2xl font-title text-primary; }
@@ -13,6 +27,6 @@
   .section { @apply space-y-4 text-center; }
 
   .btn {
-    @apply inline-flex items-center gap-2 px-6 py-2 rounded-full font-body border border-primary hover:bg-primary hover:text-white transition;
+    @apply inline-flex items-center gap-2 px-6 py-2 rounded-button font-body border border-primary text-primary hover:bg-primary hover:text-white transition;
   }
 }

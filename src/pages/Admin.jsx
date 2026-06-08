@@ -7,7 +7,7 @@ const emptyParticipant = {
     message: "",
 };
 
-export default function Admin() {
+export default function Admin({ labels, onLogout }) {
     const [partecipanti, setPartecipanti] = useState([]);
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(null);
@@ -94,7 +94,7 @@ export default function Admin() {
 
     const handleLogout = () => {
         localStorage.removeItem("adminToken");
-        window.location.reload();
+        onLogout();
     };
 
     if (loading) {
@@ -118,7 +118,7 @@ export default function Admin() {
                 <div className="bg-white rounded-xl shadow p-6 space-y-3">
                     <div className="flex flex-wrap justify-between gap-4">
                         <div>
-                            <h1 className="text-2xl font-bold">Dashboard Organizzatore</h1>
+                            <h1 className="text-2xl font-bold">{labels.dashboardTitle}</h1>
                             <div className="mt-2 flex flex-wrap gap-6 text-sm">
                                 <span>Totale Risposte: <b>{totaleRisposte}</b></span>
                                 <span className="text-green-600">Partecipanti: <b>{risposteSi}</b></span>
