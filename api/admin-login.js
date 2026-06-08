@@ -4,10 +4,18 @@ export default function handler(req, res) {
   }
 
   const { password } = req.body;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  const adminToken = process.env.ADMIN_TOKEN;
 
-  if (password === process.env.ADMIN_PASSWORD) {
+  if (!adminPassword || !adminToken) {
+    return res.status(500).json({
+      error: "Configurazione admin mancante sul server",
+    });
+  }
+
+  if (password === adminPassword) {
     return res.status(200).json({
-      token: process.env.ADMIN_TOKEN,
+      token: adminToken,
     });
   }
 
