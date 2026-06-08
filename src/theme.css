@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Modifica qui colori, font e forme dell'invito.
+   In VS Code clicca sui quadratini colore accanto ai valori HEX per aprire il color picker. */
 :root {
   --color-primary: #883650;
   --color-secondary: #684855;

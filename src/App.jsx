@@ -7,25 +7,9 @@ import { HashRouter, Routes, Route } from "react-router-dom";
 import AdminLogin from "./pages/AdminLogin.jsx";
 import { useState } from "react";
 
-function getThemeVars(theme) {
-  return {
-    "--color-primary": theme.colors.primary,
-    "--color-secondary": theme.colors.secondary,
-    "--color-background": theme.colors.background,
-    "--color-surface": theme.colors.surface,
-    "--color-text": theme.colors.text,
-    "--color-muted": theme.colors.muted,
-    "--font-title": theme.fonts.title,
-    "--font-body": theme.fonts.body,
-    "--radius-card": theme.radius.card,
-    "--radius-input": theme.radius.input,
-    "--radius-button": theme.radius.button,
-  };
-}
-
 function Home() {
   return (
-    <div style={getThemeVars(event.theme)} className="min-h-screen bg-background flex justify-center p-4">
+    <div className="min-h-screen bg-background flex justify-center p-4">
       <div className="w-full max-w-xl bg-surface rounded-card shadow-xl overflow-hidden">
         <Hero images={event.content.images}>
           <h1 className="h1">{event.content.title}</h1>

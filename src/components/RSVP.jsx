@@ -28,7 +28,7 @@ export default function RSVP({ config }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: form.name,
-          partecipate: form.attending,
+          partecipa: form.attending,
           guests: form.attending ? Number(form.guests) : 0,
           message: form.notes,
         }),

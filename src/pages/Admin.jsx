@@ -7,6 +7,174 @@ const emptyParticipant = {
     message: "",
 };
 
+const toPdfText = value =>
+    String(value ?? "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^\x20-\x7E]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+const escapePdfString = value =>
+    toPdfText(value)
+        .replace(/\\/g, "\\\\")
+        .replace(/\(/g, "\\(")
+        .replace(/\)/g, "\\)");
+
+const wrapPdfText = (value, maxLength) => {
+    const words = toPdfText(value || "-").split(" ");
+    const lines = [];
+    let line = "";
+
+    words.forEach(word => {
+        if (!line) {
+            line = word;
+            return;
+        }
+
+        if (`${line} ${word}`.length > maxLength) {
+            lines.push(line);
+            line = word;
+        } else {
+            line = `${line} ${word}`;
+        }
+    });
+
+    if (line) lines.push(line);
+    return lines.length ? lines : ["-"];
+};
+
+const buildPdf = ({ title, participants, totals, isFiltered }) => {
+    const pageWidth = 842;
+    const pageHeight = 595;
+    const margin = 36;
+    const tableTop = 138;
+    const rowPadding = 8;
+    const lineHeight = 12;
+    const minRowHeight = 30;
+    const bottomMargin = 36;
+    const columns = [
+        { label: "#", x: 42, width: 28 },
+        { label: "Nome", x: 76, width: 190 },
+        { label: "Partecipa", x: 272, width: 118 },
+        { label: "Ospiti", x: 396, width: 56 },
+        { label: "Messaggio", x: 458, width: 342 },
+    ];
+    const pages = [];
+    let currentPage = [];
+    let y = tableTop + 24;
+
+    const text = (value, x, textY, size = 10, font = "F1") =>
+        `0 0 0 rg BT /${font} ${size} Tf ${x} ${textY} Td (${escapePdfString(value)}) Tj ET`;
+    const line = (x1, y1, x2, y2) =>
+        `0.82 0.84 0.87 RG ${x1} ${y1} m ${x2} ${y2} l S`;
+    const rect = (x, rectY, width, height, color = "0.96 0.97 0.98") =>
+        `${color} rg ${x} ${rectY} ${width} ${height} re f`;
+    const drawHeader = () => [
+        rect(margin, pageHeight - 92, pageWidth - margin * 2, 42, "0.94 0.96 0.98"),
+        text(title, margin + 14, pageHeight - 66, 18, "F2"),
+        text(`Generato il ${new Date().toLocaleDateString("it-IT")} alle ${new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}`, 610, pageHeight - 64, 9),
+        text(`Totale risposte: ${totals.total}`, margin + 14, pageHeight - 104, 10, "F2"),
+        text(`Partecipanti: ${totals.yes}`, margin + 160, pageHeight - 104, 10, "F2"),
+        text(`Assenti: ${totals.no}`, margin + 300, pageHeight - 104, 10, "F2"),
+        text(isFiltered ? `Lista filtrata: ${participants.length} risultati` : `Lista completa: ${participants.length} invitati`, margin + 420, pageHeight - 104, 10, "F2"),
+        rect(margin, pageHeight - tableTop - 22, pageWidth - margin * 2, 24, "0.90 0.92 0.95"),
+        ...columns.map(column => text(column.label, column.x, pageHeight - tableTop - 6, 10, "F2")),
+        line(margin, pageHeight - tableTop - 22, pageWidth - margin, pageHeight - tableTop - 22),
+    ];
+    const finishPage = () => {
+        pages.push([...drawHeader(), ...currentPage]);
+        currentPage = [];
+        y = tableTop + 24;
+    };
+
+    if (!participants.length) {
+        currentPage.push(text("Nessun invitato trovato.", margin + 14, pageHeight - y - 30, 11));
+        finishPage();
+    }
+
+    participants.forEach((participant, index) => {
+        const messageLines = wrapPdfText(participant.message || "-", 58);
+        const nameLines = wrapPdfText(participant.name || "-", 28);
+        const rowLines = Math.max(messageLines.length, nameLines.length, 1);
+        const rowHeight = Math.max(minRowHeight, rowLines * lineHeight + rowPadding * 2);
+
+        if (y + rowHeight > pageHeight - bottomMargin) {
+            finishPage();
+        }
+
+        const rowTop = pageHeight - y;
+        const rowBottom = pageHeight - y - rowHeight;
+        const isEven = index % 2 === 0;
+
+        if (isEven) {
+            currentPage.push(rect(margin, rowBottom, pageWidth - margin * 2, rowHeight, "0.99 0.99 0.99"));
+        }
+
+        currentPage.push(line(margin, rowBottom, pageWidth - margin, rowBottom));
+        columns.slice(1).forEach(column => {
+            currentPage.push(line(column.x - 6, rowTop, column.x - 6, rowBottom));
+        });
+
+        currentPage.push(text(String(index + 1), columns[0].x, rowTop - 18, 9));
+        nameLines.forEach((nameLine, lineIndex) => {
+            currentPage.push(text(nameLine, columns[1].x, rowTop - 18 - lineIndex * lineHeight, 9));
+        });
+        currentPage.push(text(participant.partecipate ? "Partecipa" : "Non partecipa", columns[2].x, rowTop - 18, 9));
+        currentPage.push(text(String(participant.guests ?? 0), columns[3].x, rowTop - 18, 9));
+        messageLines.forEach((messageLine, lineIndex) => {
+            currentPage.push(text(messageLine, columns[4].x, rowTop - 18 - lineIndex * lineHeight, 9));
+        });
+
+        y += rowHeight;
+    });
+
+    if (currentPage.length) {
+        finishPage();
+    }
+
+    const objects = [];
+    const addObject = content => {
+        objects.push(content);
+        return objects.length;
+    };
+
+    const catalogId = addObject("");
+    const pagesId = addObject("");
+    const fontId = addObject("<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>");
+    const boldFontId = addObject("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>");
+    const pageIds = [];
+
+    pages.forEach((pageCommands, pageIndex) => {
+        const pageNumber = text(`Pagina ${pageIndex + 1} di ${pages.length}`, pageWidth - 110, 22, 8);
+        const content = [...pageCommands, pageNumber].join("\n");
+        const contentId = addObject(`<< /Length ${content.length} >>\nstream\n${content}\nendstream`);
+        const pageId = addObject(`<< /Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /Font << /F1 ${fontId} 0 R /F2 ${boldFontId} 0 R >> >> /Contents ${contentId} 0 R >>`);
+        pageIds.push(pageId);
+    });
+
+    objects[catalogId - 1] = `<< /Type /Catalog /Pages ${pagesId} 0 R >>`;
+    objects[pagesId - 1] = `<< /Type /Pages /Kids [${pageIds.map(id => `${id} 0 R`).join(" ")}] /Count ${pageIds.length} >>`;
+
+    let pdf = "%PDF-1.4\n";
+    const offsets = [0];
+
+    objects.forEach((content, index) => {
+        offsets.push(pdf.length);
+        pdf += `${index + 1} 0 obj\n${content}\nendobj\n`;
+    });
+
+    const xrefOffset = pdf.length;
+    pdf += `xref\n0 ${objects.length + 1}\n`;
+    pdf += "0000000000 65535 f \n";
+    offsets.slice(1).forEach(offset => {
+        pdf += `${String(offset).padStart(10, "0")} 00000 n \n`;
+    });
+    pdf += `trailer\n<< /Size ${objects.length + 1} /Root ${catalogId} 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+
+    return pdf;
+};
+
 export default function Admin({ labels, onLogout }) {
     const [partecipanti, setPartecipanti] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -14,6 +182,8 @@ export default function Admin({ labels, onLogout }) {
     const [adding, setAdding] = useState(false);
     const [toDelete, setToDelete] = useState(null);
     const [error, setError] = useState("");
+    const [notice, setNotice] = useState("");
+    const [search, setSearch] = useState("");
     const [newParticipant, setNewParticipant] = useState(emptyParticipant);
 
     const token = localStorage.getItem("adminToken");
@@ -110,6 +280,50 @@ export default function Admin({ labels, onLogout }) {
         .filter(p => p.partecipate)
         .reduce((tot, p) => tot + (p.guests ?? 0), 0);
     const risposteNo = partecipanti.filter(p => !p.partecipate).length;
+    const searchTerm = search.trim().toLowerCase();
+    const partecipantiFiltrati = searchTerm
+        ? partecipanti.filter(p => {
+            const stato = p.partecipate ? "partecipa si presente" : "non partecipa no assente";
+            return [
+                p.name,
+                stato,
+                String(p.guests ?? 0),
+                p.message,
+            ]
+                .join(" ")
+                .toLowerCase()
+                .includes(searchTerm);
+        })
+        : partecipanti;
+    const handleDownloadPdf = () => {
+        setError("");
+        setNotice("");
+
+        const pdf = buildPdf({
+            title: "Lista invitati",
+            participants: partecipantiFiltrati,
+            totals: {
+                total: totaleRisposte,
+                yes: risposteSi,
+                no: risposteNo,
+            },
+            isFiltered: Boolean(searchTerm),
+        });
+        const pdfBytes = new TextEncoder().encode(pdf);
+        const blob = new Blob([pdfBytes], { type: "application/pdf" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        const suffix = searchTerm ? "filtrata" : "completa";
+
+        link.href = url;
+        link.download = `lista-invitati-${suffix}.pdf`;
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setNotice(`Download PDF avviato: lista-invitati-${suffix}.pdf`);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
 
     return (
         <div className="min-h-screen bg-gray-100 p-6">
@@ -135,6 +349,40 @@ export default function Admin({ labels, onLogout }) {
                     </div>
 
                     {error && <p className="text-sm text-red-600">{error}</p>}
+                    {notice && <p className="text-sm text-green-700">{notice}</p>}
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                    <button
+                        onClick={handleDownloadPdf}
+                        className="bg-blue-600 text-white px-4 py-2 rounded"
+                    >
+                        Scarica PDF
+                    </button>
+                    <button
+                        onClick={() => setAdding(true)}
+                        className="bg-green-600 text-white px-4 py-2 rounded"
+                    >
+                        + Aggiungi partecipante
+                    </button>
+                </div>
+
+                <div className="bg-white rounded-xl shadow p-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Cerca invitato
+                    </label>
+                    <input
+                        type="search"
+                        className="w-full border rounded p-2"
+                        placeholder="Cerca per nome, partecipa, ospiti o messaggio"
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                    />
+                    {searchTerm && (
+                        <p className="mt-2 text-xs text-gray-500">
+                            Risultati: {partecipantiFiltrati.length} di {partecipanti.length}
+                        </p>
+                    )}
                 </div>
 
                 <div className="bg-white rounded-xl shadow overflow-x-auto">
@@ -142,14 +390,14 @@ export default function Admin({ labels, onLogout }) {
                         <thead className="bg-gray-50 border-b">
                             <tr>
                                 <th className="p-4">Nome</th>
-                                <th className="p-4">Stato</th>
+                                <th className="p-4">Partecipa</th>
                                 <th className="p-4">Ospiti</th>
                                 <th className="p-4">Messaggio</th>
                                 <th className="p-4">Azioni</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y">
-                            {partecipanti.map(p => (
+                            {partecipantiFiltrati.map(p => (
                                 <tr key={p.id}>
                                     <td className="p-4 font-medium">{p.name}</td>
                                     <td className="p-4">{p.partecipate ? "Sì" : "No"}</td>
@@ -170,16 +418,16 @@ export default function Admin({ labels, onLogout }) {
                                     </td>
                                 </tr>
                             ))}
+                            {partecipantiFiltrati.length === 0 && (
+                                <tr>
+                                    <td colSpan="5" className="p-6 text-center text-gray-500">
+                                        Nessun invitato trovato.
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>
-
-                <button
-                    onClick={() => setAdding(true)}
-                    className="mt-4 bg-green-600 text-white px-4 py-2 rounded"
-                >
-                    + Aggiungi partecipante
-                </button>
 
                 {toDelete && (
                     <div
@@ -221,41 +469,55 @@ export default function Admin({ labels, onLogout }) {
 
                 {editing && (
                     <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-                        <div className="bg-white p-6 rounded-xl space-y-4">
+                        <div className="bg-white p-6 rounded-xl space-y-4 w-full max-w-md">
                             <h2 className="font-bold">Modifica</h2>
-                            <input
-                                className="w-full border p-2"
-                                value={editing.name}
-                                onChange={e => setEditing({ ...editing, name: e.target.value })}
-                            />
-                            <select
-                                className="w-full border p-2 rounded"
-                                value={String(editing.partecipate)}
-                                onChange={e =>
-                                    setEditing({
-                                        ...editing,
-                                        partecipate: e.target.value === "true",
-                                        guests: e.target.value === "true" ? Math.max(1, editing.guests || 1) : 0,
-                                    })
-                                }
-                            >
-                                <option value="true">Partecipa</option>
-                                <option value="false">Non partecipa</option>
-                            </select>
+                            <label className="block text-sm font-medium text-gray-700">
+                                Nome
+                                <input
+                                    className="mt-1 w-full border p-2 rounded"
+                                    value={editing.name}
+                                    onChange={e => setEditing({ ...editing, name: e.target.value })}
+                                />
+                            </label>
 
-                            <input
-                                type="number"
-                                min={editing.partecipate ? 1 : 0}
-                                disabled={!editing.partecipate}
-                                className="w-full border p-2"
-                                value={editing.guests}
-                                onChange={e => setEditing({ ...editing, guests: editing.partecipate ? Math.max(1, Number(e.target.value)) : 0 })}
-                            />
-                            <textarea
-                                className="w-full border p-2"
-                                value={editing.message || ""}
-                                onChange={e => setEditing({ ...editing, message: e.target.value })}
-                            />
+                            <label className="block text-sm font-medium text-gray-700">
+                                Partecipa
+                                <select
+                                    className="mt-1 w-full border p-2 rounded"
+                                    value={String(editing.partecipate)}
+                                    onChange={e =>
+                                        setEditing({
+                                            ...editing,
+                                            partecipate: e.target.value === "true",
+                                            guests: e.target.value === "true" ? Math.max(1, editing.guests || 1) : 0,
+                                        })
+                                    }
+                                >
+                                    <option value="true">Partecipa</option>
+                                    <option value="false">Non partecipa</option>
+                                </select>
+                            </label>
+
+                            <label className="block text-sm font-medium text-gray-700">
+                                Numero ospiti
+                                <input
+                                    type="number"
+                                    min={editing.partecipate ? 1 : 0}
+                                    disabled={!editing.partecipate}
+                                    className="mt-1 w-full border p-2 rounded disabled:bg-gray-100"
+                                    value={editing.guests}
+                                    onChange={e => setEditing({ ...editing, guests: editing.partecipate ? Math.max(1, Number(e.target.value)) : 0 })}
+                                />
+                            </label>
+
+                            <label className="block text-sm font-medium text-gray-700">
+                                Messaggio
+                                <textarea
+                                    className="mt-1 w-full border p-2 rounded"
+                                    value={editing.message || ""}
+                                    onChange={e => setEditing({ ...editing, message: e.target.value })}
+                                />
+                            </label>
                             <div className="flex justify-end gap-2">
                                 <button onClick={() => setEditing(null)}>Annulla</button>
                                 <button onClick={handleSaveEdit} className="bg-blue-600 text-white px-4 py-2 rounded">

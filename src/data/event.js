@@ -1,33 +1,13 @@
 export const event = {
   meta: {
-    pageTitle: "Invito di Sabrina 💌",
-    shareTitle: "Sei invitato al compleanno di Sabrina 🎉",
-    shareDescription: "Aspettiamo insieme la mezzanotte per festeggiare 💖",
+    pageTitle: "Invito",
+    shareTitle: "Sei invitato al compleanno di ...",
+    shareDescription: "Aspettiamo insieme la mezzanotte per festeggiare un nuovo anno di vita e un momento speciale da condividere con te. ✨",
     shareImage: "https://invito-evento-omega.vercel.app/images/img.jpeg",
     siteUrl: "https://invito-evento-omega.vercel.app",
     themeColor: "#883650",
     favicon: "/vite.svg",
     fontStylesheet: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap",
-  },
-
-  theme: {
-    colors: {
-      primary: "#883650",
-      secondary: "#684855",
-      background: "#FAFAFA",
-      surface: "#FFFFFF",
-      text: "#1F2937",
-      muted: "#6B7280",
-    },
-    fonts: {
-      title: "'Playfair Display', serif",
-      body: "'Inter', system-ui, sans-serif",
-    },
-    radius: {
-      card: "1.5rem",
-      input: "0.5rem",
-      button: "999px",
-    },
   },
 
   content: {
