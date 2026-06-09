@@ -41,6 +41,304 @@
   mask-image: linear-gradient(to bottom, #000 0%, #000 28%, transparent 100%);
 }
 
+.envelope-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 1.5rem;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 28%, rgba(255, 255, 255, 0.92), transparent 32rem),
+    linear-gradient(145deg, var(--color-background), rgba(193, 199, 159, 0.28));
+}
+
+.envelope-stage.is-open {
+  align-items: start;
+  overflow-y: auto;
+  padding: 1rem 0.75rem 1.5rem;
+}
+
+.envelope-button {
+  position: relative;
+  z-index: 4;
+  width: min(94vw, 34rem);
+  height: min(68vw, 23.5rem);
+  border: 0;
+  padding: 0;
+  border-radius: 0.75rem;
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+  perspective: 1000px;
+  filter: drop-shadow(0 1.4rem 2.4rem rgba(15, 16, 16, 0.2));
+}
+
+.envelope-button:focus-visible {
+  outline: 3px solid var(--color-secondary);
+  outline-offset: 0.5rem;
+}
+
+.envelope {
+  position: absolute;
+  inset: auto 0 0;
+  height: 58%;
+  overflow: hidden;
+  border-radius: 0.7rem;
+  box-shadow:
+    inset 0 0 0 1px rgba(83, 91, 46, 0.12),
+    inset 0 1.4rem 2.4rem rgba(255, 255, 255, 0.34);
+}
+
+.envelope-back {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.7), transparent 10rem),
+    linear-gradient(135deg, transparent 49.5%, rgba(83, 91, 46, 0.13) 50%, transparent 50.8%),
+    linear-gradient(225deg, transparent 49.5%, rgba(83, 91, 46, 0.13) 50%, transparent 50.8%),
+    linear-gradient(180deg, #f8f2df, #e7ddbf);
+}
+
+.envelope-front {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(32deg, rgba(223, 213, 184, 0.94) 0 49.5%, transparent 50%),
+    linear-gradient(-32deg, rgba(238, 228, 199, 0.96) 0 49.5%, transparent 50%),
+    linear-gradient(to top, #faf3dd 0 56%, transparent 57%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(223, 213, 184, 0.35));
+  border: 1px solid rgba(83, 91, 46, 0.13);
+  border-radius: 0.7rem;
+}
+
+.envelope-flap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  width: 100%;
+  height: 58%;
+  transform-origin: top center;
+  background:
+    linear-gradient(180deg, rgba(255, 253, 244, 0.95), rgba(232, 221, 190, 0.96));
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  border-top: 1px solid rgba(83, 91, 46, 0.12);
+  transition: transform 0.8s cubic-bezier(0.2, 0.72, 0.18, 1);
+}
+
+.envelope-seal {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 4.15rem;
+  height: 4.15rem;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.18), transparent 1.2rem),
+    linear-gradient(145deg, #6b7137, var(--color-primary));
+  color: #fff8eb;
+  font-family: var(--font-title);
+  font-size: 1.28rem;
+  line-height: 1;
+  border: 1px solid rgba(255, 252, 244, 0.34);
+  box-shadow:
+    inset 0 0.18rem 0.45rem rgba(255, 255, 255, 0.16),
+    inset 0 -0.28rem 0.65rem rgba(15, 16, 16, 0.18),
+    0 0.35rem 0.85rem rgba(15, 16, 16, 0.18);
+  transition: opacity 0.35s ease, scale 0.35s ease;
+}
+
+.envelope-card {
+  position: absolute;
+  left: 9%;
+  right: 9%;
+  bottom: 34%;
+  z-index: 1;
+  display: flex;
+  min-height: 50%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 1.25rem 1.4rem 2rem;
+  border: 1px solid rgba(83, 91, 46, 0.22);
+  border-radius: 0.55rem;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.76), transparent 13rem),
+    linear-gradient(rgba(255, 252, 244, 0.9), rgba(255, 248, 231, 0.88)),
+    var(--color-surface);
+  box-shadow:
+    inset 0 0 0 0.45rem rgba(255, 255, 255, 0.18),
+    0 0.55rem 1.1rem rgba(15, 16, 16, 0.12);
+  transition: transform 1s cubic-bezier(0.2, 0.72, 0.18, 1), opacity 0.5s ease;
+}
+
+.envelope-card::before {
+  content: "";
+  position: absolute;
+  inset: 0.85rem;
+  border: 1px solid rgba(83, 91, 46, 0.2);
+  border-radius: 0.35rem;
+  pointer-events: none;
+}
+
+.envelope-card-title {
+  font-family: var(--font-title);
+  max-width: 24rem;
+  font-size: clamp(1.9rem, 5.8vw, 3.05rem);
+  line-height: 1.08;
+  color: var(--color-primary);
+  text-wrap: balance;
+}
+
+.envelope-card-subtitle {
+  font-family: var(--font-body);
+  font-size: clamp(0.86rem, 2vw, 1rem);
+  line-height: 1;
+  color: var(--color-secondary);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.envelope-button.is-opening .envelope-flap {
+  transform: rotateX(180deg);
+}
+
+.envelope-button.is-opening .envelope-seal {
+  opacity: 0;
+  scale: 0.82;
+}
+
+.envelope-button.is-opening .envelope-card {
+  transform: translateY(-72%) scale(0.92);
+  opacity: 0;
+}
+
+.envelope-stage.is-open .envelope-button {
+  position: fixed;
+  left: 50%;
+  top: min(62vh, 29rem);
+  translate: -50% -50%;
+  scale: 0.72;
+  transform-origin: center;
+  pointer-events: none;
+}
+
+.parchment-scroll {
+  position: relative;
+  z-index: 5;
+  width: min(100%, 37rem);
+  padding: 1.1rem 0 1.8rem;
+  perspective: 1200px;
+}
+
+.parchment-scroll-inner {
+  position: relative;
+  width: 100%;
+  transform-style: preserve-3d;
+  padding: 0.8rem 0;
+}
+
+.parchment-scroll-inner::before,
+.parchment-scroll-inner::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  z-index: 3;
+  width: min(92%, 33rem);
+  height: 1.35rem;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, rgba(120, 91, 55, 0.52), rgba(246, 232, 192, 0.96), rgba(120, 91, 55, 0.52));
+  box-shadow: 0 0.35rem 0.95rem rgba(15, 16, 16, 0.16);
+  translate: -50% 0;
+}
+
+.parchment-scroll-inner::before {
+  top: 0;
+}
+
+.parchment-scroll-inner::after {
+  bottom: 0;
+}
+
+.parchment-content {
+  position: relative;
+  z-index: 2;
+}
+
+.parchment-content::before {
+  content: "";
+  position: absolute;
+  inset: 0.85rem;
+  z-index: -1;
+  border-radius: var(--radius-card);
+  background: rgba(15, 16, 16, 0.18);
+  filter: blur(1.7rem);
+  transform: translateY(0.9rem);
+}
+
+.wedding-sparkles {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.wedding-sparkle {
+  position: absolute;
+  top: -1.5rem;
+  display: block;
+  opacity: 0;
+  animation-name: wedding-sparkle-fall;
+  animation-timing-function: cubic-bezier(0.17, 0.67, 0.29, 1);
+  animation-fill-mode: forwards;
+  filter: drop-shadow(0 0.25rem 0.45rem rgba(83, 91, 46, 0.12));
+}
+
+.wedding-sparkle.confetto {
+  border-radius: 0.12rem 0.42rem 0.12rem 0.42rem;
+}
+
+.wedding-sparkle.sparkle {
+  background: currentColor;
+  clip-path: polygon(50% 0, 61% 36%, 100% 50%, 61% 64%, 50% 100%, 39% 64%, 0 50%, 39% 36%);
+  box-shadow: 0 0 1.1rem currentColor;
+}
+
+@keyframes wedding-sparkle-fall {
+  0% {
+    opacity: 0;
+    translate: 0 -1.5rem;
+    rotate: 0deg;
+    scale: 0.85;
+  }
+
+  12% {
+    opacity: 0.86;
+  }
+
+  76% {
+    opacity: 0.62;
+  }
+
+  100% {
+    opacity: 0;
+    translate: var(--sparkle-drift, 0.8rem) 108vh;
+    rotate: 420deg;
+    scale: 1.05;
+  }
+}
+
 @keyframes confetti-fall {
   0% {
     opacity: 0;
@@ -61,6 +359,14 @@
 @media (prefers-reduced-motion: reduce) {
   .confetti-layer {
     display: none;
+  }
+
+  .envelope-card,
+  .envelope-flap,
+  .envelope-seal,
+  .wedding-sparkle {
+    transition-duration: 0.01ms;
+    animation-duration: 0.01ms;
   }
 }
 

@@ -14,6 +14,12 @@ export const event = {
     title: "Angelo & Gina",
     subtitle: "Sono lieti di invitarvi alle loro nozze",
     description: "",
+    envelope: {
+      title: "Ho un invito per te",
+      subtitle: "",
+      buttonLabel: "Apri invito",
+      seal: "A&G",
+    },
     date: "20 Dicembre 2026",
     time: "Ore 10:00",
     locations: {
