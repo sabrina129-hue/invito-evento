@@ -75,13 +75,33 @@ Online devi impostare gli stessi valori nelle Environment Variables del progetto
 
 Ogni invito puo usare una tabella Supabase diversa.
 
-In locale imposta:
+In locale apri `.env.local`.
+
+Se la variabile non esiste, aggiungi questa riga:
 
 ```env
 INVITE_TABLE="partecipanti_nome_invito"
 ```
 
+Per l'invito attuale il valore di partenza puo essere:
+
+```env
+INVITE_TABLE="partecipanti"
+```
+
+Per un nuovo invito cambia solo il nome della tabella, per esempio:
+
+```env
+INVITE_TABLE="partecipanti_lucia_2026"
+```
+
 Online imposta lo stesso valore su Vercel.
+
+Dopo aver cambiato `.env.local`, riavvia il server locale:
+
+```bash
+npx vercel dev
+```
 
 Per creare la tabella in Supabase:
 
