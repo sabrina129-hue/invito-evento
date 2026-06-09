@@ -12,7 +12,7 @@ export default function Hero({ images, children }) {
   }, [images.length]);
 
   return (
-    <div className="relative h-80 w-full overflow-hidden rounded-t-card">
+    <div className="relative h-80 w-full overflow-hidden rounded-t-card bg-surface">
       <AnimatePresence mode="wait">
         <MotionImage
           key={index}
@@ -22,11 +22,9 @@ export default function Hero({ images, children }) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 1 }}
-          className="absolute inset-0 w-full h-full object-cover"
+          className="hero-image absolute inset-0 w-full h-full object-cover"
         />
       </AnimatePresence>
-
-      <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent via-surface/70 to-surface"></div>
 
       <div className="absolute inset-0 flex items-end justify-center pb-8 text-center text-white drop-shadow">
         {children}

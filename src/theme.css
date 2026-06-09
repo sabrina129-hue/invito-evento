@@ -11,8 +11,8 @@
   --color-surface: #c1c79fc1;
   --color-text: #0f1010;
   --color-muted: #6B7280;
-  --font-title: "Playfair Display", serif;
-  --font-body: "Inter", system-ui, sans-serif;
+  --font-title: "Great Vibes", cursive;
+  --font-body: "Cormorant Garamond", Georgia, serif;
   --radius-card: 1.5rem;
   --radius-input: 0.5rem;
   --radius-button: 999px;
@@ -34,6 +34,11 @@
   animation-name: confetti-fall;
   animation-timing-function: cubic-bezier(0.18, 0.68, 0.33, 1);
   animation-fill-mode: forwards;
+}
+
+.hero-image {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 28%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 28%, transparent 100%);
 }
 
 @keyframes confetti-fall {
@@ -60,9 +65,9 @@
 }
 
 @layer components {
-  .h1 { @apply text-4xl font-title text-primary tracking-wide; }
-  .h2 { @apply text-2xl font-title text-primary; }
-  .h3 { @apply text-xl font-title text-secondary italic; }
+  .h1 { @apply text-5xl font-title text-primary; }
+  .h2 { @apply text-3xl font-title text-primary; }
+  .h3 { @apply text-2xl font-body text-secondary italic; }
 
   .text-body { @apply text-base font-body text-text; }
   .placeholder { @apply text-sm text-muted; }
