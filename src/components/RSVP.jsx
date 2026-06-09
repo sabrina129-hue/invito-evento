@@ -105,22 +105,22 @@ export default function RSVP({ config }) {
           onClick={() => setShowSuccess(false)}
         >
           <div
-            className="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full text-center space-y-4"
+            className="bg-surface rounded-card shadow-xl p-6 max-w-sm w-full text-center space-y-4"
             onClick={e => e.stopPropagation()}
           >
             <div className="text-4xl">{config.successIcon}</div>
 
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2 className="text-xl font-bold text-primary">
               {config.successTitle}
             </h2>
 
-            <p className="text-gray-600">
+            <p className="text-text">
               {config.successMessage}
             </p>
 
             <button
               onClick={() => setShowSuccess(false)}
-              className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
+              className="btn mt-4"
             >
               {config.successButton}
             </button>

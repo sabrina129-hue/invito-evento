@@ -386,7 +386,7 @@ export default function Admin({ labels, onLogout }) {
                 </div>
 
                 <div className="bg-white rounded-xl shadow overflow-x-auto">
-                    <table className="w-full text-sm">
+                    <table className="w-full text-sm text-center">
                         <thead className="bg-gray-50 border-b">
                             <tr>
                                 <th className="p-4">Nome</th>
@@ -399,13 +399,14 @@ export default function Admin({ labels, onLogout }) {
                         <tbody className="divide-y">
                             {partecipantiFiltrati.map(p => (
                                 <tr key={p.id}>
-                                    <td className="p-4 font-medium">{p.name}</td>
+                                    <td className="p-4 font-medium text-center">{p.name}</td>
                                     <td className="p-4">{p.partecipate ? "Sì" : "No"}</td>
                                     <td className="p-4">{p.guests ?? 0}</td>
-                                    <td className="p-4 max-w-md break-words">
+                                    <td className="p-4 max-w-md break-words text-center">
                                         {p.message || "-"}
                                     </td>
-                                    <td className="p-4 flex gap-2">
+                                    <td className="p-4">
+                                        <div className="flex justify-center gap-2">
                                         <button onClick={() => setEditing(p)} className="text-blue-600">
                                             Modifica
                                         </button>
@@ -415,6 +416,7 @@ export default function Admin({ labels, onLogout }) {
                                         >
                                             Elimina
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
