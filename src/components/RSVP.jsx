@@ -65,15 +65,24 @@ export default function RSVP({ config }) {
       </label>
 
       {form.attending && (
-        <input
-          className="w-full border rounded-input px-4 py-2 text-body"
-          type="number"
-          min="1"
-          name="guests"
-          value={form.guests}
-          onChange={handleChange}
-          aria-label={config.guestsLabel}
-        />
+        <div className="space-y-2 text-left">
+          <label className="sr-only" htmlFor="guests">
+            {config.guestsLabel}
+          </label>
+          <input
+            id="guests"
+            className="w-full border rounded-input px-4 py-2 text-body"
+            type="number"
+            min="1"
+            name="guests"
+            value={form.guests}
+            onChange={handleChange}
+            aria-describedby="guests-help"
+          />
+          <p id="guests-help" className="text-xs leading-relaxed text-muted">
+            {config.guestsHelpText}
+          </p>
+        </div>
       )}
 
       <textarea

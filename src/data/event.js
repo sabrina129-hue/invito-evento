@@ -32,6 +32,7 @@ export const event = {
     namePlaceholder: "Nome",
     attendingLabel: "Sarò presente",
     guestsLabel: "Numero partecipanti",
+    guestsHelpText: "Indica il numero totale di persone, compreso te. Ad esempio:se vieni un accompagnatore inserisci 2.",
     notesPlaceholder: "Allergie, intolleranze o un messaggio per me ✏️",
     submitLabel: "Invia 💌",
     submittingLabel: "Invio...",

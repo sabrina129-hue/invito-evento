@@ -26,9 +26,9 @@ export default function Hero({ images, children }) {
         />
       </AnimatePresence>
 
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white"></div>
+      <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent via-surface/70 to-surface"></div>
 
-      <div className="absolute inset-0 flex items-end justify-center text-center text-white drop-shadow">
+      <div className="absolute inset-0 flex items-end justify-center pb-8 text-center text-white drop-shadow">
         {children}
       </div>
     </div>
