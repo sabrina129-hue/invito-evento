@@ -236,3 +236,37 @@ ADMIN_TOKEN="token_random_del_nuovo_invito"
 8. Inserisci in Vercel le Environment Variables del nuovo invito.
 9. Fai push del branch.
 10. Condividi il link pubblico agli invitati e il link `/#/admin` solo all'organizzatore.
+
+## 7. Errore 500 quando un ospite preme Invia
+
+Se sul sito pubblicato da Vercel il form mostra errore e nella console vedi:
+
+```text
+Failed to load resource: the server responded with a status of 500
+```
+
+controlla questi punti nel progetto Vercel del singolo invito:
+
+1. `SUPABASE_URL` esiste ed e uguale al Project URL Supabase.
+2. `SUPABASE_KEY` esiste ed e una chiave server/secret del progetto Supabase.
+3. `INVITE_TABLE` esiste ed e scritto esattamente come la tabella Supabase.
+4. La tabella e stata creata in Supabase usando `supabase-create-invite-table.sql`.
+5. Dopo aver aggiunto o modificato le Environment Variables, hai fatto un nuovo deploy.
+
+Esempio:
+
+```env
+SUPABASE_URL="https://xxxxx.supabase.co"
+SUPABASE_KEY="sb_secret_..."
+INVITE_TABLE="partecipanti_lucia_2026"
+ADMIN_PASSWORD="password-solo-lucia"
+ADMIN_TOKEN="token-random-solo-lucia"
+```
+
+Per vedere il dettaglio dell'errore:
+
+1. vai su Vercel;
+2. apri il progetto dell'invito;
+3. vai in `Logs`;
+4. riprova a inviare il form;
+5. controlla il log della funzione `/api/rsvp`.
