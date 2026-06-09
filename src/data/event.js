@@ -11,14 +11,14 @@ export const event = {
   },
 
   content: {
-    title: "💌 Ho un invito per te! 💌",
-    subtitle: "Aspettiamo insieme la mezzanotte: un nuovo anno per me, un momento speciale da condividere con te. ✨",
+    title: "Angelo & Gina",
+    subtitle: "Sono lieti di invitarvi alle loro nozze!",
     description: "",
-    date: "31 Gennaio 2026",
-    time: "Ore 22:00",
+    date: "20 Dicembre 2026",
+    time: "Ore 10:00",
     locations: {
       ceremony: {
-        label: "📍 Qui",
+        label: "📍 Dove",
         url: "https://www.google.it/maps/place/Megusta+pizza+e+cucina/@40.8979645,14.8259666,660m/data=!3m2!1e3!4b1!4m6!3m5!1s0x133bcd94d1963d29:0xd13e759d5862f73d!8m2!3d40.8979645!4d14.8259666!16s%2Fg%2F11clswnh2s?entry=ttu&g_ep=EgoyMDI2MDExMy4wIKXMDSoASAFQAw%3D%3D"
       },
     },
@@ -33,7 +33,7 @@ export const event = {
     attendingLabel: "Sarò presente",
     guestsLabel: "Numero partecipanti",
     guestsHelpText: "Indica il numero totale di persone, compreso te. Ad esempio:se vieni un accompagnatore inserisci 2.",
-    notesPlaceholder: "Allergie, intolleranze o un messaggio per me ✏️",
+    notesPlaceholder: "Allergie, intolleranze o un messaggio per noi ✏️",
     submitLabel: "Invia 💌",
     submittingLabel: "Invio...",
     errorMessage: "Non sono riuscito a inviare la risposta. Riprova tra poco.",
