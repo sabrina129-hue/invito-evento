@@ -1,13 +1,19 @@
 import { createClient } from "@supabase/supabase-js";
 import { inviteTable } from "../lib/inviteConfig.js";
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY
-);
-
 export default async function handler(req, res) {
   if (req.method === "POST") {
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_KEY;
+
+    if (!supabaseUrl || !supabaseKey || !inviteTable) {
+      return res.status(500).json({
+        error: "Configurazione Supabase mancante",
+        details: "Controlla SUPABASE_URL, SUPABASE_KEY e INVITE_TABLE nelle Environment Variables di Vercel.",
+      });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
     const { name, guests, message } = req.body;
     const cleanName = String(name || "").trim();
     const cleanMessage = String(message || "").trim();
@@ -42,7 +48,13 @@ export default async function handler(req, res) {
         .single());
     }
 
-    if (error) return res.status(500).json({ error });
+    if (error) {
+      return res.status(500).json({
+        error: "Non sono riuscito a salvare la risposta",
+        details: error.message,
+        table: inviteTable,
+      });
+    }
 
     return res.status(201).json({ data });
   }
