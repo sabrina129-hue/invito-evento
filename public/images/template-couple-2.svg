@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Dettaglio floreale per matrimonio</title>
+  <desc id="desc">Illustrazione di mani, fedi e fiori in stile invito matrimoniale.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fffdf5"/>
+      <stop offset="1" stop-color="#dfe4c0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)"/>
+  <path d="M190 560c210-90 290-64 420-44 172 26 266-24 400-74 48-18 82-20 110-12v370H190Z" fill="#535b2e" opacity="0.14"/>
+  <path d="M330 428c82-38 178-40 266 0" stroke="#d7bd7c" stroke-width="34" fill="none" stroke-linecap="round"/>
+  <path d="M608 428c82-38 178-40 266 0" stroke="#d7bd7c" stroke-width="34" fill="none" stroke-linecap="round"/>
+  <path d="M248 478c166-50 266-36 346 10" stroke="#efcfbd" stroke-width="88" fill="none" stroke-linecap="round"/>
+  <path d="M954 478c-166-50-266-36-346 10" stroke="#e9c1ab" stroke-width="88" fill="none" stroke-linecap="round"/>
+  <g fill="none" stroke="#535b2e" stroke-width="10" stroke-linecap="round" opacity="0.72">
+    <path d="M204 270c88 40 146 100 174 180"/>
+    <path d="M1010 246c-96 42-160 110-194 204"/>
+    <path d="M450 192c52 82 72 160 58 238"/>
+  </g>
+  <g fill="#f8f1df">
+    <circle cx="198" cy="260" r="42"/>
+    <circle cx="1010" cy="238" r="48"/>
+    <circle cx="450" cy="184" r="38"/>
+    <circle cx="290" cy="332" r="30"/>
+    <circle cx="900" cy="322" r="34"/>
+  </g>
+  <g fill="#d7bd7c" opacity="0.82">
+    <circle cx="198" cy="260" r="12"/>
+    <circle cx="1010" cy="238" r="13"/>
+    <circle cx="450" cy="184" r="10"/>
+    <circle cx="290" cy="332" r="8"/>
+    <circle cx="900" cy="322" r="9"/>
+  </g>
+</svg>

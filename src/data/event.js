@@ -1,52 +1,51 @@
 export const event = {
   meta: {
-    pageTitle: "Invito matrimonio Angelo e Gina",
-    shareTitle: "Angelo e Gina si sposano",
-    shareDescription: "Saremo felici di condividere con voi il giorno delle nostre nozze.",
-    shareImage: "https://invito-evento-omega.vercel.app/images/img2.jpeg",
-    siteUrl: "https://invito-evento-omega.vercel.app",
+    pageTitle: "Template invito matrimonio",
+    shareTitle: "Sofia e Leonardo si sposano",
+    shareDescription: "Un invito dimostrativo per un matrimonio elegante e personalizzabile.",
+    shareImage: "https://example.com/images/template-couple-1.svg",
+    siteUrl: "https://example.com",
     themeColor: "#535b2e",
     favicon: "/vite.svg",
     fontStylesheet: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Great+Vibes&display=swap",
   },
 
   content: {
-    title: "Angelo & Gina",
+    title: "Sofia & Leonardo",
     subtitle: "Sono lieti di invitarvi alle loro nozze",
-    description: "",
+    description: "Una giornata speciale da vivere insieme alle persone piu care.",
     envelope: {
       title: "Ho un invito per te",
       subtitle: "",
       buttonLabel: "Apri invito",
-      seal: "A&G",
+      seal: "S&L",
     },
-    date: "20 Dicembre 2026",
-    time: "Ore 10:00",
+    date: "14 Giugno 2027",
+    time: "Ore 16:30",
     calendar: {
       buttonLabel: "Aggiungi al calendario",
-      title: "Matrimonio Angelo e Gina",
-      description: "Angelo e Gina saranno felici di condividere con voi il giorno delle loro nozze.",
-      location: "Chiesa Maria SS della Neve",
-      start: "2026-12-20T10:00:00",
-      end: "2026-12-20T18:00:00",
-      fileName: "matrimonio-angelo-gina.ics",
+      title: "Matrimonio Sofia e Leonardo",
+      description: "Sofia e Leonardo saranno felici di condividere con voi il giorno delle loro nozze.",
+      location: "Giardino delle Rose, Villa Aurora",
+      start: "2027-06-14T16:30:00",
+      end: "2027-06-14T23:30:00",
+      fileName: "matrimonio-sofia-leonardo.ics",
     },
     locations: {
       ceremony: {
         label: "Cerimonia",
-        url: "https://www.google.it/maps/place/Chiesa+Maria+SS+della+Neve/@40.8535837,14.8701668,330m/data=!3m1!1e3!4m6!3m5!1s0x133bd1950b49ccd9:0x5758f25ad0984d10!8m2!3d40.8535839!4d14.8714544!16s%2Fg%2F11d_yvjf4w?entry=ttu&g_ep=EgoyMDI2MDYwMy4xIKXMDSoASAFQAw%3D%3D"
+        url: "https://www.google.com/maps/search/?api=1&query=Giardino+delle+Rose+Firenze"
       },
       reception: {
         label: "Ricevimento",
-        url: "https://www.google.it/maps/place/Megusta+pizza+e+cucina/@40.8979645,14.8259666,660m/data=!3m2!1e3!4b1!4m6!3m5!1s0x133bcd94d1963d29:0xd13e759d5862f73d!8m2!3d40.8979645!4d14.8259666!16s%2Fg%2F11clswnh2s?entry=ttu&g_ep=EgoyMDI2MDExMy4wIKXMDSoASAFQAw%3D%3D"
+        url: "https://www.google.com/maps/search/?api=1&query=Villa+Aurora+Firenze"
       },
     },
     images: [
-      "/images/img2.jpeg",
-      "/images/img3.jpeg",
-      "/images/img4.jpeg",
-      "/images/img5.jpeg",
-      "/images/img6.jpeg",
+      "/images/template-couple-1.svg",
+      "/images/template-couple-2.svg",
+      "/images/template-ceremony-1.svg",
+      "/images/template-venue-1.svg",
     ],
   },
 

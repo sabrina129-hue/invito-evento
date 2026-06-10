@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Luogo cerimonia immaginario</title>
+  <desc id="desc">Illustrazione di una piccola cappella luminosa con giardino.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#fffdf6"/>
+      <stop offset="1" stop-color="#dce1bd"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)"/>
+  <path d="M0 648c188-70 308-56 442-24 158 38 272-26 426-38 142-10 240 18 332 68v146H0Z" fill="#535b2e" opacity="0.2"/>
+  <path d="M356 394h488v298H356Z" fill="#fbf5e5"/>
+  <path d="M322 394h556L600 210Z" fill="#d7bd7c"/>
+  <path d="M536 692V528c0-84 128-84 128 0v164Z" fill="#535b2e" opacity="0.82"/>
+  <path d="M456 488h54v74h-54Zm234 0h54v74h-54Z" fill="#fffdf6"/>
+  <path d="M600 284v80m-40-40h80" stroke="#535b2e" stroke-width="16" stroke-linecap="round" opacity="0.7"/>
+  <path d="M260 692h680" stroke="#fffdf6" stroke-width="12" stroke-linecap="round" opacity="0.7"/>
+</svg>

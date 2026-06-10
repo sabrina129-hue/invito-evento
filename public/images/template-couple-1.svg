@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Coppia immaginaria in abiti da matrimonio</title>
+  <desc id="desc">Illustrazione elegante di una coppia di sposi in un giardino luminoso.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fbfaf3"/>
+      <stop offset="1" stop-color="#c5caa4"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="42%" cy="18%" r="52%">
+      <stop offset="0" stop-color="#fffdf5" stop-opacity="0.96"/>
+      <stop offset="1" stop-color="#fffdf5" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#sky)"/>
+  <rect width="1200" height="800" fill="url(#sun)"/>
+  <path d="M0 610c190-80 312-62 454-32 142 30 250-28 400-48 144-20 242 12 346 70v200H0Z" fill="#7a8754" opacity="0.34"/>
+  <path d="M0 678c220-54 372-42 520-24 190 23 320-24 504-18 76 2 132 18 176 38v126H0Z" fill="#535b2e" opacity="0.22"/>
+  <circle cx="365" cy="258" r="62" fill="#f3d8c5"/>
+  <path d="M304 238c22-72 112-84 142-16-26-4-60-8-104 12-14 6-26 9-38 4Z" fill="#4d442f"/>
+  <path d="M286 650c28-156 58-266 104-326 44 58 74 170 100 326Z" fill="#fffaf0"/>
+  <path d="M326 372c42 34 86 34 126 0l-18 278H344Z" fill="#f7f0dc"/>
+  <circle cx="610" cy="244" r="64" fill="#ebc7b1"/>
+  <path d="M546 235c22-78 118-92 154-14-48-10-88-3-132 22-8 4-16 2-22-8Z" fill="#332b22"/>
+  <path d="M520 650c22-168 48-282 92-340 48 58 84 172 118 340Z" fill="#f6efd9"/>
+  <path d="M552 360c42 42 90 44 132 2l-12 288H572Z" fill="#535b2e"/>
+  <path d="M436 404c48 54 94 56 142 2" fill="none" stroke="#f7f0dc" stroke-width="24" stroke-linecap="round"/>
+  <path d="M240 650h560" stroke="#fffaf0" stroke-width="10" stroke-linecap="round" opacity="0.6"/>
+  <g fill="#fffaf0" opacity="0.82">
+    <circle cx="146" cy="188" r="8"/>
+    <circle cx="1010" cy="172" r="10"/>
+    <circle cx="980" cy="312" r="6"/>
+    <circle cx="198" cy="344" r="5"/>
+    <circle cx="858" cy="110" r="5"/>
+  </g>
+</svg>
