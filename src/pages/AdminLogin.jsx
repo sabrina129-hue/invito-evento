@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function AdminLogin({ labels, onLogin }) {
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -45,14 +47,25 @@ export default function AdminLogin({ labels, onLogin }) {
       <form onSubmit={submit} className="bg-white p-6 rounded-xl shadow w-full max-w-sm space-y-4">
         <h1 className="text-xl font-bold text-center">{labels.loginTitle}</h1>
 
-        <input
-          type="password"
-          className="w-full border p-2 rounded"
-          placeholder={labels.passwordPlaceholder}
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          disabled={loading}
-        />
+        <div className="relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            className="w-full border p-2 pr-11 rounded"
+            placeholder={labels.passwordPlaceholder}
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            disabled={loading}
+          />
+          <button
+            type="button"
+            className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-gray-500 hover:text-gray-800 disabled:opacity-50"
+            onClick={() => setShowPassword(prev => !prev)}
+            disabled={loading}
+            aria-label={showPassword ? "Nascondi password" : "Mostra password"}
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
 
         {error && <p className="text-red-600 text-sm">{error}</p>}
 

@@ -1,3 +1,8 @@
+param(
+  [Parameter(ValueFromRemainingArguments = $true)]
+  [string[]]$VercelArgs
+)
+
 $ErrorActionPreference = "Stop"
 
 Set-Location (Resolve-Path "$PSScriptRoot\..")
@@ -18,4 +23,8 @@ Get-Content ".env.local" | ForEach-Object {
   }
 }
 
-npm run dev:vercel
+if ($VercelArgs.Count -gt 0) {
+  vercel dev @VercelArgs
+} else {
+  npm run dev:vercel
+}

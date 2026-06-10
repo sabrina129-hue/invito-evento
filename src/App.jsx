@@ -29,7 +29,11 @@ function AdminProtected() {
   const [ok, setOk] = useState(() => !!localStorage.getItem("adminToken"));
 
   return ok ? (
-    <Admin labels={event.admin} onLogout={() => setOk(false)} />
+    <Admin
+      labels={event.admin}
+      foodPreferenceOptions={event.rsvp.foodPreferencesOptions}
+      onLogout={() => setOk(false)}
+    />
   ) : (
     <AdminLogin labels={event.admin} onLogin={() => setOk(true)} />
   );

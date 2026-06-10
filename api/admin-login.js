@@ -1,4 +1,14 @@
+import { getServerEnv } from "../lib/serverEnv.js";
+
 async function readJsonBody(req) {
+  if (req.body && typeof req.body === "object") {
+    return req.body;
+  }
+
+  if (typeof req.body === "string") {
+    return req.body.trim() ? JSON.parse(req.body) : {};
+  }
+
   const chunks = [];
 
   for await (const chunk of req) {
@@ -14,8 +24,8 @@ export default async function handler(req, res) {
     return res.status(405).end();
   }
 
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  const adminToken = process.env.ADMIN_TOKEN;
+  const adminPassword = getServerEnv("ADMIN_PASSWORD");
+  const adminToken = getServerEnv("ADMIN_TOKEN");
 
   if (!adminPassword || !adminToken) {
     return res.status(500).json({

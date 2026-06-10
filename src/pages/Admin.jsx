@@ -4,7 +4,24 @@ const emptyParticipant = {
     name: "",
     partecipate: true,
     guests: 1,
+    food_preferences: "",
     message: "",
+};
+
+const foodPreferencesToList = value =>
+    String(value || "")
+        .split(",")
+        .map(item => item.trim())
+        .filter(Boolean);
+
+const toggleFoodPreference = (value, option) => {
+    const selected = foodPreferencesToList(value);
+
+    if (selected.includes(option)) {
+        return selected.filter(item => item !== option).join(", ");
+    }
+
+    return [...selected, option].join(", ");
 };
 
 const toPdfText = value =>
@@ -55,10 +72,11 @@ const buildPdf = ({ title, participants, totals, isFiltered }) => {
     const bottomMargin = 36;
     const columns = [
         { label: "#", x: 42, width: 28 },
-        { label: "Nome", x: 76, width: 190 },
-        { label: "Partecipa", x: 272, width: 118 },
-        { label: "Ospiti", x: 396, width: 56 },
-        { label: "Messaggio", x: 458, width: 342 },
+        { label: "Nome", x: 76, width: 150 },
+        { label: "Partecipa", x: 232, width: 90 },
+        { label: "Ospiti", x: 328, width: 48 },
+        { label: "Alimentazione", x: 382, width: 178 },
+        { label: "Messaggio", x: 566, width: 234 },
     ];
     const pages = [];
     let currentPage = [];
@@ -94,9 +112,10 @@ const buildPdf = ({ title, participants, totals, isFiltered }) => {
     }
 
     participants.forEach((participant, index) => {
-        const messageLines = wrapPdfText(participant.message || "-", 58);
-        const nameLines = wrapPdfText(participant.name || "-", 28);
-        const rowLines = Math.max(messageLines.length, nameLines.length, 1);
+        const foodLines = wrapPdfText(participant.food_preferences || "-", 26);
+        const messageLines = wrapPdfText(participant.message || "-", 36);
+        const nameLines = wrapPdfText(participant.name || "-", 22);
+        const rowLines = Math.max(foodLines.length, messageLines.length, nameLines.length, 1);
         const rowHeight = Math.max(minRowHeight, rowLines * lineHeight + rowPadding * 2);
 
         if (y + rowHeight > pageHeight - bottomMargin) {
@@ -122,8 +141,11 @@ const buildPdf = ({ title, participants, totals, isFiltered }) => {
         });
         currentPage.push(text(participant.partecipate ? "Partecipa" : "Non partecipa", columns[2].x, rowTop - 18, 9));
         currentPage.push(text(String(participant.guests ?? 0), columns[3].x, rowTop - 18, 9));
+        foodLines.forEach((foodLine, lineIndex) => {
+            currentPage.push(text(foodLine, columns[4].x, rowTop - 18 - lineIndex * lineHeight, 9));
+        });
         messageLines.forEach((messageLine, lineIndex) => {
-            currentPage.push(text(messageLine, columns[4].x, rowTop - 18 - lineIndex * lineHeight, 9));
+            currentPage.push(text(messageLine, columns[5].x, rowTop - 18 - lineIndex * lineHeight, 9));
         });
 
         y += rowHeight;
@@ -175,11 +197,12 @@ const buildPdf = ({ title, participants, totals, isFiltered }) => {
     return pdf;
 };
 
-export default function Admin({ labels, onLogout }) {
+export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) {
     const [partecipanti, setPartecipanti] = useState([]);
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(null);
     const [adding, setAdding] = useState(false);
+    const [addingParticipant, setAddingParticipant] = useState(false);
     const [toDelete, setToDelete] = useState(null);
     const [error, setError] = useState("");
     const [notice, setNotice] = useState("");
@@ -245,21 +268,29 @@ export default function Admin({ labels, onLogout }) {
     };
 
     const handleAdd = async () => {
-        const res = await fetch("/api/rsvps", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-            body: JSON.stringify(newParticipant),
-        });
-        const result = await res.json();
+        if (addingParticipant) return;
 
-        if (!res.ok) {
-            setError("Errore durante l'inserimento.");
-            return;
+        setAddingParticipant(true);
+
+        try {
+            const res = await fetch("/api/rsvps", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+                body: JSON.stringify(newParticipant),
+            });
+            const result = await res.json();
+
+            if (!res.ok) {
+                setError("Errore durante l'inserimento.");
+                return;
+            }
+
+            setPartecipanti(prev => [result.data, ...prev]);
+            setNewParticipant(emptyParticipant);
+            setAdding(false);
+        } finally {
+            setAddingParticipant(false);
         }
-
-        setPartecipanti(prev => [result.data, ...prev]);
-        setNewParticipant(emptyParticipant);
-        setAdding(false);
     };
 
     const handleLogout = () => {
@@ -281,13 +312,24 @@ export default function Admin({ labels, onLogout }) {
         .reduce((tot, p) => tot + (p.guests ?? 0), 0);
     const risposteNo = partecipanti.filter(p => !p.partecipate).length;
     const searchTerm = search.trim().toLowerCase();
+    const statusFilter =
+        ["partecipa", "si", "sì", "presente"].includes(searchTerm)
+            ? true
+            : ["non partecipa", "no", "assente"].includes(searchTerm)
+                ? false
+                : null;
     const partecipantiFiltrati = searchTerm
         ? partecipanti.filter(p => {
+            if (statusFilter !== null) {
+                return Boolean(p.partecipate) === statusFilter;
+            }
+
             const stato = p.partecipate ? "partecipa si presente" : "non partecipa no assente";
             return [
                 p.name,
                 stato,
                 String(p.guests ?? 0),
+                p.food_preferences,
                 p.message,
             ]
                 .join(" ")
@@ -392,6 +434,7 @@ export default function Admin({ labels, onLogout }) {
                                 <th className="p-4">Nome</th>
                                 <th className="p-4">Partecipa</th>
                                 <th className="p-4">Ospiti</th>
+                                <th className="p-4">Allergie / Intolleranze</th>
                                 <th className="p-4">Messaggio</th>
                                 <th className="p-4">Azioni</th>
                             </tr>
@@ -402,6 +445,9 @@ export default function Admin({ labels, onLogout }) {
                                     <td className="p-4 font-medium text-center">{p.name}</td>
                                     <td className="p-4">{p.partecipate ? "Sì" : "No"}</td>
                                     <td className="p-4">{p.guests ?? 0}</td>
+                                    <td className="p-4 max-w-xs break-words text-center">
+                                        {p.food_preferences || "-"}
+                                    </td>
                                     <td className="p-4 max-w-md break-words text-center">
                                         {p.message || "-"}
                                     </td>
@@ -422,7 +468,7 @@ export default function Admin({ labels, onLogout }) {
                             ))}
                             {partecipantiFiltrati.length === 0 && (
                                 <tr>
-                                    <td colSpan="5" className="p-6 text-center text-gray-500">
+                                    <td colSpan="6" className="p-6 text-center text-gray-500">
                                         Nessun invitato trovato.
                                     </td>
                                 </tr>
@@ -490,8 +536,10 @@ export default function Admin({ labels, onLogout }) {
                                     onChange={e =>
                                         setEditing({
                                             ...editing,
+                                            partecipa: e.target.value === "true",
                                             partecipate: e.target.value === "true",
                                             guests: e.target.value === "true" ? Math.max(1, editing.guests || 1) : 0,
+                                            food_preferences: e.target.value === "true" ? editing.food_preferences || "" : "",
                                         })
                                     }
                                 >
@@ -510,6 +558,28 @@ export default function Admin({ labels, onLogout }) {
                                     value={editing.guests}
                                     onChange={e => setEditing({ ...editing, guests: editing.partecipate ? Math.max(1, Number(e.target.value)) : 0 })}
                                 />
+                            </label>
+
+                            <label className="block text-sm font-medium text-gray-700">
+                                Allergie / Intolleranze
+                                <div className="mt-1 max-h-44 overflow-y-auto rounded border p-3 space-y-2">
+                                    {foodPreferenceOptions.map(option => (
+                                        <label key={option} className="flex items-center gap-2 text-sm font-normal text-gray-700">
+                                            <input
+                                                type="checkbox"
+                                                checked={foodPreferencesToList(editing.food_preferences).includes(option)}
+                                                disabled={!editing.partecipate}
+                                                onChange={() =>
+                                                    setEditing({
+                                                        ...editing,
+                                                        food_preferences: toggleFoodPreference(editing.food_preferences, option),
+                                                    })
+                                                }
+                                            />
+                                            {option}
+                                        </label>
+                                    ))}
+                                </div>
                             </label>
 
                             <label className="block text-sm font-medium text-gray-700">
@@ -578,6 +648,18 @@ export default function Admin({ labels, onLogout }) {
 
                             <textarea
                                 className="w-full border p-2 rounded"
+                                placeholder="Allergie / Intolleranze"
+                                value={newParticipant.food_preferences}
+                                onChange={e =>
+                                    setNewParticipant({
+                                        ...newParticipant,
+                                        food_preferences: e.target.value,
+                                    })
+                                }
+                            />
+
+                            <textarea
+                                className="w-full border p-2 rounded"
                                 placeholder="Messaggio"
                                 value={newParticipant.message}
                                 onChange={e =>
@@ -593,10 +675,11 @@ export default function Admin({ labels, onLogout }) {
                                     Annulla
                                 </button>
                                 <button
-                                    className="bg-green-600 text-white px-4 py-2 rounded"
+                                    className="bg-green-600 text-white px-4 py-2 rounded disabled:opacity-60"
                                     onClick={handleAdd}
+                                    disabled={addingParticipant}
                                 >
-                                    Aggiungi
+                                    {addingParticipant ? "Aggiungo..." : "Aggiungi"}
                                 </button>
                             </div>
 

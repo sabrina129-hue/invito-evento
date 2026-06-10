@@ -11,8 +11,8 @@ export default function EnvelopeIntro({ config, children }) {
     if (isOpening || showInvitation) return;
 
     setIsOpening(true);
-    window.setTimeout(() => setShowInvitation(true), 420);
-    window.setTimeout(() => setHideEnvelope(true), 1850);
+    window.setTimeout(() => setShowInvitation(true), 520);
+    window.setTimeout(() => setHideEnvelope(true), 2200);
   };
 
   return (
@@ -28,8 +28,8 @@ export default function EnvelopeIntro({ config, children }) {
             aria-label={config?.buttonLabel || "Apri invito"}
             initial={{ y: 18, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 70, opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.95, ease: [0.16, 0.84, 0.22, 1] }}
+            exit={{ y: 86, opacity: 0, scale: 0.88 }}
+            transition={{ duration: 1.15, ease: [0.16, 0.84, 0.22, 1] }}
           >
             <span className="envelope-card">
               <span className="envelope-card-title">{config?.title}</span>
@@ -53,16 +53,16 @@ export default function EnvelopeIntro({ config, children }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.35, ease: "easeOut" }}
+            transition={{ duration: 0.55, ease: "easeOut" }}
           >
             <motion.div
               className="parchment-scroll-inner"
               initial={{
-                y: 250,
-                scaleY: 0.08,
-                scaleX: 0.72,
-                opacity: 0.35,
-                rotateX: -34,
+                y: 280,
+                scaleY: 0.06,
+                scaleX: 0.68,
+                opacity: 0.28,
+                rotateX: -38,
                 transformOrigin: "50% 0%",
               }}
               animate={{
@@ -73,8 +73,8 @@ export default function EnvelopeIntro({ config, children }) {
                 rotateX: 0,
               }}
               transition={{
-                duration: 1.65,
-                ease: [0.16, 0.84, 0.22, 1],
+                duration: 1.95,
+                ease: [0.14, 0.82, 0.18, 1],
               }}
             >
               <div className="parchment-content">{children}</div>
