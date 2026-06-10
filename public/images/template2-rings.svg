@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Fedi e dettagli floreali</title>
+  <desc id="desc">Illustrazione di fedi, fiori chiari e dettagli raffinati.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fbfaf3"/>
+      <stop offset="1" stop-color="#d4dabb"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)"/>
+  <path d="M210 592c168-80 326-82 462-34 154 54 268 16 396-34v276H210Z" fill="#535b2e" opacity="0.15"/>
+  <circle cx="520" cy="390" r="122" fill="none" stroke="#d4b15f" stroke-width="38"/>
+  <circle cx="658" cy="390" r="122" fill="none" stroke="#c89e49" stroke-width="38"/>
+  <g fill="#fff8ec">
+    <circle cx="240" cy="300" r="58"/>
+    <circle cx="330" cy="236" r="42"/>
+    <circle cx="912" cy="284" r="62"/>
+    <circle cx="808" cy="220" r="44"/>
+    <circle cx="748" cy="564" r="50"/>
+  </g>
+  <g fill="#87946d" opacity="0.72">
+    <ellipse cx="386" cy="330" rx="70" ry="24" transform="rotate(-28 386 330)"/>
+    <ellipse cx="820" cy="360" rx="82" ry="26" transform="rotate(22 820 360)"/>
+    <ellipse cx="648" cy="600" rx="76" ry="22" transform="rotate(-18 648 600)"/>
+  </g>
+  <g fill="#d4b15f" opacity="0.82">
+    <circle cx="240" cy="300" r="14"/>
+    <circle cx="912" cy="284" r="15"/>
+    <circle cx="748" cy="564" r="12"/>
+  </g>
+</svg>

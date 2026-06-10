@@ -2,7 +2,14 @@ import { CalendarPlus } from "lucide-react";
 
 const pad = value => String(value).padStart(2, "0");
 
-const formatIcsDate = value => {
+const formatLocalIcsDate = value => {
+  if (typeof value === "string") {
+    return value
+      .replace(/[-:]/g, "")
+      .replace(/\.\d+$/, "")
+      .slice(0, 15);
+  }
+
   const date = new Date(value);
 
   return [
@@ -15,6 +22,12 @@ const formatIcsDate = value => {
     pad(date.getSeconds()),
   ].join("");
 };
+
+const formatUtcIcsDate = value =>
+  new Date(value)
+    .toISOString()
+    .replace(/[-:]/g, "")
+    .replace(/\.\d{3}Z$/, "Z");
 
 const escapeIcsText = value =>
   String(value || "")
@@ -31,7 +44,7 @@ export default function CalendarButton({ event }) {
   }
 
   const handleDownload = () => {
-    const now = formatIcsDate(new Date());
+    const now = formatUtcIcsDate(new Date());
     const title = calendar.title || event.title;
     const description = calendar.description || event.subtitle;
     const location = calendar.location || event.locations?.ceremony?.label || "";
@@ -45,8 +58,8 @@ export default function CalendarButton({ event }) {
       "BEGIN:VEVENT",
       `UID:${Date.now()}@invito-evento`,
       `DTSTAMP:${now}`,
-      `DTSTART;TZID=Europe/Rome:${formatIcsDate(calendar.start)}`,
-      `DTEND;TZID=Europe/Rome:${formatIcsDate(calendar.end)}`,
+      `DTSTART:${formatLocalIcsDate(calendar.start)}`,
+      `DTEND:${formatLocalIcsDate(calendar.end)}`,
       `SUMMARY:${escapeIcsText(title)}`,
       `DESCRIPTION:${escapeIcsText(description)}`,
       `LOCATION:${escapeIcsText(location)}`,

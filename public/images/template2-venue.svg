@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Ricevimento fittizio in terrazza</title>
+  <desc id="desc">Illustrazione di una terrazza elegante con luci per ricevimento serale.</desc>
+  <defs>
+    <linearGradient id="night" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#56603b"/>
+      <stop offset="1" stop-color="#f6efd9"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#night)"/>
+  <path d="M0 604h1200v196H0Z" fill="#f8f1df" opacity="0.86"/>
+  <path d="M140 604h920" stroke="#535b2e" stroke-width="14" opacity="0.34"/>
+  <g fill="#fff7d7">
+    <circle cx="184" cy="164" r="8"/>
+    <circle cx="292" cy="212" r="7"/>
+    <circle cx="410" cy="150" r="8"/>
+    <circle cx="548" cy="218" r="7"/>
+    <circle cx="692" cy="160" r="8"/>
+    <circle cx="832" cy="228" r="7"/>
+    <circle cx="980" cy="170" r="8"/>
+  </g>
+  <path d="M160 602c100-140 230-206 386-196 144 9 254 88 336 196" fill="none" stroke="#fff8ec" stroke-width="20" opacity="0.58"/>
+  <path d="M248 604h108v90H248Zm204 0h108v90H452Zm204 0h108v90H656Zm204 0h108v90H860Z" fill="#535b2e" opacity="0.56"/>
+  <path d="M338 520h524" stroke="#d4b15f" stroke-width="10" stroke-linecap="round"/>
+</svg>

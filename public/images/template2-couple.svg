@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Coppia immaginaria per template matrimonio</title>
+  <desc id="desc">Illustrazione elegante di una coppia di sposi al tramonto.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fff9ee"/>
+      <stop offset="0.56" stop-color="#d8dec0"/>
+      <stop offset="1" stop-color="#87946d"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="72%" cy="18%" r="48%">
+      <stop offset="0" stop-color="#fff7d7" stop-opacity="0.92"/>
+      <stop offset="1" stop-color="#fff7d7" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)"/>
+  <rect width="1200" height="800" fill="url(#glow)"/>
+  <path d="M0 642c162-70 322-58 484-18 150 37 275-24 428-42 118-14 214 5 288 48v170H0Z" fill="#535b2e" opacity="0.28"/>
+  <path d="M286 656c30-154 64-260 112-332 48 70 86 180 118 332Z" fill="#fffaf2"/>
+  <path d="M337 374c42 35 86 36 126 0l-14 282h-92Z" fill="#f6edd9"/>
+  <circle cx="398" cy="250" r="61" fill="#e7c3ad"/>
+  <path d="M334 242c26-76 112-86 146-16-44-10-84 2-128 24-8 4-14 2-18-8Z" fill="#3c3225"/>
+  <path d="M590 656c25-162 58-275 108-340 52 64 92 180 126 340Z" fill="#e9dfc5"/>
+  <path d="M636 370c42 38 86 40 128 2l-10 284H662Z" fill="#535b2e"/>
+  <circle cx="700" cy="244" r="64" fill="#e9c7b5"/>
+  <path d="M640 235c22-72 110-94 154-24-46-11-88-2-132 22-10 5-17 6-22 2Z" fill="#2d271f"/>
+  <path d="M468 420c56 54 120 55 180 4" fill="none" stroke="#fffaf2" stroke-width="22" stroke-linecap="round"/>
+  <g fill="#fffaf2" opacity="0.78">
+    <circle cx="182" cy="176" r="7"/>
+    <circle cx="980" cy="154" r="9"/>
+    <circle cx="1040" cy="296" r="5"/>
+    <circle cx="238" cy="352" r="6"/>
+  </g>
+</svg>

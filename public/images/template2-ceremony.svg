@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Cerimonia fittizia all'aperto</title>
+  <desc id="desc">Illustrazione di un arco floreale in un giardino per cerimonia.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#fffdf6"/>
+      <stop offset="1" stop-color="#cfd7b0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)"/>
+  <path d="M0 642c202-66 360-40 512-14 182 31 302-28 470-38 88-5 154 10 218 42v168H0Z" fill="#535b2e" opacity="0.22"/>
+  <path d="M344 642V428c0-146 512-146 512 0v214" fill="none" stroke="#f8f1df" stroke-width="34" stroke-linecap="round"/>
+  <path d="M392 642V444c0-104 416-104 416 0v198" fill="none" stroke="#87946d" stroke-width="9" stroke-linecap="round" opacity="0.85"/>
+  <g fill="#fff8ec">
+    <circle cx="348" cy="430" r="34"/>
+    <circle cx="426" cy="344" r="28"/>
+    <circle cx="588" cy="304" r="36"/>
+    <circle cx="772" cy="340" r="30"/>
+    <circle cx="856" cy="432" r="34"/>
+  </g>
+  <g fill="#d4b15f">
+    <circle cx="348" cy="430" r="9"/>
+    <circle cx="588" cy="304" r="10"/>
+    <circle cx="856" cy="432" r="9"/>
+  </g>
+  <path d="M478 690h244" stroke="#fff8ec" stroke-width="12" stroke-linecap="round"/>
+</svg>
