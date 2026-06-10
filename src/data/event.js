@@ -42,10 +42,10 @@ export const event = {
       },
     },
     images: [
-      "/images/template-couple-1.svg",
-      "/images/template-couple-2.svg",
-      "/images/template-ceremony-1.svg",
-      "/images/template-venue-1.svg",
+      "/images/template-photo-1.png",
+      "/images/template-photo-2.png",
+      "/images/template-photo-3.png",
+      "/images/template-photo-4.png",
     ],
   },
 
