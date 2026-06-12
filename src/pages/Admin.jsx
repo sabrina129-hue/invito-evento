@@ -623,6 +623,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                         ...newParticipant,
                                         partecipate: e.target.value === "true",
                                         guests: e.target.value === "true" ? Math.max(1, newParticipant.guests || 1) : 0,
+                                        food_preferences: e.target.value === "true" ? newParticipant.food_preferences || "" : "",
                                     })
                                 }
                             >
@@ -646,17 +647,27 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                 }
                             />
 
-                            <textarea
-                                className="w-full border p-2 rounded"
-                                placeholder="Allergie / Intolleranze"
-                                value={newParticipant.food_preferences}
-                                onChange={e =>
-                                    setNewParticipant({
-                                        ...newParticipant,
-                                        food_preferences: e.target.value,
-                                    })
-                                }
-                            />
+                            <label className="block text-sm font-medium text-gray-700">
+                                Allergie / Intolleranze
+                                <div className="mt-1 max-h-44 overflow-y-auto rounded border p-3 space-y-2">
+                                    {foodPreferenceOptions.map(option => (
+                                        <label key={option} className="flex items-center gap-2 text-sm font-normal text-gray-700">
+                                            <input
+                                                type="checkbox"
+                                                checked={foodPreferencesToList(newParticipant.food_preferences).includes(option)}
+                                                disabled={!newParticipant.partecipate}
+                                                onChange={() =>
+                                                    setNewParticipant({
+                                                        ...newParticipant,
+                                                        food_preferences: toggleFoodPreference(newParticipant.food_preferences, option),
+                                                    })
+                                                }
+                                            />
+                                            {option}
+                                        </label>
+                                    ))}
+                                </div>
+                            </label>
 
                             <textarea
                                 className="w-full border p-2 rounded"
