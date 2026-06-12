@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Iris art nouveau in vetro colorato</title>
+  <desc id="desc">Illustrazione stile vetrata art nouveau con iris blu, avorio e dettagli oro.</desc>
+  <defs>
+    <linearGradient id="glass" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#e8edf0"/>
+      <stop offset="0.48" stop-color="#f8f2df"/>
+      <stop offset="1" stop-color="#b8c7c9"/>
+    </linearGradient>
+    <radialGradient id="pearl" cx="50%" cy="26%" r="55%">
+      <stop offset="0" stop-color="#fffdf4" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#fffdf4" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft">
+      <feGaussianBlur stdDeviation="0.45"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="800" fill="url(#glass)"/>
+  <rect width="1200" height="800" fill="url(#pearl)"/>
+  <g fill="none" stroke="#2d2118" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.86">
+    <path d="M600 772C548 596 532 430 600 258c68 172 52 338 0 514Z"/>
+    <path d="M600 438C492 342 390 314 286 348c96 112 192 154 314 90Z"/>
+    <path d="M600 438c108-96 210-124 314-90-96 112-192 154-314 90Z"/>
+    <path d="M600 318C520 202 426 156 318 180c76 122 166 170 282 138Z"/>
+    <path d="M600 318c80-116 174-162 282-138-76 122-166 170-282 138Z"/>
+    <path d="M600 598c-112-76-222-86-330-28 110 82 218 98 330 28Z"/>
+    <path d="M600 598c112-76 222-86 330-28-110 82-218 98-330 28Z"/>
+    <path d="M172 126c120 94 194 220 224 378"/>
+    <path d="M1028 126c-120 94-194 220-224 378"/>
+    <path d="M112 698c170-86 306-100 488-52 182-48 318-34 488 52"/>
+  </g>
+  <g opacity="0.95">
+    <path d="M600 745C555 584 548 424 600 278c52 146 45 306 0 467Z" fill="#f9f4e8"/>
+    <path d="M592 428C498 354 412 334 326 366c82 82 170 108 266 62Z" fill="#f6f0e2"/>
+    <path d="M608 428c94-74 180-94 266-62-82 82-170 108-266 62Z" fill="#f6f0e2"/>
+    <path d="M590 310C522 222 444 190 358 206c64 88 140 122 232 104Z" fill="#fbf7ec"/>
+    <path d="M610 310c68-88 146-120 232-104-64 88-140 122-232 104Z" fill="#fbf7ec"/>
+    <path d="M588 586c-98-54-190-58-276-16 92 60 184 66 276 16Z" fill="#ede5d1"/>
+    <path d="M612 586c98-54 190-58 276-16-92 60-184 66-276 16Z" fill="#ede5d1"/>
+  </g>
+  <g fill="#174482" opacity="0.92">
+    <path d="M600 292c-34 78-42 152-22 222 17-40 44-72 82-96-12-42-32-84-60-126Z"/>
+    <path d="M492 514c-64-24-126-18-186 18 70 24 132 18 186-18Z"/>
+    <path d="M708 514c64-24 126-18 186 18-70 24-132 18-186-18Z"/>
+  </g>
+  <g fill="#c69737" opacity="0.9">
+    <path d="M352 392c76 10 148 24 216 44-74 28-150 18-216-44Z"/>
+    <path d="M848 392c-76 10-148 24-216 44 74 28 150 18 216-44Z"/>
+    <path d="M538 612c28 20 50 62 62 122 12-60 34-102 62-122-42 10-82 10-124 0Z"/>
+  </g>
+  <g fill="#ffffff" opacity="0.42" filter="url(#soft)">
+    <path d="M392 210c70 34 124 72 162 116-72-18-126-56-162-116Z"/>
+    <path d="M808 210c-70 34-124 72-162 116 72-18 126-56 162-116Z"/>
+    <path d="M342 366c74 20 136 44 184 72-76 4-138-20-184-72Z"/>
+    <path d="M858 366c-74 20-136 44-184 72 76 4 138-20 184-72Z"/>
+  </g>
+</svg>

@@ -12,7 +12,7 @@ export default function Hero({ images, children }) {
   }, [images.length]);
 
   return (
-    <div className="relative h-80 w-full overflow-hidden rounded-t-card bg-surface">
+    <div className="hero-artnouveau relative h-80 w-full overflow-hidden rounded-t-card bg-surface">
       <AnimatePresence mode="wait">
         <MotionImage
           key={index}

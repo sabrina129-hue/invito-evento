@@ -5,19 +5,20 @@ export const event = {
     shareDescription: "Template dimostrativo per un matrimonio elegante, romantico e personalizzabile.",
     shareImage: "https://example.com/images/template2-couple.svg",
     siteUrl: "https://example.com",
-    themeColor: "#535b2e",
+    themeColor: "#174482",
     favicon: "/vite.svg",
-    fontStylesheet: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Great+Vibes&display=swap",
+    fontStylesheet: "https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Parisienne&display=swap",
   },
 
   content: {
     title: "Elena & Marco",
     subtitle: "Vi invitano a celebrare il loro matrimonio",
     description: "Una sera d'estate, tra giardino, musica e affetti sinceri.",
-    envelope: {
-      title: "Ho un invito per te",
-      subtitle: "",
-      buttonLabel: "Apri invito",
+    book: {
+      title: "Abbiamo un invito per te...",
+      subtitle: "Tocca la pagina",
+      buttonLabel: "Sfoglia invito",
+      dateText: "5 Settembre 2027",
       seal: "E&M",
     },
     date: "5 Settembre 2027",
@@ -34,14 +35,18 @@ export const event = {
     locations: {
       ceremony: {
         label: "Cerimonia",
+        name: "Giardino Belvedere",
         url: "https://www.google.com/maps/search/?api=1&query=Giardino+Belvedere"
       },
       reception: {
         label: "Ricevimento",
+        name: "Terrazza delle Luci",
         url: "https://www.google.com/maps/search/?api=1&query=Terrazza+delle+Luci"
       },
     },
     images: [
+      "/images/template2-iris-glass.svg",
+      "/images/template2-book-couple.png",
       "/images/template2-couple.svg",
       "/images/template2-rings.svg",
       "/images/template2-ceremony.svg",

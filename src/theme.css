@@ -5,15 +5,19 @@
 /* Modifica qui colori, font e forme dell'invito.
    In VS Code clicca sui quadratini colore accanto ai valori HEX per aprire il color picker. */
 :root {
-  --color-primary: #535b2e;
-  --color-secondary: #7a8754;
-  --color-background: #FAFAFA;
-  --color-surface: #c1c79fc1;
-  --color-text: #0f1010;
-  --color-muted: #6B7280;
-  --font-title: "Great Vibes", cursive;
+  --color-primary: #174482;
+  --color-secondary: #b8862f;
+  --color-background: #eef1ed;
+  --color-surface: #f3ecda;
+  --color-text: #171717;
+  --color-muted: #6b675e;
+  --color-lead: #2b2118;
+  --color-glass: #d7e2e4;
+  --color-ivory: #fbf7ea;
+  --font-title: "Cinzel Decorative", "Cormorant Garamond", serif;
+  --font-cover: "Parisienne", "Cormorant Garamond", serif;
   --font-body: "Cormorant Garamond", Georgia, serif;
-  --radius-card: 1.5rem;
+  --radius-card: 0.85rem;
   --radius-input: 0.5rem;
   --radius-button: 999px;
 }
@@ -41,6 +45,467 @@
   mask-image: linear-gradient(to bottom, #000 0%, #000 28%, transparent 100%);
 }
 
+.book-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100dvh;
+  min-height: 100svh;
+  padding: 1rem;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.92), transparent 27rem),
+    radial-gradient(circle at 18% 20%, rgba(23, 68, 130, 0.24), transparent 16rem),
+    radial-gradient(circle at 84% 16%, rgba(184, 134, 47, 0.26), transparent 18rem),
+    linear-gradient(58deg, transparent 0 46%, rgba(43, 33, 24, 0.18) 47% 48%, transparent 49%),
+    linear-gradient(122deg, transparent 0 47%, rgba(43, 33, 24, 0.13) 48% 49%, transparent 50%),
+    linear-gradient(145deg, #f8f5e9, #d7e2e4 46%, #eadfc6);
+}
+
+.book-stage::before {
+  content: "";
+  position: fixed;
+  inset: -4rem;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 12% 18%, transparent 0 18%, rgba(43, 33, 24, 0.22) 18.5% 19.5%, transparent 20%),
+    radial-gradient(ellipse at 88% 78%, transparent 0 18%, rgba(43, 33, 24, 0.16) 18.5% 19.5%, transparent 20%),
+    linear-gradient(90deg, rgba(43, 33, 24, 0.16) 0 2px, transparent 2px 22%, rgba(43, 33, 24, 0.11) 22% calc(22% + 2px), transparent calc(22% + 2px) 78%, rgba(43, 33, 24, 0.11) 78% calc(78% + 2px), transparent calc(78% + 2px));
+  opacity: 0.42;
+}
+
+.book-stage.is-open {
+  place-items: center;
+  overflow: hidden;
+  padding: 1rem;
+}
+
+.book-invitation {
+  position: relative;
+  z-index: 5;
+  width: min(90vw, 30rem);
+  height: min(86vh, 45rem);
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  perspective: 1800px;
+  color: var(--color-text);
+  filter: drop-shadow(0 1.6rem 2.8rem rgba(43, 33, 24, 0.34));
+}
+
+.book-invitation.is-opened {
+  cursor: default;
+}
+
+.book-invitation:focus-visible {
+  outline: 3px solid rgba(23, 68, 130, 0.62);
+  outline-offset: 0.55rem;
+}
+
+.book-spread {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transform-style: preserve-3d;
+}
+
+.book-page {
+  position: relative;
+  overflow: hidden;
+  border: 0;
+  background:
+    radial-gradient(circle at 50% 8%, rgba(255, 255, 255, 0.88), transparent 13rem),
+    linear-gradient(135deg, rgba(23, 68, 130, 0.1), transparent 38%, rgba(184, 134, 47, 0.12)),
+    linear-gradient(#fbf5e5, #ead9b8);
+  box-shadow:
+    0 1.3rem 2.4rem rgba(43, 33, 24, 0.28),
+    inset 0 0 2.4rem rgba(255, 248, 226, 0.26);
+}
+
+.book-page.book-page-second {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 0.35rem;
+  transform: translateZ(0);
+}
+
+.book-page-content {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.book-page-left {
+  position: absolute;
+  inset: 0;
+  border-radius: 0.35rem;
+}
+
+.book-page-right {
+  display: none;
+}
+
+.book-page::before {
+  content: none;
+  position: absolute;
+  inset: 0.85rem;
+  z-index: 2;
+  pointer-events: none;
+  border: 1px solid rgba(43, 33, 24, 0.54);
+}
+
+.book-cover-image {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.04), transparent 20rem),
+    linear-gradient(to bottom, rgba(17, 16, 14, 0.01), rgba(17, 16, 14, 0.28)),
+    url("/images/template2-book-couple.png");
+  background-size: 104%;
+  background-position: center 43%;
+}
+
+.book-cover-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom, rgba(12, 25, 46, 0.04) 0%, transparent 42%, rgba(12, 25, 46, 0.42) 100%),
+    radial-gradient(ellipse at center, transparent 48%, rgba(17, 16, 14, 0.18) 100%);
+  mix-blend-mode: multiply;
+}
+
+.book-cover-text {
+  position: absolute;
+  left: 50%;
+  right: auto;
+  bottom: 4.65rem;
+  z-index: 8;
+  display: block;
+  width: 92%;
+  transform: translateX(-50%);
+  padding: 0.95rem 1.45rem 1.05rem;
+  border: 1px solid rgba(245, 220, 151, 0.7);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 248, 226, 0.26), transparent 9rem),
+    linear-gradient(135deg, rgba(18, 45, 86, 0.86), rgba(23, 68, 130, 0.72));
+  color: #fff3cf;
+  font-family: var(--font-cover);
+  font-size: clamp(1.85rem, 2.8vw, 2.35rem);
+  font-weight: 400;
+  line-height: 0.98;
+  text-align: center;
+  white-space: nowrap;
+  text-shadow:
+    0 0.12rem 0.25rem rgba(12, 25, 46, 0.72),
+    0 0 0.9rem rgba(184, 134, 47, 0.42);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 248, 226, 0.14),
+    0 0.75rem 1.3rem rgba(12, 25, 46, 0.28);
+  backdrop-filter: blur(3px);
+}
+
+.book-cover-date {
+  position: absolute;
+  left: 50%;
+  bottom: 1.65rem;
+  z-index: 8;
+  display: flex;
+  width: 88%;
+  transform: translateX(-50%);
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  color: #fff7df;
+  font-family: var(--font-body);
+  font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-shadow:
+    0 0.12rem 0.2rem rgba(43, 33, 24, 0.86),
+    0 0 0.9rem rgba(23, 68, 130, 0.45);
+  text-transform: uppercase;
+}
+
+.book-invitation.is-turning .book-cover-text,
+.book-invitation.is-turning .book-cover-date {
+  opacity: 0;
+  transition: opacity 0.28s ease;
+}
+
+.book-cover-date::before,
+.book-cover-date::after {
+  content: "";
+  height: 2px;
+  flex: 1;
+  max-width: 9rem;
+  background:
+    linear-gradient(90deg, transparent, rgba(43, 33, 24, 0.86) 12%, rgba(184, 134, 47, 0.94) 50%, rgba(255, 248, 226, 0.88));
+  box-shadow:
+    0 1px 0 rgba(255, 248, 226, 0.34),
+    0 0 0.55rem rgba(184, 134, 47, 0.52);
+}
+
+.book-cover-date::after {
+  background:
+    linear-gradient(90deg, rgba(255, 248, 226, 0.88), rgba(184, 134, 47, 0.94) 50%, rgba(43, 33, 24, 0.86) 88%, transparent);
+}
+
+.book-ornament {
+  width: min(72%, 17rem);
+  aspect-ratio: 1 / 1.3;
+  opacity: 0.88;
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(255, 255, 255, 0.65), transparent 22%),
+    radial-gradient(ellipse at 50% 86%, transparent 0 35%, rgba(184, 134, 47, 0.62) 36% 39%, transparent 40%),
+    radial-gradient(ellipse at 28% 54%, rgba(23, 68, 130, 0.28), transparent 28%),
+    radial-gradient(ellipse at 72% 54%, rgba(23, 68, 130, 0.28), transparent 28%),
+    linear-gradient(135deg, transparent 44%, rgba(43, 33, 24, 0.36) 45% 47%, transparent 48%),
+    linear-gradient(225deg, transparent 44%, rgba(43, 33, 24, 0.36) 45% 47%, transparent 48%);
+  mask-image: radial-gradient(ellipse at center, #000 0 68%, transparent 78%);
+}
+
+.book-open-hint {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--color-secondary);
+  font-family: var(--font-body);
+  font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+  font-style: italic;
+}
+
+.book-spine {
+  display: none;
+  position: absolute;
+  top: 0.35rem;
+  bottom: 0.35rem;
+  left: 50%;
+  z-index: 4;
+  width: 0.55rem;
+  transform: translateX(-50%);
+  background:
+    linear-gradient(90deg, rgba(43, 33, 24, 0.62), rgba(255, 255, 255, 0.34), rgba(43, 33, 24, 0.54));
+  box-shadow: 0 0 1.2rem rgba(43, 33, 24, 0.32);
+}
+
+.book-turn-page {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 6;
+  width: 100%;
+  height: 100%;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  pointer-events: none;
+  transition: transform 1.45s cubic-bezier(0.14, 0.82, 0.18, 1), filter 1.45s ease;
+}
+
+.book-turn-front,
+.book-turn-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border: 0;
+  border-radius: 0.35rem;
+  background:
+    linear-gradient(to bottom, rgba(17, 16, 14, 0.02), rgba(17, 16, 14, 0.28)),
+    url("/images/template2-book-couple.png");
+  background-size: 104%;
+  background-position: center 43%;
+  box-shadow: 0 1.3rem 2.4rem rgba(43, 33, 24, 0.26);
+  overflow: hidden;
+}
+
+.book-turn-front {
+  background:
+    linear-gradient(to bottom, rgba(17, 16, 14, 0.02), rgba(17, 16, 14, 0.28)),
+    url("/images/template2-book-couple.png");
+  background-size: 104%;
+  background-position: center 43%;
+}
+
+.book-turn-front::before,
+.book-turn-back::before {
+  content: none;
+  position: absolute;
+  inset: 0.85rem;
+  border: 1px solid rgba(43, 33, 24, 0.48);
+}
+
+.book-turn-back {
+  display: grid;
+  place-items: center;
+  padding: clamp(1.4rem, 4vw, 2.4rem);
+  transform: rotateY(180deg);
+  background: #fbf5e5;
+  box-shadow:
+    inset 0 0 2rem rgba(234, 217, 184, 0.48),
+    0 1.3rem 2.4rem rgba(43, 33, 24, 0.2);
+}
+
+.book-turn-summary {
+  position: relative;
+  display: grid;
+  width: 100%;
+  min-height: 100%;
+  place-content: center;
+  gap: 0.8rem;
+  padding: clamp(1.4rem, 4vw, 2.4rem);
+  color: var(--color-primary);
+  text-align: center;
+}
+
+.book-turn-summary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(43, 33, 24, 0.55);
+  background:
+    radial-gradient(ellipse at 50% 0%, transparent 0 42%, rgba(184, 134, 47, 0.34) 43% 45%, transparent 46%),
+    radial-gradient(ellipse at 50% 100%, transparent 0 42%, rgba(23, 68, 130, 0.2) 43% 45%, transparent 46%);
+  pointer-events: none;
+}
+
+.book-turn-kicker,
+.book-turn-date,
+.book-turn-location {
+  font-family: var(--font-body);
+}
+
+.book-turn-kicker {
+  color: var(--color-secondary);
+  font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+  font-style: italic;
+}
+
+.book-turn-names {
+  font-family: var(--font-cover);
+  font-size: clamp(2.6rem, 6vw, 4.4rem);
+  line-height: 0.95;
+}
+
+.book-turn-date {
+  color: var(--color-lead);
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.book-turn-location {
+  color: var(--color-muted);
+  font-size: clamp(0.95rem, 1.8vw, 1.15rem);
+  font-style: italic;
+}
+
+.book-invitation.is-turning .book-turn-page {
+  transform: rotateY(-176deg);
+  filter: brightness(0.98);
+}
+
+.book-invitation.is-opened .book-turn-page {
+  z-index: 4;
+  opacity: 1;
+  transform: rotateY(-152deg);
+  filter: brightness(0.98) saturate(0.98);
+  cursor: pointer;
+  pointer-events: auto;
+  transition:
+    transform 0.38s cubic-bezier(0.18, 0.74, 0.2, 1),
+    filter 0.38s ease;
+}
+
+.book-invitation.is-opened.is-turning .book-turn-page {
+  transform: rotateY(-176deg);
+  filter: brightness(0.98);
+  pointer-events: none;
+  transition: transform 1.45s cubic-bezier(0.14, 0.82, 0.18, 1), filter 1.45s ease;
+}
+
+.book-invitation.is-opened .book-turn-page:focus-visible {
+  outline: 3px solid rgba(23, 68, 130, 0.58);
+  outline-offset: 0.45rem;
+}
+
+.book-invitation.is-closing .book-turn-page {
+  z-index: 6;
+  transform: rotateY(0deg);
+  filter: brightness(1);
+  pointer-events: none;
+  transition:
+    transform 1.18s cubic-bezier(0.16, 0.84, 0.22, 1),
+    filter 1.18s ease;
+}
+
+.book-invitation.is-closing .book-cover-text,
+.book-invitation.is-closing .book-cover-date {
+  opacity: 1;
+  transition: opacity 0.32s ease 0.72s;
+}
+
+.book-invitation.is-opened::before {
+  content: "";
+  position: absolute;
+  top: 0.55rem;
+  bottom: 0.55rem;
+  left: -0.18rem;
+  z-index: 4;
+  width: 0.28rem;
+  border-radius: 999px;
+  background: rgba(43, 33, 24, 0.28);
+  box-shadow: 0.2rem 0 0.65rem rgba(43, 33, 24, 0.14);
+  pointer-events: none;
+}
+
+.book-page-forward {
+  position: absolute;
+  right: -0.85rem;
+  top: 50%;
+  z-index: 8;
+  display: grid;
+  width: 2.4rem;
+  height: 4.2rem;
+  transform: translateY(-50%);
+  place-items: center;
+  border: 1px solid rgba(43, 33, 24, 0.36);
+  border-radius: 999px;
+  background: rgba(255, 248, 226, 0.78);
+  color: var(--color-primary);
+  font-family: var(--font-body);
+  font-size: 2rem;
+  line-height: 1;
+  box-shadow: 0 0.35rem 0.9rem rgba(43, 33, 24, 0.16);
+  cursor: pointer;
+}
+
+.book-page-forward:hover,
+.book-page-forward:focus-visible {
+  background: var(--color-primary);
+  color: #fff9eb;
+}
+
+.book-invitation-page {
+  position: relative;
+  z-index: 7;
+  width: min(100%, 39rem);
+  padding: 1rem 0 1.6rem;
+  perspective: 1600px;
+}
+
+.book-invitation-inner {
+  transform-style: preserve-3d;
+}
+
 .envelope-stage {
   position: fixed;
   inset: 0;
@@ -53,8 +518,12 @@
   padding: 1rem;
   overflow: hidden;
   background:
-    radial-gradient(circle at 50% 28%, rgba(255, 255, 255, 0.92), transparent 32rem),
-    linear-gradient(145deg, var(--color-background), rgba(193, 199, 159, 0.28));
+    radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.92), transparent 27rem),
+    radial-gradient(circle at 16% 20%, rgba(23, 68, 130, 0.2), transparent 17rem),
+    radial-gradient(circle at 82% 14%, rgba(184, 134, 47, 0.22), transparent 18rem),
+    linear-gradient(58deg, transparent 0 46%, rgba(43, 33, 24, 0.18) 47% 48%, transparent 49%),
+    linear-gradient(122deg, transparent 0 47%, rgba(43, 33, 24, 0.13) 48% 49%, transparent 50%),
+    linear-gradient(145deg, #f8f5e9, #d7e2e4 46%, #e9ddc2);
 }
 
 .envelope-stage.is-open {
@@ -76,7 +545,7 @@
   color: var(--color-primary);
   cursor: pointer;
   perspective: 1000px;
-  filter: drop-shadow(0 1.4rem 2.4rem rgba(15, 16, 16, 0.2));
+  filter: drop-shadow(0 1.4rem 2.4rem rgba(43, 33, 24, 0.24));
 }
 
 .envelope-button:focus-visible {
@@ -99,21 +568,21 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.7), transparent 10rem),
-    linear-gradient(135deg, transparent 49.5%, rgba(83, 91, 46, 0.13) 50%, transparent 50.8%),
-    linear-gradient(225deg, transparent 49.5%, rgba(83, 91, 46, 0.13) 50%, transparent 50.8%),
-    linear-gradient(180deg, #f8f2df, #e7ddbf);
+    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.75), transparent 10rem),
+    linear-gradient(135deg, transparent 49.5%, rgba(43, 33, 24, 0.18) 50%, transparent 50.8%),
+    linear-gradient(225deg, transparent 49.5%, rgba(43, 33, 24, 0.18) 50%, transparent 50.8%),
+    linear-gradient(180deg, #fbf4dc, #e5d2a8);
 }
 
 .envelope-front {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(32deg, rgba(223, 213, 184, 0.94) 0 49.5%, transparent 50%),
-    linear-gradient(-32deg, rgba(238, 228, 199, 0.96) 0 49.5%, transparent 50%),
-    linear-gradient(to top, #faf3dd 0 56%, transparent 57%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(223, 213, 184, 0.35));
-  border: 1px solid rgba(83, 91, 46, 0.13);
+    linear-gradient(32deg, rgba(229, 216, 184, 0.96) 0 49.5%, transparent 50%),
+    linear-gradient(-32deg, rgba(243, 232, 204, 0.96) 0 49.5%, transparent 50%),
+    linear-gradient(to top, #fbf5df 0 56%, transparent 57%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(184, 134, 47, 0.16));
+  border: 1px solid rgba(43, 33, 24, 0.16);
   border-radius: 0.7rem;
 }
 
@@ -126,7 +595,7 @@
   height: 58%;
   transform-origin: top center;
   background:
-    linear-gradient(180deg, rgba(255, 253, 244, 0.95), rgba(232, 221, 190, 0.96));
+    linear-gradient(180deg, rgba(255, 253, 244, 0.96), rgba(232, 212, 169, 0.96));
   clip-path: polygon(0 0, 100% 0, 50% 100%);
   border-top: 1px solid rgba(83, 91, 46, 0.12);
   transition: transform 1.05s cubic-bezier(0.16, 0.84, 0.22, 1);
@@ -145,7 +614,7 @@
   border-radius: 50%;
   background:
     radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.18), transparent 1.2rem),
-    linear-gradient(145deg, #6b7137, var(--color-primary));
+    linear-gradient(145deg, #b8862f, var(--color-primary));
   color: #fff8eb;
   font-family: var(--font-title);
   font-size: 1.28rem;
@@ -171,11 +640,12 @@
   justify-content: center;
   gap: 0.55rem;
   padding: 1.15rem 1.35rem 1.8rem;
-  border: 1px solid rgba(83, 91, 46, 0.22);
+  border: 2px solid rgba(43, 33, 24, 0.42);
   border-radius: 0.55rem;
   background:
     radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.76), transparent 13rem),
-    linear-gradient(rgba(255, 252, 244, 0.9), rgba(255, 248, 231, 0.88)),
+    linear-gradient(135deg, rgba(23, 68, 130, 0.08), transparent 38%, rgba(184, 134, 47, 0.13)),
+    linear-gradient(rgba(255, 252, 244, 0.92), rgba(255, 248, 231, 0.9)),
     var(--color-surface);
   box-shadow:
     inset 0 0 0 0.45rem rgba(255, 255, 255, 0.18),
@@ -187,7 +657,7 @@
   content: "";
   position: absolute;
   inset: 0.85rem;
-  border: 1px solid rgba(83, 91, 46, 0.2);
+  border: 1px solid rgba(184, 134, 47, 0.56);
   border-radius: 0.35rem;
   pointer-events: none;
 }
@@ -262,7 +732,7 @@
   height: 1.35rem;
   border-radius: 999px;
   background:
-    linear-gradient(90deg, rgba(120, 91, 55, 0.52), rgba(246, 232, 192, 0.96), rgba(120, 91, 55, 0.52));
+    linear-gradient(90deg, rgba(43, 33, 24, 0.68), rgba(246, 232, 192, 0.98), rgba(184, 134, 47, 0.82), rgba(246, 232, 192, 0.98), rgba(43, 33, 24, 0.68));
   box-shadow: 0 0.35rem 0.95rem rgba(15, 16, 16, 0.16);
   translate: -50% 0;
 }
@@ -289,6 +759,273 @@
   background: rgba(15, 16, 16, 0.18);
   filter: blur(1.7rem);
   transform: translateY(0.9rem);
+}
+
+.invitation-artnouveau {
+  position: relative;
+  height: 100%;
+  border: 0;
+  border-radius: 0.35rem;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.82), transparent 15rem),
+    linear-gradient(135deg, rgba(23, 68, 130, 0.1), transparent 28%, rgba(184, 134, 47, 0.12)),
+    repeating-linear-gradient(90deg, rgba(43, 33, 24, 0.03) 0 1px, transparent 1px 9px),
+    var(--color-surface);
+  box-shadow: none;
+}
+
+.invitation-artnouveau::before,
+.invitation-artnouveau::after {
+  content: "";
+  position: absolute;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.invitation-artnouveau::before {
+  content: none;
+}
+
+.invitation-artnouveau::after {
+  content: none;
+}
+
+.invitation-body {
+  position: relative;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.72), transparent 12rem),
+    linear-gradient(90deg, rgba(43, 33, 24, 0.08), transparent 7%, transparent 93%, rgba(43, 33, 24, 0.08)),
+    linear-gradient(#fbf6e8, #f0e4c8);
+}
+
+.book-detail-page {
+  position: relative;
+  z-index: 7;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  place-content: center;
+  place-items: center;
+  gap: clamp(0.9rem, 2.4vh, 1.35rem);
+  padding: clamp(5.6rem, 11vw, 7.1rem) clamp(3.25rem, 11vw, 6rem);
+  overflow: hidden;
+  color: var(--color-primary);
+  text-align: center;
+  background:
+    url("/images/template2-book-page-frame.png") center / cover no-repeat,
+    linear-gradient(#fbf5e5, #ead9b8);
+}
+
+.book-detail-page::before,
+.book-detail-page::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.book-detail-page::before {
+  content: none;
+}
+
+.book-detail-page::after {
+  content: "";
+  inset: 20% 20%;
+  z-index: 0;
+  border-radius: 999px;
+  background: rgba(255, 247, 225, 0.58);
+  box-shadow: 0 0 2.4rem 2.2rem rgba(255, 247, 225, 0.42);
+}
+
+.book-detail-kicker,
+.book-detail-title,
+.book-detail-description,
+.book-detail-date,
+.book-detail-locations,
+.book-detail-calendar {
+  position: relative;
+  z-index: 1;
+}
+
+.book-detail-kicker {
+  max-width: min(100%, 18rem);
+  color: var(--color-secondary);
+  font-family: var(--font-body);
+  font-size: clamp(0.98rem, 1.8vw, 1.2rem);
+  font-style: italic;
+  line-height: 1.25;
+}
+
+.book-detail-title {
+  display: grid;
+  width: min(100%, 18rem);
+  gap: 0.04rem;
+  color: var(--color-primary);
+  font-family: var(--font-cover);
+  font-size: clamp(2.45rem, 5.4vw, 3.25rem);
+  font-weight: 400;
+  line-height: 0.82;
+}
+
+.book-detail-title span {
+  display: block;
+}
+
+.book-detail-ampersand {
+  color: var(--color-primary);
+  font-family: var(--font-title);
+  font-size: 0.42em;
+  line-height: 0.9;
+}
+
+.book-detail-description {
+  max-width: min(100%, 17rem);
+  color: var(--color-lead);
+  font-family: var(--font-body);
+  font-size: clamp(0.95rem, 1.7vw, 1.12rem);
+  font-style: italic;
+  line-height: 1.28;
+}
+
+.book-detail-date {
+  display: grid;
+  align-items: center;
+  justify-content: center;
+  gap: 0.12rem;
+  max-width: min(100%, 17rem);
+  color: var(--color-primary);
+  font-family: var(--font-body);
+  font-size: clamp(0.88rem, 1.55vw, 1.02rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.book-detail-date::before,
+.book-detail-date::after {
+  content: none;
+}
+
+.book-detail-locations {
+  display: grid;
+  gap: 0.42rem;
+  max-width: min(100%, 18rem);
+  color: var(--color-muted);
+  font-family: var(--font-body);
+  font-size: clamp(0.88rem, 1.45vw, 1rem);
+  font-style: italic;
+  line-height: 1.35;
+}
+
+.book-detail-locations a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-decoration-color: rgba(184, 134, 47, 0.65);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+.book-detail-locations a:hover {
+  color: var(--color-secondary);
+}
+
+.book-detail-calendar {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.2rem;
+}
+
+.book-detail-calendar .btn {
+  min-height: 2.35rem;
+  padding: 0.45rem 1rem;
+  border-color: rgba(43, 33, 24, 0.58);
+  background: rgba(255, 248, 226, 0.78);
+  color: var(--color-primary);
+  font-size: 0.95rem;
+  box-shadow:
+    inset 0 0 0 1px rgba(184, 134, 47, 0.34),
+    0 0.25rem 0.7rem rgba(43, 33, 24, 0.11);
+}
+
+.book-detail-calendar .btn:hover {
+  background: var(--color-primary);
+  color: #fff9eb;
+}
+
+.book-rsvp-page {
+  gap: 0;
+  padding: clamp(3.8rem, 8.5vw, 5rem) clamp(2.7rem, 10vw, 5rem);
+}
+
+.book-rsvp-page .section {
+  display: grid;
+  width: min(100%, 18.5rem);
+  gap: 0.55rem;
+}
+
+.book-rsvp-page .h2 {
+  margin-bottom: 0.15rem;
+  font-size: clamp(1.5rem, 3.5vw, 2rem);
+}
+
+.book-rsvp-page label {
+  font-size: 0.82rem;
+}
+
+.book-rsvp-page input,
+.book-rsvp-page textarea,
+.book-rsvp-page button[id="food-preferences-button"] {
+  padding: 0.4rem 0.72rem;
+  font-size: 0.92rem;
+}
+
+.book-rsvp-page textarea {
+  min-height: 4.2rem;
+}
+
+.book-rsvp-page #guests-help {
+  display: none;
+}
+
+.book-rsvp-page .space-y-4 {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.book-rsvp-page .space-y-2 {
+  display: grid;
+  gap: 0.28rem;
+}
+
+.book-rsvp-page .absolute.z-20 {
+  max-height: 8.8rem;
+}
+
+.book-rsvp-page .btn {
+  min-height: 2.35rem;
+  padding: 0.45rem 1rem;
+  font-size: 0.95rem;
+}
+
+.hero-artnouveau {
+  border-bottom: 3px solid rgba(43, 33, 24, 0.78);
+}
+
+.hero-artnouveau::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(43, 33, 24, 0.76) 0 2px, transparent 2px calc(25% - 1px), rgba(43, 33, 24, 0.48) calc(25% - 1px) calc(25% + 1px), transparent calc(25% + 1px) calc(50% - 1px), rgba(43, 33, 24, 0.48) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px) calc(75% - 1px), rgba(43, 33, 24, 0.48) calc(75% - 1px) calc(75% + 1px), transparent calc(75% + 1px)),
+    linear-gradient(0deg, rgba(43, 33, 24, 0.7) 0 2px, transparent 2px calc(50% - 1px), rgba(43, 33, 24, 0.36) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)),
+    radial-gradient(ellipse at 50% 24%, transparent 0 46%, rgba(184, 134, 47, 0.25) 47% 49%, transparent 50%);
+  mix-blend-mode: multiply;
+}
+
+.hero-artnouveau > div:last-child {
+  z-index: 5;
 }
 
 .wedding-sparkles {
@@ -452,6 +1189,47 @@
 }
 
 @media (max-width: 480px) {
+  .book-stage {
+    padding: 0.75rem;
+  }
+
+  .book-invitation {
+    width: min(96vw, 25rem);
+    height: min(70vh, 28rem);
+  }
+
+  .book-cover-text {
+    left: 50%;
+    right: auto;
+    bottom: 4.2rem;
+    width: min(86%, 19rem);
+    transform: translateX(-50%);
+    padding: 0.75rem;
+    font-size: clamp(1.15rem, 5.4vw, 1.55rem);
+  }
+
+  .book-cover-date {
+    bottom: 1.25rem;
+    width: 88%;
+    gap: 0.55rem;
+    font-size: 0.82rem;
+    letter-spacing: 0.05em;
+  }
+
+  .book-cover-date::before,
+  .book-cover-date::after {
+    max-width: 4.6rem;
+  }
+
+  .book-open-hint {
+    bottom: 1.15rem;
+    font-size: 1rem;
+  }
+
+  .book-invitation-page {
+    width: min(100%, 23rem);
+  }
+
   .envelope-stage {
     padding: 0.75rem;
   }
@@ -508,5 +1286,45 @@
 
   .btn {
     @apply inline-flex items-center gap-2 px-6 py-2 rounded-button font-body border border-primary text-primary hover:bg-primary hover:text-white transition;
+  }
+}
+
+.invitation-artnouveau input,
+.invitation-artnouveau textarea,
+.invitation-artnouveau select,
+.invitation-artnouveau button[id="food-preferences-button"] {
+  border-color: rgba(43, 33, 24, 0.42);
+  background: rgba(255, 250, 235, 0.86);
+  box-shadow:
+    inset 0 0.1rem 0.28rem rgba(43, 33, 24, 0.08),
+    0 0.15rem 0.45rem rgba(23, 68, 130, 0.06);
+}
+
+.invitation-artnouveau input:focus,
+.invitation-artnouveau textarea:focus,
+.invitation-artnouveau select:focus,
+.invitation-artnouveau button[id="food-preferences-button"]:focus {
+  outline: 2px solid rgba(23, 68, 130, 0.35);
+  outline-offset: 2px;
+}
+
+.invitation-artnouveau .btn {
+  background: rgba(255, 248, 226, 0.58);
+  border-color: rgba(43, 33, 24, 0.62);
+  box-shadow:
+    inset 0 0 0 1px rgba(184, 134, 47, 0.42),
+    0 0.35rem 0.8rem rgba(43, 33, 24, 0.12);
+}
+
+.invitation-artnouveau .btn:hover {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff9eb;
+}
+
+@media (max-width: 480px) {
+  .invitation-artnouveau::after {
+    height: 4.2rem;
+    width: 84%;
   }
 }
