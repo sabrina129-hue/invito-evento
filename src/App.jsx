@@ -9,6 +9,7 @@ import { useState } from "react";
 
 function Home() {
   const [firstSpouse, secondSpouse] = event.content.title.split(" & ");
+  const [finalPageSignal, setFinalPageSignal] = useState(0);
   const bookConfig = {
     ...event.content.book,
     innerPage: {
@@ -23,7 +24,7 @@ function Home() {
   };
 
   return (
-    <BookInvitation config={bookConfig}>
+    <BookInvitation config={bookConfig} finalPageSignal={finalPageSignal}>
       <section className="book-detail-page" aria-label="Informazioni matrimonio">
         <h1 className="book-detail-title" aria-label={event.content.title}>
           <span>{firstSpouse}</span>
@@ -50,7 +51,16 @@ function Home() {
       </section>
 
       <section className="book-detail-page book-rsvp-page" aria-label="Conferma partecipazione">
-        <RSVP config={event.rsvp} />
+        <RSVP config={event.rsvp} onSubmitted={() => setFinalPageSignal(signal => signal + 1)} />
+      </section>
+
+      <section className="book-detail-page book-thank-you-page" aria-label="Grazie per la risposta">
+        <h1 className="book-detail-title book-thank-you-title">
+          <span>Grazie</span>
+          <span>per la risposta</span>
+        </h1>
+        <p className="book-detail-description">{event.rsvp.successMessage}</p>
+        <p className="book-thank-you-note">Non vediamo l'ora di condividere questo giorno con te.</p>
       </section>
     </BookInvitation>
   );

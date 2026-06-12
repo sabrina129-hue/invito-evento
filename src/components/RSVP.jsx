@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
-export default function RSVP({ config }) {
+export default function RSVP({ config, onSubmitted }) {
   const [form, setForm] = useState({ name: "", guests: 1, attending: true, foodPreferences: [], notes: "" });
   const [foodMenuOpen, setFoodMenuOpen] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -60,14 +60,27 @@ export default function RSVP({ config }) {
       });
 
       if (!res.ok) {
-        throw new Error("Invio non riuscito");
+        let errorMessage = config.errorMessage;
+
+        try {
+          const payload = await res.json();
+          errorMessage = payload?.error || payload?.details || errorMessage;
+        } catch {
+          // Keep the configured message if the server does not return JSON.
+        }
+
+        throw new Error(errorMessage);
       }
 
-      setShowSuccess(true);
       setForm({ name: "", guests: 1, attending: true, foodPreferences: [], notes: "" });
       setFoodMenuOpen(false);
-    } catch {
-      setError(config.errorMessage);
+      if (onSubmitted) {
+        onSubmitted();
+      } else {
+        setShowSuccess(true);
+      }
+    } catch (err) {
+      setError(err?.message || config.errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -173,7 +186,11 @@ export default function RSVP({ config }) {
         />
       </label>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && (
+        <p className="text-sm text-red-700 font-body" role="alert" aria-live="polite">
+          {error}
+        </p>
+      )}
 
       <button type="submit" disabled={submitting} className="btn w-full mt-2 flex items-center justify-center disabled:opacity-60">
         {submitting ? config.submittingLabel : config.submitLabel}
