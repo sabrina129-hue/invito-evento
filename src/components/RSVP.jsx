@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { ChevronDown } from "lucide-react";
 
 export default function RSVP({ config, onSubmitted }) {
   const [form, setForm] = useState({ name: "", guests: 1, attending: true, foodPreferences: [], notes: "" });
@@ -151,7 +152,7 @@ export default function RSVP({ config, onSubmitted }) {
                     ? form.foodPreferences.join(", ")
                     : config.foodPreferencesPlaceholder}
                 </span>
-                <span aria-hidden="true">v</span>
+                <ChevronDown size={18} aria-hidden="true" className="shrink-0 text-text" />
               </button>
 
               {foodMenuOpen && (
