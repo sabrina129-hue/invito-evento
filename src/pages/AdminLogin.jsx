@@ -12,7 +12,7 @@ export default function AdminLogin({ labels, onLogin }) {
     setError("");
 
     if (!password.trim()) {
-      setError("Inserisci la password.");
+      setError("Wpisz hasło.");
       return;
     }
 
@@ -34,9 +34,9 @@ export default function AdminLogin({ labels, onLogin }) {
         return;
       }
 
-      setError(data?.error || labels.wrongPassword || "Accesso non riuscito.");
+      setError(labels.wrongPassword || data?.error || "Logowanie nie powiodło się.");
     } catch {
-      setError("Non riesco a contattare il server. Riprova tra poco.");
+      setError("Nie można połączyć się z serwerem. Spróbuj ponownie za chwilę.");
     } finally {
       setLoading(false);
     }
@@ -61,7 +61,7 @@ export default function AdminLogin({ labels, onLogin }) {
             className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-gray-500 hover:text-gray-800 disabled:opacity-50"
             onClick={() => setShowPassword(prev => !prev)}
             disabled={loading}
-            aria-label={showPassword ? "Nascondi password" : "Mostra password"}
+            aria-label={showPassword ? "Ukryj hasło" : "Pokaż hasło"}
           >
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
@@ -74,7 +74,7 @@ export default function AdminLogin({ labels, onLogin }) {
           className="w-full bg-blue-600 text-white py-2 rounded"
           disabled={loading}
         >
-          {loading ? "Accesso..." : labels.loginButton}
+          {loading ? "Logowanie..." : labels.loginButton}
         </button>
       </form>
     </div>
