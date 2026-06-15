@@ -208,6 +208,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
     const [notice, setNotice] = useState("");
     const [search, setSearch] = useState("");
     const [newParticipant, setNewParticipant] = useState(emptyParticipant);
+    const [addFoodMenuOpen, setAddFoodMenuOpen] = useState(false);
 
     const token = localStorage.getItem("adminToken");
 
@@ -287,6 +288,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
 
             setPartecipanti(prev => [result.data, ...prev]);
             setNewParticipant(emptyParticipant);
+            setAddFoodMenuOpen(false);
             setAdding(false);
         } finally {
             setAddingParticipant(false);
@@ -623,6 +625,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                         ...newParticipant,
                                         partecipate: e.target.value === "true",
                                         guests: e.target.value === "true" ? Math.max(1, newParticipant.guests || 1) : 0,
+                                        food_preferences: e.target.value === "true" ? newParticipant.food_preferences : "",
                                     })
                                 }
                             >
@@ -646,17 +649,45 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                 }
                             />
 
-                            <textarea
-                                className="w-full border p-2 rounded"
-                                placeholder="Allergie / Intolleranze"
-                                value={newParticipant.food_preferences}
-                                onChange={e =>
-                                    setNewParticipant({
-                                        ...newParticipant,
-                                        food_preferences: e.target.value,
-                                    })
-                                }
-                            />
+                            <div className="relative">
+                                <label className="mb-1 block text-sm font-medium text-gray-700">
+                                    Allergie / Intolleranze
+                                </label>
+                                <button
+                                    type="button"
+                                    className="flex w-full items-center justify-between gap-3 rounded border p-2 text-left disabled:bg-gray-100 disabled:text-gray-500"
+                                    disabled={!newParticipant.partecipate}
+                                    onClick={() => setAddFoodMenuOpen(prev => !prev)}
+                                    aria-expanded={addFoodMenuOpen}
+                                >
+                                    <span className={newParticipant.food_preferences ? "" : "text-gray-400"}>
+                                        {newParticipant.food_preferences || "Seleziona allergie, intolleranze o preferenze"}
+                                    </span>
+                                    <span aria-hidden="true">v</span>
+                                </button>
+
+                                {addFoodMenuOpen && newParticipant.partecipate && (
+                                    <div className="absolute z-20 mt-2 max-h-44 w-full overflow-y-auto rounded border bg-white p-3 shadow-lg">
+                                        <div className="space-y-2">
+                                            {foodPreferenceOptions.map(option => (
+                                                <label key={option} className="flex items-center gap-2 text-sm font-normal text-gray-700">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={foodPreferencesToList(newParticipant.food_preferences).includes(option)}
+                                                        onChange={() =>
+                                                            setNewParticipant({
+                                                                ...newParticipant,
+                                                                food_preferences: toggleFoodPreference(newParticipant.food_preferences, option),
+                                                            })
+                                                        }
+                                                    />
+                                                    {option}
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
 
                             <textarea
                                 className="w-full border p-2 rounded"
@@ -671,7 +702,12 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                             />
 
                             <div className="flex justify-end gap-2 pt-2">
-                                <button onClick={() => setAdding(false)}>
+                                <button
+                                    onClick={() => {
+                                        setAdding(false);
+                                        setAddFoodMenuOpen(false);
+                                    }}
+                                >
                                     Annulla
                                 </button>
                                 <button
