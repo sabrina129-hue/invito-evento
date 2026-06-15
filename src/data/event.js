@@ -1,7 +1,7 @@
 export const event = {
   meta: {
     pageTitle: "Invito matrimonio Angelo e Gina",
-    shareTitle: "Angelo e Gina si sposano",
+    shareTitle: "Invito Angelo e Gina",
     shareDescription: "Saremo felici di condividere con voi il giorno delle nostre nozze.",
     shareImage: "https://invito-evento-omega.vercel.app/images/img2.jpeg",
     siteUrl: "https://invito-evento-omega.vercel.app",
