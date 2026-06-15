@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ChevronDown } from "lucide-react";
 
 const emptyParticipant = {
     name: "",
@@ -663,7 +664,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                     <span className={newParticipant.food_preferences ? "" : "text-gray-400"}>
                                         {newParticipant.food_preferences || "Seleziona allergie, intolleranze o preferenze"}
                                     </span>
-                                    <span aria-hidden="true">v</span>
+                                    <ChevronDown size={18} aria-hidden="true" className="shrink-0 text-gray-500" />
                                 </button>
 
                                 {addFoodMenuOpen && newParticipant.partecipate && (
