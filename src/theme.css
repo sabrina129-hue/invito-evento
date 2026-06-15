@@ -1194,42 +1194,45 @@
   }
 
   .book-rsvp-page {
-    padding: 4.85rem 3.65rem 4.15rem;
+    padding: 4.5rem 3.75rem 5.15rem;
   }
 
   .book-rsvp-page .section {
-    width: min(100%, 11.25rem);
-    gap: 0.22rem;
+    width: min(100%, 10.85rem);
+    gap: 0.18rem;
     padding: 0;
+    transform: translateY(-0.25rem);
   }
 
   .book-rsvp-page .h2 {
-    font-size: 1.02rem;
+    font-size: 0.96rem;
   }
 
   .book-rsvp-page label {
-    font-size: 0.62rem;
+    font-size: 0.58rem;
   }
 
   .book-rsvp-page input,
   .book-rsvp-page textarea,
   .book-rsvp-page button[id="food-preferences-button"] {
-    padding: 0.22rem 0.38rem;
-    font-size: 0.66rem;
+    padding: 0.18rem 0.34rem;
+    font-size: 0.62rem;
+    line-height: 1.08;
   }
 
   .book-rsvp-page textarea {
-    min-height: 2rem;
+    min-height: 1.62rem;
   }
 
   .book-rsvp-page .btn {
-    min-height: 1.58rem;
-    font-size: 0.66rem;
+    min-height: 1.48rem;
+    font-size: 0.62rem;
   }
 
   .book-rsvp-page button[type="submit"] {
-    min-height: 1.82rem;
-    font-size: 0.72rem;
+    min-height: 1.58rem;
+    margin-top: 0.1rem;
+    font-size: 0.66rem;
   }
 
   .book-thank-you-page {
