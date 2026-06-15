@@ -876,7 +876,7 @@
 
 .book-rsvp-page input::placeholder,
 .book-rsvp-page textarea::placeholder {
-  color: #15100a;
+  color: #8f8778;
   opacity: 1;
 }
 
@@ -889,7 +889,7 @@
 }
 
 .book-rsvp-page .text-muted {
-  color: #15100a;
+  color: #8f8778;
 }
 
 .book-rsvp-page .space-y-4 {
@@ -1189,17 +1189,17 @@
   }
 
   .book-thank-you-title {
-    width: min(100%, 15rem);
-    font-size: clamp(1.9rem, 9.6vw, 2.45rem);
+    width: min(100%, 13rem);
+    font-size: clamp(1.8rem, 8.9vw, 2.3rem);
   }
 
   .book-rsvp-page {
-    padding: 4.15rem 3.05rem 3.45rem;
+    padding: 4.85rem 3.65rem 4.15rem;
   }
 
   .book-rsvp-page .section {
-    width: min(100%, 12.25rem);
-    gap: 0.25rem;
+    width: min(100%, 11.25rem);
+    gap: 0.22rem;
     padding: 0;
   }
 
@@ -1214,22 +1214,34 @@
   .book-rsvp-page input,
   .book-rsvp-page textarea,
   .book-rsvp-page button[id="food-preferences-button"] {
-    padding: 0.22rem 0.4rem;
-    font-size: 0.68rem;
+    padding: 0.22rem 0.38rem;
+    font-size: 0.66rem;
   }
 
   .book-rsvp-page textarea {
-    min-height: 2.15rem;
+    min-height: 2rem;
   }
 
   .book-rsvp-page .btn {
-    min-height: 1.65rem;
-    font-size: 0.68rem;
+    min-height: 1.58rem;
+    font-size: 0.66rem;
   }
 
   .book-rsvp-page button[type="submit"] {
-    min-height: 1.9rem;
-    font-size: 0.74rem;
+    min-height: 1.82rem;
+    font-size: 0.72rem;
+  }
+
+  .book-thank-you-page {
+    gap: 0.72rem;
+    padding: 5.25rem 3.75rem 4.35rem;
+  }
+
+  .book-thank-you-note,
+  .book-thank-you-page .book-detail-description {
+    max-width: min(100%, 12.5rem);
+    font-size: 0.76rem;
+    line-height: 1.22;
   }
 
   .book-page-forward,
