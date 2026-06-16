@@ -11,12 +11,12 @@ import { useState } from "react";
 function Home() {
   return (
     <EnvelopeIntro config={event.content.envelope}>
-      <div className="w-full bg-surface rounded-card shadow-xl overflow-hidden">
+      <div className="invitation-card w-full rounded-card shadow-xl overflow-hidden">
         <Hero images={event.content.images}>
           <h1 className="h1">{event.content.title}</h1>
         </Hero>
 
-        <div className="bg-surface p-8 pt-10 font-body text-center space-y-8">
+        <div className="invitation-body p-8 pt-10 font-body text-center space-y-8">
           <EventInfo event={event.content} />
           <RSVP config={event.rsvp} />
         </div>

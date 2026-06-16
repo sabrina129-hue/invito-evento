@@ -2,6 +2,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import WeddingSparkles from "./WeddingSparkles";
 
+const MotionButton = motion.button;
+const MotionDiv = motion.div;
+
 export default function EnvelopeIntro({ config, children }) {
   const [isOpening, setIsOpening] = useState(false);
   const [showInvitation, setShowInvitation] = useState(false);
@@ -20,7 +23,7 @@ export default function EnvelopeIntro({ config, children }) {
       {showInvitation ? <WeddingSparkles /> : null}
       <AnimatePresence>
         {!hideEnvelope && (
-          <motion.button
+          <MotionButton
             type="button"
             className={`envelope-button ${isOpening ? "is-opening" : ""}`}
             onClick={openEnvelope}
@@ -43,11 +46,11 @@ export default function EnvelopeIntro({ config, children }) {
               <span className="envelope-front" />
               <span className="envelope-seal">{config?.seal}</span>
             </span>
-          </motion.button>
+          </MotionButton>
         )}
 
         {showInvitation && (
-          <motion.div
+          <MotionDiv
             className="parchment-scroll"
             key="invitation-paper"
             initial={{ opacity: 0 }}
@@ -55,7 +58,7 @@ export default function EnvelopeIntro({ config, children }) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.55, ease: "easeOut" }}
           >
-            <motion.div
+            <MotionDiv
               className="parchment-scroll-inner"
               initial={{
                 y: 280,
@@ -78,8 +81,8 @@ export default function EnvelopeIntro({ config, children }) {
               }}
             >
               <div className="parchment-content">{children}</div>
-            </motion.div>
-          </motion.div>
+            </MotionDiv>
+          </MotionDiv>
         )}
       </AnimatePresence>
     </main>

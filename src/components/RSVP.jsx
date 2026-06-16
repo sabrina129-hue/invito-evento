@@ -2,6 +2,8 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
+const MotionDiv = motion.div;
+
 export default function RSVP({ config }) {
   const [form, setForm] = useState({ name: "", guests: 1, attending: true, foodPreferences: [], notes: "" });
   const [foodMenuOpen, setFoodMenuOpen] = useState(false);
@@ -96,7 +98,7 @@ export default function RSVP({ config }) {
 
       <AnimatePresence initial={false}>
         {form.attending && (
-          <motion.div
+          <MotionDiv
             className="space-y-4"
             initial={{ opacity: 0, height: 0, y: -8 }}
             animate={{ opacity: 1, height: "auto", y: 0 }}
@@ -159,7 +161,7 @@ export default function RSVP({ config }) {
                 </div>
               )}
             </div>
-          </motion.div>
+          </MotionDiv>
         )}
       </AnimatePresence>
 
