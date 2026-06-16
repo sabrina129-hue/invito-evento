@@ -61,7 +61,7 @@ export const event = {
     title: "Conferma la tua presenza",
     nameLabel: "Nome",
     namePlaceholder: "Nome",
-    attendingLabel: "Saro presente",
+    attendingLabel: "Sarò presente",
     guestsLabel: "Ospiti",
     guestsHelpText: "Indica il numero totale di persone, compreso te. Se vieni da solo lascia 1; se vieni con un accompagnatore inserisci 2.",
     foodPreferencesLabel: "Allergie / Intolleranze",

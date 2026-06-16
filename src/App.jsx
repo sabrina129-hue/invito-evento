@@ -5,6 +5,7 @@ import { event } from "./data/event";
 import Admin from "./pages/Admin.jsx";
 import { HashRouter, Routes, Route } from "react-router-dom";
 import AdminLogin from "./pages/AdminLogin.jsx";
+import ProjectsDashboard from "./pages/ProjectsDashboard.jsx";
 import { useState } from "react";
 
 function Home() {
@@ -87,6 +88,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/admin" element={<AdminProtected />} />
+        <Route path="/dashboard" element={<ProjectsDashboard />} />
       </Routes>
     </HashRouter>
   );
