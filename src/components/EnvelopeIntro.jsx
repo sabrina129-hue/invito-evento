@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import WeddingSparkles from "./WeddingSparkles";
 
 const MotionButton = motion.button;
@@ -9,18 +9,30 @@ export default function EnvelopeIntro({ config, children }) {
   const [isOpening, setIsOpening] = useState(false);
   const [showInvitation, setShowInvitation] = useState(false);
   const [hideEnvelope, setHideEnvelope] = useState(false);
+  const [showSparkles, setShowSparkles] = useState(false);
+  const timersRef = useRef([]);
+
+  useEffect(() => () => {
+    timersRef.current.forEach(window.clearTimeout);
+  }, []);
+
+  const schedule = (callback, delay) => {
+    const timer = window.setTimeout(callback, delay);
+    timersRef.current.push(timer);
+  };
 
   const openEnvelope = () => {
     if (isOpening || showInvitation) return;
 
     setIsOpening(true);
-    window.setTimeout(() => setShowInvitation(true), 520);
-    window.setTimeout(() => setHideEnvelope(true), 2200);
+    schedule(() => setHideEnvelope(true), 840);
+    schedule(() => setShowInvitation(true), 940);
+    schedule(() => setShowSparkles(true), 2450);
   };
 
   return (
     <main className={`envelope-stage ${showInvitation ? "is-open" : ""}`}>
-      {showInvitation ? <WeddingSparkles /> : null}
+      {showSparkles ? <WeddingSparkles /> : null}
       <AnimatePresence>
         {!hideEnvelope && (
           <MotionButton
@@ -31,8 +43,8 @@ export default function EnvelopeIntro({ config, children }) {
             aria-label={config?.buttonLabel || "Apri invito"}
             initial={{ y: 18, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 86, opacity: 0, scale: 0.88 }}
-            transition={{ duration: 1.15, ease: [0.16, 0.84, 0.22, 1] }}
+            exit={{ y: 42, opacity: 0, scale: 0.94 }}
+            transition={{ duration: 0.58, ease: [0.18, 0.72, 0.22, 1] }}
           >
             <span className="envelope-card">
               <span className="envelope-card-title">{config?.title}</span>
@@ -56,28 +68,23 @@ export default function EnvelopeIntro({ config, children }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.55, ease: "easeOut" }}
+            transition={{ duration: 0.28, ease: "easeOut" }}
           >
             <MotionDiv
               className="parchment-scroll-inner"
               initial={{
-                y: 280,
-                scaleY: 0.06,
-                scaleX: 0.68,
-                opacity: 0.28,
-                rotateX: -38,
-                transformOrigin: "50% 0%",
+                y: 72,
+                scale: 0.96,
+                opacity: 0,
               }}
               animate={{
                 y: 0,
-                scaleY: 1,
-                scaleX: 1,
+                scale: 1,
                 opacity: 1,
-                rotateX: 0,
               }}
               transition={{
-                duration: 1.95,
-                ease: [0.14, 0.82, 0.18, 1],
+                duration: 0.82,
+                ease: [0.18, 0.82, 0.22, 1],
               }}
             >
               <div className="parchment-content">{children}</div>
