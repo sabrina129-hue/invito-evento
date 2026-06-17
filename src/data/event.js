@@ -8,7 +8,7 @@ export const event = {
     shareImageHeight: "2048",
     shareImageType: "image/jpeg",
     siteUrl: "https://invitoginapl.vercel.app",
-    themeColor: "#535b2e",
+    themeColor: "#7f171f",
     favicon: "/vite.svg",
     fontStylesheet: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Great+Vibes&display=swap",
   },

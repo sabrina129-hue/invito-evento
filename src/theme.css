@@ -5,12 +5,18 @@
 /* Modifica qui colori, font e forme dell'invito.
    In VS Code clicca sui quadratini colore accanto ai valori HEX per aprire il color picker. */
 :root {
-  --color-primary: #535b2e;
-  --color-secondary: #7a8754;
-  --color-background: #FAFAFA;
-  --color-surface: #c1c79fc1;
-  --color-text: #0f1010;
-  --color-muted: #6B7280;
+  --color-primary: #7f171f;
+  --color-secondary: #c79a3b;
+  --color-background: #fff8f1;
+  --color-surface: #fff1df;
+  --color-text: #201113;
+  --color-muted: #7c5f58;
+  --color-gold-light: #f5d889;
+  --color-gold-deep: #a97823;
+  --color-wine-deep: #a44d5e;
+  --color-ruby-chocolate: #a64962;
+  --color-ruby-chocolate-light: #c97889;
+  --color-ruby-chocolate-deep: #aa4e6b;
   --font-title: "Great Vibes", cursive;
   --font-body: "Cormorant Garamond", Georgia, serif;
   --radius-card: 1.5rem;
@@ -36,9 +42,111 @@
   animation-fill-mode: forwards;
 }
 
+.invitation-hero {
+  background: transparent;
+}
+
 .hero-image {
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 28%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 28%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 16%, rgba(0, 0, 0, 0.86) 42%, rgba(0, 0, 0, 0.44) 72%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 16%, rgba(0, 0, 0, 0.86) 42%, rgba(0, 0, 0, 0.44) 72%, transparent 100%);
+}
+
+.hero-fade {
+  position: absolute;
+  inset: auto 0 0;
+  height: 60%;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 100%, rgba(255, 250, 241, 0.3), transparent 70%),
+    linear-gradient(180deg, rgba(255, 248, 241, 0), rgba(255, 248, 241, 0.16) 54%, rgba(255, 248, 241, 0.06));
+}
+
+.invitation-card {
+  position: relative;
+  border: 1px solid rgba(199, 154, 59, 0.34);
+  background:
+    url("/images/sfondo-stelle-natale-beige-sfoltito.png") center / cover no-repeat,
+    var(--color-surface);
+}
+
+.invitation-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 43%, rgba(255, 250, 241, 0.42), transparent 24rem),
+    linear-gradient(180deg, rgba(255, 248, 241, 0.16), rgba(255, 248, 241, 0.1) 44%, rgba(255, 248, 241, 0.16));
+}
+
+.invitation-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.invitation-body {
+  position: relative;
+  isolation: isolate;
+  background: transparent;
+}
+
+.invitation-body::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.invitation-body .section {
+  max-width: min(100%, 28rem);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.invitation-body .h2,
+.invitation-body .h3,
+.invitation-body .text-body,
+.invitation-body label,
+.invitation-body p {
+  font-weight: 700;
+  color: #4b0d14;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.72),
+    0 0.12rem 0.45rem rgba(255, 248, 241, 0.72);
+}
+
+.invitation-body .h2 {
+  color: #76151d;
+  font-weight: 700;
+}
+
+.invitation-body .h3 {
+  color: #9f7626;
+  font-weight: 700;
+}
+
+.invitation-body #guests-help {
+  color: #5f1119;
+  font-weight: 700;
+}
+
+.invitation-body input,
+.invitation-body textarea,
+.invitation-body button[aria-expanded] {
+  border-color: rgba(199, 154, 59, 0.22);
+  background-color: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 0.35rem 1rem rgba(75, 13, 20, 0.04);
+}
+
+.invitation-body input::placeholder,
+.invitation-body textarea::placeholder {
+  color: rgba(75, 13, 20, 0.58);
+  opacity: 1;
 }
 
 .envelope-stage {
@@ -74,6 +182,8 @@
   color: var(--color-primary);
   cursor: pointer;
   perspective: 1000px;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
 }
 
 .envelope-button:focus-visible {
@@ -88,9 +198,9 @@
   overflow: hidden;
   border-radius: 0.7rem;
   box-shadow:
-    inset 0 0 0 1px rgba(83, 91, 46, 0.12),
+    inset 0 0 0 1px rgba(245, 216, 137, 0.3),
     inset 0 1.4rem 2.4rem rgba(255, 255, 255, 0.34),
-    0 1.4rem 2.4rem rgba(15, 16, 16, 0.16);
+    0 1.4rem 2.4rem rgba(113, 49, 67, 0.22);
 }
 
 .envelope-back {
@@ -98,20 +208,20 @@
   inset: 0;
   background:
     radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.7), transparent 10rem),
-    linear-gradient(135deg, transparent 49.5%, rgba(83, 91, 46, 0.13) 50%, transparent 50.8%),
-    linear-gradient(225deg, transparent 49.5%, rgba(83, 91, 46, 0.13) 50%, transparent 50.8%),
-    linear-gradient(180deg, #f8f2df, #e7ddbf);
+    linear-gradient(135deg, transparent 49.5%, rgba(245, 216, 137, 0.22) 50%, transparent 50.8%),
+    linear-gradient(225deg, transparent 49.5%, rgba(245, 216, 137, 0.22) 50%, transparent 50.8%),
+    linear-gradient(180deg, var(--color-ruby-chocolate-light), var(--color-ruby-chocolate-deep));
 }
 
 .envelope-front {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(32deg, rgba(223, 213, 184, 0.94) 0 49.5%, transparent 50%),
-    linear-gradient(-32deg, rgba(238, 228, 199, 0.96) 0 49.5%, transparent 50%),
-    linear-gradient(to top, #faf3dd 0 56%, transparent 57%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(223, 213, 184, 0.35));
-  border: 1px solid rgba(83, 91, 46, 0.13);
+    linear-gradient(32deg, rgba(145, 66, 86, 0.95) 0 49.5%, transparent 50%),
+    linear-gradient(-32deg, rgba(190, 111, 128, 0.96) 0 49.5%, transparent 50%),
+    linear-gradient(to top, var(--color-ruby-chocolate) 0 56%, transparent 57%),
+    linear-gradient(180deg, rgba(245, 216, 137, 0.2), rgba(113, 49, 67, 0.16));
+  border: 1px solid rgba(245, 216, 137, 0.34);
   border-radius: 0.7rem;
 }
 
@@ -124,10 +234,12 @@
   height: 58%;
   transform-origin: top center;
   background:
-    linear-gradient(180deg, rgba(255, 253, 244, 0.95), rgba(232, 221, 190, 0.96));
+    linear-gradient(180deg, rgba(201, 126, 141, 0.98), rgba(123, 55, 73, 0.98));
   clip-path: polygon(0 0, 100% 0, 50% 100%);
-  border-top: 1px solid rgba(83, 91, 46, 0.12);
-  transition: transform 1.05s cubic-bezier(0.16, 0.84, 0.22, 1);
+  border-top: 1px solid rgba(245, 216, 137, 0.32);
+  backface-visibility: hidden;
+  transition: transform 0.74s cubic-bezier(0.18, 0.72, 0.24, 1);
+  will-change: transform;
 }
 
 .envelope-seal {
@@ -142,18 +254,19 @@
   translate: -50% -50%;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.18), transparent 1.2rem),
-    linear-gradient(145deg, #6b7137, var(--color-primary));
-  color: #fff8eb;
+    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.32), transparent 1.2rem),
+    linear-gradient(145deg, var(--color-gold-light), var(--color-gold-deep));
+  color: #4b0d14;
   font-family: var(--font-title);
   font-size: 1.28rem;
   line-height: 1;
-  border: 1px solid rgba(255, 252, 244, 0.34);
+  border: 1px solid rgba(255, 248, 226, 0.58);
   box-shadow:
     inset 0 0.18rem 0.45rem rgba(255, 255, 255, 0.16),
-    inset 0 -0.28rem 0.65rem rgba(15, 16, 16, 0.18),
-    0 0.35rem 0.85rem rgba(15, 16, 16, 0.18);
-  transition: opacity 0.35s ease, scale 0.35s ease;
+    inset 0 -0.28rem 0.65rem rgba(75, 13, 20, 0.22),
+    0 0.35rem 0.85rem rgba(75, 13, 20, 0.24);
+  transition: opacity 0.28s ease, scale 0.28s ease;
+  will-change: opacity, transform;
 }
 
 .envelope-card {
@@ -169,23 +282,24 @@
   justify-content: center;
   gap: 0.55rem;
   padding: 1.15rem 1.35rem 1.8rem;
-  border: 1px solid rgba(83, 91, 46, 0.22);
+  border: 1px solid rgba(199, 154, 59, 0.42);
   border-radius: 0.55rem;
   background:
     radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.76), transparent 13rem),
-    linear-gradient(rgba(255, 252, 244, 0.9), rgba(255, 248, 231, 0.88)),
+    linear-gradient(rgba(255, 250, 239, 0.94), rgba(255, 241, 218, 0.9)),
     var(--color-surface);
   box-shadow:
     inset 0 0 0 0.45rem rgba(255, 255, 255, 0.18),
-    0 0.55rem 1.1rem rgba(15, 16, 16, 0.12);
-  transition: transform 1.35s cubic-bezier(0.16, 0.84, 0.22, 1), opacity 0.8s ease;
+    0 0.55rem 1.1rem rgba(75, 13, 20, 0.13);
+  transition: transform 0.82s cubic-bezier(0.18, 0.72, 0.24, 1), opacity 0.42s ease;
+  will-change: transform, opacity;
 }
 
 .envelope-card::before {
   content: "";
   position: absolute;
   inset: 0.85rem;
-  border: 1px solid rgba(83, 91, 46, 0.2);
+  border: 1px solid rgba(199, 154, 59, 0.4);
   border-radius: 0.35rem;
   pointer-events: none;
 }
@@ -221,8 +335,8 @@
 }
 
 .envelope-button.is-opening .envelope-card {
-  transform: translateY(-94%) scale(0.9);
-  opacity: 0.08;
+  transform: translate3d(0, -74%, 0) scale(0.94);
+  opacity: 0;
 }
 
 .envelope-stage.is-open .envelope-button {
@@ -240,14 +354,13 @@
   z-index: 5;
   width: min(100%, 37rem);
   padding: 1.1rem 0 1.8rem;
-  perspective: 1200px;
 }
 
 .parchment-scroll-inner {
   position: relative;
   width: 100%;
-  transform-style: preserve-3d;
   padding: 0.8rem 0;
+  will-change: transform, opacity;
 }
 
 .parchment-scroll-inner::before,
@@ -260,8 +373,8 @@
   height: 1.35rem;
   border-radius: 999px;
   background:
-    linear-gradient(90deg, rgba(120, 91, 55, 0.52), rgba(246, 232, 192, 0.96), rgba(120, 91, 55, 0.52));
-  box-shadow: 0 0.35rem 0.95rem rgba(15, 16, 16, 0.16);
+    linear-gradient(90deg, rgba(75, 13, 20, 0.68), rgba(245, 216, 137, 0.96), rgba(75, 13, 20, 0.68));
+  box-shadow: 0 0.35rem 0.95rem rgba(75, 13, 20, 0.2);
   translate: -50% 0;
 }
 
@@ -284,7 +397,7 @@
   inset: 0.85rem;
   z-index: -1;
   border-radius: var(--radius-card);
-  background: rgba(15, 16, 16, 0.18);
+  background: rgba(75, 13, 20, 0.18);
   filter: blur(1.7rem);
   transform: translateY(0.9rem);
 }
@@ -292,30 +405,30 @@
 .wedding-sparkles {
   position: fixed;
   inset: 0;
-  z-index: 1;
+  z-index: 8;
   pointer-events: none;
   overflow: hidden;
+  contain: layout paint style;
 }
 
 .wedding-sparkle {
   position: absolute;
-  top: -1.5rem;
+  top: -1rem;
   display: block;
   opacity: 0;
-  animation-name: wedding-sparkle-fall;
-  animation-timing-function: cubic-bezier(0.17, 0.67, 0.29, 1);
+  animation-name: glitter-fall;
+  animation-timing-function: linear;
   animation-fill-mode: forwards;
-  filter: drop-shadow(0 0.25rem 0.45rem rgba(83, 91, 46, 0.12));
+  transform: translate3d(0, -1rem, 0) scale(0.36);
 }
 
-.wedding-sparkle.confetto {
-  border-radius: 0.12rem 0.42rem 0.12rem 0.42rem;
-}
-
-.wedding-sparkle.sparkle {
+.wedding-sparkle.glitter {
+  border-radius: 999px;
   background: currentColor;
-  clip-path: polygon(50% 0, 61% 36%, 100% 50%, 61% 64%, 50% 100%, 39% 64%, 0 50%, 39% 36%);
-  box-shadow: 0 0 1.1rem currentColor;
+  box-shadow:
+    0 0 0.34rem currentColor,
+    0 0 0.72rem rgba(255, 232, 139, 0.82),
+    0 0 1rem rgba(255, 248, 226, 0.38);
 }
 
 .success-modal-backdrop {
@@ -327,8 +440,8 @@
   justify-content: center;
   padding: 1.25rem;
   background:
-    radial-gradient(circle at 50% 35%, rgba(255, 252, 244, 0.18), transparent 18rem),
-    rgba(15, 16, 16, 0.68);
+    radial-gradient(circle at 50% 35%, rgba(245, 216, 137, 0.18), transparent 18rem),
+    rgba(32, 17, 19, 0.72);
   backdrop-filter: blur(5px);
 }
 
@@ -337,12 +450,12 @@
   position: relative;
   overflow: hidden;
   border-radius: var(--radius-card);
-  border: 1px solid rgba(83, 91, 46, 0.24);
+  border: 1px solid rgba(199, 154, 59, 0.42);
   background:
     radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.62), transparent 12rem),
-    linear-gradient(rgba(245, 241, 222, 0.98), rgba(219, 225, 184, 0.98));
+    linear-gradient(rgba(255, 248, 238, 0.98), rgba(255, 237, 212, 0.98));
   box-shadow:
-    0 1.4rem 3rem rgba(15, 16, 16, 0.34),
+    0 1.4rem 3rem rgba(75, 13, 20, 0.34),
     inset 0 0 0 0.45rem rgba(255, 255, 255, 0.22);
   padding: 1.75rem;
   text-align: center;
@@ -352,7 +465,7 @@
   content: "";
   position: absolute;
   inset: 0.7rem;
-  border: 1px solid rgba(83, 91, 46, 0.18);
+  border: 1px solid rgba(199, 154, 59, 0.28);
   border-radius: calc(var(--radius-card) - 0.35rem);
   pointer-events: none;
 }
@@ -364,7 +477,7 @@
   min-height: 4.25rem;
   margin-bottom: 1rem;
   border-radius: 999px;
-  background: rgba(83, 91, 46, 0.1);
+  background: rgba(199, 154, 59, 0.16);
   color: var(--color-primary);
   font-family: var(--font-title);
   font-size: 1.5rem;
@@ -408,27 +521,50 @@
   filter: brightness(1.06);
 }
 
-@keyframes wedding-sparkle-fall {
+@keyframes glitter-fall {
   0% {
     opacity: 0;
-    translate: 0 -1.5rem;
-    rotate: 0deg;
-    scale: 0.85;
+    transform: translate3d(0, -1rem, 0) scale(0.36);
+  }
+
+  6% {
+    opacity: 0.95;
+    transform: translate3d(0, 4.8vh, 0) scale(1.28);
   }
 
   12% {
-    opacity: 0.86;
+    opacity: 0.18;
+    transform: translate3d(0, 9.6vh, 0) scale(0.44);
   }
 
-  76% {
-    opacity: 0.62;
+  19% {
+    opacity: 1;
+    transform: translate3d(0, 17vh, 0) scale(1.42);
+  }
+
+  29% {
+    opacity: 0.26;
+    transform: translate3d(0, 27vh, 0) scale(0.48);
+  }
+
+  39% {
+    opacity: 0.96;
+    transform: translate3d(0, 38vh, 0) scale(1.24);
+  }
+
+  66% {
+    opacity: 0.18;
+    transform: translate3d(0, 63vh, 0) scale(0.42);
+  }
+
+  84% {
+    opacity: 0.08;
+    transform: translate3d(var(--sparkle-drift, 0.8rem), 80vh, 0) scale(0.36);
   }
 
   100% {
     opacity: 0;
-    translate: var(--sparkle-drift, 0.8rem) 108vh;
-    rotate: 420deg;
-    scale: 1.05;
+    transform: translate3d(var(--sparkle-drift, 0.8rem), 84vh, 0) scale(0.32);
   }
 }
 
@@ -452,6 +588,54 @@
 @media (max-width: 480px) {
   .envelope-stage {
     padding: 0.75rem;
+  }
+
+  .invitation-card {
+    background:
+      url("/images/sfondo-stelle-natale-beige-sfoltito.png") top center / 100% auto repeat-y,
+      var(--color-surface);
+  }
+
+  .invitation-card::before {
+    background:
+      linear-gradient(90deg, rgba(255, 248, 241, 0.03), rgba(255, 251, 245, 0.58) 22%, rgba(255, 251, 245, 0.62) 78%, rgba(255, 248, 241, 0.03)),
+      radial-gradient(ellipse at 50% 34%, rgba(255, 250, 241, 0.34), transparent 18rem);
+  }
+
+  .invitation-body {
+    padding-left: 1.65rem;
+    padding-right: 1.65rem;
+  }
+
+  .invitation-body::before {
+    inset: 0.25rem 0.55rem;
+    background:
+      linear-gradient(90deg, rgba(255, 248, 241, 0), rgba(255, 253, 248, 0.5) 16%, rgba(255, 253, 248, 0.54) 84%, rgba(255, 248, 241, 0)),
+      radial-gradient(ellipse at 50% 18%, rgba(255, 252, 247, 0.5), transparent 15rem);
+  }
+
+  .invitation-body .section {
+    max-width: min(100%, 21rem);
+  }
+
+  .invitation-body .h2,
+  .invitation-body .h3,
+  .invitation-body .text-body,
+  .invitation-body label,
+  .invitation-body p {
+    text-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.9),
+      0 0.12rem 0.55rem rgba(255, 248, 241, 0.9);
+  }
+
+  .invitation-body input,
+  .invitation-body textarea,
+  .invitation-body button[aria-expanded] {
+    border-color: rgba(127, 23, 31, 0.2);
+    background-color: rgba(255, 253, 248, 0.92);
+    box-shadow:
+      0 0.35rem 1rem rgba(75, 13, 20, 0.06),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.58);
   }
 
   .envelope-button {
@@ -495,11 +679,11 @@
 }
 
 @layer components {
-  .h1 { @apply text-5xl font-title text-primary; }
-  .h2 { @apply text-3xl font-title text-primary; }
-  .h3 { @apply text-2xl font-body text-secondary italic; }
+  .h1 { @apply text-5xl font-title text-primary font-bold; }
+  .h2 { @apply text-3xl font-title text-primary font-bold; }
+  .h3 { @apply text-2xl font-body text-secondary italic font-bold; }
 
-  .text-body { @apply text-base font-body text-text; }
+  .text-body { @apply text-base font-body text-text font-semibold; }
   .placeholder { @apply text-sm text-muted; }
 
   .section { @apply space-y-4 text-center; }
