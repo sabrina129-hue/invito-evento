@@ -6,9 +6,20 @@ import { event } from "./data/event";
 import Admin from "./pages/Admin.jsx";
 import { HashRouter, Routes, Route } from "react-router-dom";
 import AdminLogin from "./pages/AdminLogin.jsx";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function Home() {
+  useEffect(() => {
+    [
+      "/images/sfondo-stelle-natale-beige-sfoltito.png",
+      ...event.content.images,
+    ].forEach(src => {
+      const image = new Image();
+      image.decoding = "async";
+      image.src = src;
+    });
+  }, []);
+
   return (
     <EnvelopeIntro config={event.content.envelope}>
       <div className="invitation-card w-full rounded-card shadow-xl overflow-hidden">

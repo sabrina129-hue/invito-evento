@@ -283,7 +283,10 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
             const result = await res.json();
 
             if (!res.ok) {
-                setError("Errore durante l'inserimento.");
+                const details = typeof result.error === "string"
+                    ? result.error
+                    : result.details || result.error?.message;
+                setError(details || "Errore durante l'inserimento.");
                 return;
             }
 

@@ -80,6 +80,11 @@
     linear-gradient(180deg, rgba(255, 248, 241, 0.16), rgba(255, 248, 241, 0.1) 44%, rgba(255, 248, 241, 0.16));
 }
 
+.invitation-card::after {
+  content: "";
+  display: none;
+}
+
 .invitation-card > * {
   position: relative;
   z-index: 1;
@@ -181,8 +186,6 @@
   background: transparent;
   color: var(--color-primary);
   cursor: pointer;
-  perspective: 1000px;
-  transform-style: preserve-3d;
   will-change: transform, opacity;
 }
 
@@ -238,8 +241,8 @@
   clip-path: polygon(0 0, 100% 0, 50% 100%);
   border-top: 1px solid rgba(245, 216, 137, 0.32);
   backface-visibility: hidden;
-  transition: transform 0.74s cubic-bezier(0.18, 0.72, 0.24, 1);
-  will-change: transform;
+  transition: transform 0.52s cubic-bezier(0.2, 0.72, 0.24, 1), opacity 0.36s ease;
+  will-change: transform, opacity;
 }
 
 .envelope-seal {
@@ -265,7 +268,7 @@
     inset 0 0.18rem 0.45rem rgba(255, 255, 255, 0.16),
     inset 0 -0.28rem 0.65rem rgba(75, 13, 20, 0.22),
     0 0.35rem 0.85rem rgba(75, 13, 20, 0.24);
-  transition: opacity 0.28s ease, scale 0.28s ease;
+  transition: opacity 0.24s ease, scale 0.24s ease;
   will-change: opacity, transform;
 }
 
@@ -291,7 +294,7 @@
   box-shadow:
     inset 0 0 0 0.45rem rgba(255, 255, 255, 0.18),
     0 0.55rem 1.1rem rgba(75, 13, 20, 0.13);
-  transition: transform 0.82s cubic-bezier(0.18, 0.72, 0.24, 1), opacity 0.42s ease;
+  transition: transform 0.54s cubic-bezier(0.2, 0.72, 0.24, 1), opacity 0.34s ease;
   will-change: transform, opacity;
 }
 
@@ -326,7 +329,8 @@
 }
 
 .envelope-button.is-opening .envelope-flap {
-  transform: rotateX(180deg);
+  transform: translate3d(0, -58%, 0) scaleY(0.16);
+  opacity: 0.12;
 }
 
 .envelope-button.is-opening .envelope-seal {
@@ -335,7 +339,7 @@
 }
 
 .envelope-button.is-opening .envelope-card {
-  transform: translate3d(0, -74%, 0) scale(0.94);
+  transform: translate3d(0, -48%, 0) scale(0.98);
   opacity: 0;
 }
 
@@ -591,15 +595,29 @@
   }
 
   .invitation-card {
+    background: var(--color-surface);
+  }
+
+  .invitation-card::after {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
     background:
-      url("/images/sfondo-stelle-natale-beige-sfoltito.png") top center / 100% auto repeat-y,
-      var(--color-surface);
+      url("/images/sfondo-stelle-natale-beige-sfoltito.png") bottom center / 100% auto no-repeat;
   }
 
   .invitation-card::before {
+    z-index: 1;
     background:
-      linear-gradient(90deg, rgba(255, 248, 241, 0.03), rgba(255, 251, 245, 0.58) 22%, rgba(255, 251, 245, 0.62) 78%, rgba(255, 248, 241, 0.03)),
-      radial-gradient(ellipse at 50% 34%, rgba(255, 250, 241, 0.34), transparent 18rem);
+      linear-gradient(90deg, rgba(255, 248, 241, 0), rgba(255, 252, 247, 0.5) 24%, rgba(255, 252, 247, 0.66) 50%, rgba(255, 252, 247, 0.5) 76%, rgba(255, 248, 241, 0)),
+      linear-gradient(180deg, rgba(255, 248, 241, 0.04), rgba(255, 250, 244, 0.18) 30%, rgba(255, 250, 244, 0.28) 64%, rgba(255, 248, 241, 0.12)),
+      radial-gradient(ellipse at 50% 34%, rgba(255, 250, 241, 0.28), transparent 17rem);
+  }
+
+  .invitation-card > * {
+    z-index: 2;
   }
 
   .invitation-body {
@@ -608,10 +626,10 @@
   }
 
   .invitation-body::before {
-    inset: 0.25rem 0.55rem;
+    inset: 0.25rem 0.35rem;
     background:
-      linear-gradient(90deg, rgba(255, 248, 241, 0), rgba(255, 253, 248, 0.5) 16%, rgba(255, 253, 248, 0.54) 84%, rgba(255, 248, 241, 0)),
-      radial-gradient(ellipse at 50% 18%, rgba(255, 252, 247, 0.5), transparent 15rem);
+      linear-gradient(90deg, rgba(255, 248, 241, 0), rgba(255, 253, 248, 0.46) 18%, rgba(255, 253, 248, 0.5) 82%, rgba(255, 248, 241, 0)),
+      radial-gradient(ellipse at 50% 18%, rgba(255, 252, 247, 0.44), transparent 14rem);
   }
 
   .invitation-body .section {
