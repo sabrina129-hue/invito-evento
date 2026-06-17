@@ -60,8 +60,8 @@ export const event = {
     attendingLabel: "Saro presente",
     guestsLabel: "Ospiti",
     guestsHelpText: "Indica il numero totale di persone, compreso te. Se vieni da solo lascia 1; se vieni con un accompagnatore inserisci 2.",
-    foodPreferencesLabel: "Allergie / Intolleranze",
-    foodPreferencesPlaceholder: "Seleziona allergie, intolleranze o preferenze",
+    foodPreferencesLabel: "Intolleranze / Preferenze Alimentari",
+    foodPreferencesPlaceholder: "Seleziona intolleranze o preferenze alimentari",
     foodPreferencesOptions: [
       "Glutine (celiachia)",
       "Latte e derivati (lattosio)",
@@ -79,6 +79,7 @@ export const event = {
       "Solfiti",
       "Vegetariano",
       "Vegano",
+      "Menu bambino",
     ],
     notesLabel: "Note",
     notesPlaceholder: "Aggiungi qui note o messaggi che vuoi inviarci!",
