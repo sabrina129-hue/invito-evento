@@ -24,14 +24,14 @@ export const event = {
       seal: "A & L",
     },
     date: "20 Dicembre 2026",
-    time: "Ore 10:00",
+    time: "Ore 11:00",
     calendar: {
       buttonLabel: "Aggiungi al calendario",
       title: "Matrimonio Angelo e Luigia",
       description: "Angelo e Luigia saranno felici di condividere con voi il giorno delle loro nozze.",
       location: "Chiesa Maria SS della Neve",
-      start: "2026-12-20T10:00:00",
-      end: "2026-12-20T18:00:00",
+      start: "2026-12-20T11:00:00",
+      end: "2026-12-20T22:00:00",
       fileName: "matrimonio-angelo-gina.ics",
     },
     locations: {
@@ -41,12 +41,12 @@ export const event = {
       },
       reception: {
         label: "Ricevimento",
-        url: "https://www.google.it/maps/place/Megusta+pizza+e+cucina/@40.8979645,14.8259666,660m/data=!3m2!1e3!4b1!4m6!3m5!1s0x133bcd94d1963d29:0xd13e759d5862f73d!8m2!3d40.8979645!4d14.8259666!16s%2Fg%2F11clswnh2s?entry=ttu&g_ep=EgoyMDI2MDExMy4wIKXMDSoASAFQAw%3D%3D"
+        url: "https://www.google.it/maps/place/Villa+Regina+Ricevimenti/@41.0691495,15.0918307,658m/data=!3m2!1e3!4b1!4m6!3m5!1s0x1339863b73232835:0x52c804f61a66fbca!8m2!3d41.0691495!4d15.0944056!16s%2Fg%2F1tfhjkk4?entry=ttu&g_ep=EgoyMDI2MDYxMC4wIKXMDSoASAFQAw%3D%3D" 
       },
     },
     images: [
       "/images/img2.jpeg",
-      "/images/img3.jpeg",
+      //"/images/img3.jpeg",
       "/images/img4.jpeg",
       "/images/img5.jpeg",
       "/images/img6.jpeg",

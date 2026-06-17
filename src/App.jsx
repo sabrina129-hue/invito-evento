@@ -16,7 +16,7 @@ function Home() {
           <h1 className="h1">{event.content.title}</h1>
         </Hero>
 
-        <div className="invitation-body p-8 pt-10 font-body text-center space-y-8">
+        <div className="invitation-body p-8 pt-6 font-body text-center space-y-8">
           <EventInfo event={event.content} />
           <RSVP config={event.rsvp} />
         </div>
