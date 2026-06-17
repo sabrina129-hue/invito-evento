@@ -25,9 +25,9 @@ export default function EnvelopeIntro({ config, children }) {
     if (isOpening || showInvitation) return;
 
     setIsOpening(true);
-    schedule(() => setHideEnvelope(true), 840);
-    schedule(() => setShowInvitation(true), 940);
-    schedule(() => setShowSparkles(true), 2450);
+    schedule(() => setHideEnvelope(true), 640);
+    schedule(() => setShowInvitation(true), 860);
+    schedule(() => setShowSparkles(true), 2650);
   };
 
   return (
@@ -43,8 +43,8 @@ export default function EnvelopeIntro({ config, children }) {
             aria-label={config?.buttonLabel || "Apri invito"}
             initial={{ y: 18, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 42, opacity: 0, scale: 0.94 }}
-            transition={{ duration: 0.58, ease: [0.18, 0.72, 0.22, 1] }}
+            exit={{ y: 24, opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.36, ease: [0.24, 0.72, 0.3, 1] }}
           >
             <span className="envelope-card">
               <span className="envelope-card-title">{config?.title}</span>
@@ -73,8 +73,8 @@ export default function EnvelopeIntro({ config, children }) {
             <MotionDiv
               className="parchment-scroll-inner"
               initial={{
-                y: 72,
-                scale: 0.96,
+                y: 42,
+                scale: 0.985,
                 opacity: 0,
               }}
               animate={{
@@ -83,8 +83,8 @@ export default function EnvelopeIntro({ config, children }) {
                 opacity: 1,
               }}
               transition={{
-                duration: 0.82,
-                ease: [0.18, 0.82, 0.22, 1],
+                duration: 0.58,
+                ease: [0.2, 0.84, 0.24, 1],
               }}
             >
               <div className="parchment-content">{children}</div>

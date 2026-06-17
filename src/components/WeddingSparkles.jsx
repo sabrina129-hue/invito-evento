@@ -22,9 +22,13 @@ const pieces = Array.from({ length: 620 }, (_, index) => ({
 }));
 
 export default function WeddingSparkles() {
+  const visiblePieces = typeof window !== "undefined" && window.matchMedia("(max-width: 480px)").matches
+    ? pieces.slice(0, 380)
+    : pieces;
+
   return (
     <div className="wedding-sparkles" aria-hidden="true">
-      {pieces.map(piece => (
+      {visiblePieces.map(piece => (
         <span
           key={piece.id}
           className={`wedding-sparkle ${piece.shape}`}

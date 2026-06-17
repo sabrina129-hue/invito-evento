@@ -2,6 +2,55 @@ import { createClient } from "@supabase/supabase-js";
 import { inviteTable } from "../lib/inviteConfig.js";
 import { getServerEnv } from "../lib/serverEnv.js";
 
+const participantPayloadVariants = ({
+  cleanName,
+  cleanPartecipate,
+  cleanGuests,
+  cleanFoodPreferences,
+  cleanMessage,
+}) => {
+  const variants = [];
+
+  ["partecipa", "partecipate"].forEach(participationColumn => {
+    [
+      { food: true, message: true },
+      { food: false, message: true },
+      { food: true, message: false },
+      { food: false, message: false },
+    ].forEach(({ food, message }) => {
+      variants.push({
+        name: cleanName,
+        [participationColumn]: cleanPartecipate,
+        guests: cleanGuests,
+        ...(food ? { food_preferences: cleanFoodPreferences } : {}),
+        ...(message ? { message: cleanMessage } : {}),
+      });
+    });
+  });
+
+  return variants;
+};
+
+const tryInsertParticipant = async (supabase, payloads) => {
+  let lastError;
+
+  for (const payload of payloads) {
+    const { data, error } = await supabase
+      .from(inviteTable)
+      .insert([payload])
+      .select()
+      .single();
+
+    if (!error) {
+      return { data, error: null };
+    }
+
+    lastError = error;
+  }
+
+  return { data: null, error: lastError };
+};
+
 export default async function handler(req, res) {
   if (req.method === "POST") {
     const supabaseUrl = getServerEnv("SUPABASE_URL");
@@ -26,44 +75,16 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Il nome è obbligatorio" });
     }
 
-    let { data, error } = await supabase
-      .from(inviteTable)
-      .insert([{
-        name: cleanName,
-        partecipa: cleanPartecipate,
-        guests: cleanGuests,
-        food_preferences: cleanFoodPreferences,
-        message: cleanMessage,
-      }])
-      .select()
-      .single();
-
-    if (error) {
-      ({ data, error } = await supabase
-        .from(inviteTable)
-        .insert([{
-          name: cleanName,
-          partecipate: cleanPartecipate,
-          guests: cleanGuests,
-          food_preferences: cleanFoodPreferences,
-          message: cleanMessage,
-        }])
-        .select()
-        .single());
-    }
-
-    if (error && String(error.message || "").includes("food_preferences")) {
-      ({ data, error } = await supabase
-        .from(inviteTable)
-        .insert([{
-          name: cleanName,
-          partecipa: cleanPartecipate,
-          guests: cleanGuests,
-          message: cleanMessage,
-        }])
-        .select()
-        .single());
-    }
+    const { data, error } = await tryInsertParticipant(
+      supabase,
+      participantPayloadVariants({
+        cleanName,
+        cleanPartecipate,
+        cleanGuests,
+        cleanFoodPreferences,
+        cleanMessage,
+      })
+    );
 
     if (error) {
       return res.status(500).json({

@@ -8,6 +8,51 @@ const normalizeParticipant = participant => ({
   food_preferences: participant.food_preferences || "",
 });
 
+const participantPayloadVariants = ({
+  cleanName,
+  cleanPartecipate,
+  cleanGuests,
+  cleanFoodPreferences,
+  cleanMessage,
+}) => {
+  const variants = [];
+
+  ["partecipa", "partecipate"].forEach(participationColumn => {
+    [
+      { food: true, message: true },
+      { food: false, message: true },
+      { food: true, message: false },
+      { food: false, message: false },
+    ].forEach(({ food, message }) => {
+      variants.push({
+        name: cleanName,
+        [participationColumn]: cleanPartecipate,
+        guests: cleanGuests,
+        ...(food ? { food_preferences: cleanFoodPreferences } : {}),
+        ...(message ? { message: cleanMessage } : {}),
+      });
+    });
+  });
+
+  return variants;
+};
+
+const tryWriteParticipant = async (operation, payloads) => {
+  let lastError;
+
+  for (const payload of payloads) {
+    const { data, error } = await operation(payload).select().single();
+
+    if (!error) {
+      return { data, error: null };
+    }
+
+    lastError = error;
+  }
+
+  return { data: null, error: lastError };
+};
+
 export default async function handler(req, res) {
   const auth = req.headers.authorization;
 
@@ -31,51 +76,24 @@ export default async function handler(req, res) {
     const cleanPartecipate = Boolean(req.body.partecipa ?? req.body.partecipate);
     const cleanGuests = cleanPartecipate ? Math.max(1, Number(guests) || 1) : 0;
     const cleanFoodPreferences = String(req.body.food_preferences || req.body.foodPreferences || "").trim();
+    const cleanMessage = String(message || "").trim();
 
     if (!cleanName) {
       return res.status(400).json({ error: "Il nome è obbligatorio" });
     }
 
-    let { data, error } = await supabase
-      .from(inviteTable)
-      .insert([{
-        name: cleanName,
-        partecipa: cleanPartecipate,
-        guests: cleanGuests,
-        food_preferences: cleanFoodPreferences,
-        message: String(message || "").trim(),
-      }])
-      .select()
-      .single();
+    const { data, error } = await tryWriteParticipant(
+      payload => supabase.from(inviteTable).insert([payload]),
+      participantPayloadVariants({
+        cleanName,
+        cleanPartecipate,
+        cleanGuests,
+        cleanFoodPreferences,
+        cleanMessage,
+      })
+    );
 
-    if (error) {
-      ({ data, error } = await supabase
-        .from(inviteTable)
-        .insert([{
-          name: cleanName,
-          partecipate: cleanPartecipate,
-          guests: cleanGuests,
-          food_preferences: cleanFoodPreferences,
-          message: String(message || "").trim(),
-        }])
-        .select()
-        .single());
-    }
-
-    if (error && String(error.message || "").includes("food_preferences")) {
-      ({ data, error } = await supabase
-        .from(inviteTable)
-        .insert([{
-          name: cleanName,
-          partecipa: cleanPartecipate,
-          guests: cleanGuests,
-          message: String(message || "").trim(),
-        }])
-        .select()
-        .single());
-    }
-
-    if (error) return res.status(500).json({ error });
+    if (error) return res.status(500).json({ error, details: error.message, table: inviteTable });
     return res.status(200).json({ data: normalizeParticipant(data) });
   }
 
@@ -90,47 +108,18 @@ export default async function handler(req, res) {
       message: String(fields.message || "").trim(),
     };
 
-    let { data, error } = await supabase
-      .from(inviteTable)
-      .update(cleanFields)
-      .eq("id", id)
-      .select()
-      .single();
+    const { data, error } = await tryWriteParticipant(
+      payload => supabase.from(inviteTable).update(payload).eq("id", id),
+      participantPayloadVariants({
+        cleanName: cleanFields.name,
+        cleanPartecipate,
+        cleanGuests: cleanFields.guests,
+        cleanFoodPreferences: cleanFields.food_preferences,
+        cleanMessage: cleanFields.message,
+      })
+    );
 
-    if (error) {
-      const fallbackFields = {
-        name: cleanFields.name,
-        partecipate: cleanPartecipate,
-        guests: cleanFields.guests,
-        food_preferences: cleanFields.food_preferences,
-        message: cleanFields.message,
-      };
-
-      ({ data, error } = await supabase
-        .from(inviteTable)
-        .update(fallbackFields)
-        .eq("id", id)
-        .select()
-        .single());
-    }
-
-    if (error && String(error.message || "").includes("food_preferences")) {
-      const fallbackFields = {
-        name: cleanFields.name,
-        partecipa: cleanPartecipate,
-        guests: cleanFields.guests,
-        message: cleanFields.message,
-      };
-
-      ({ data, error } = await supabase
-        .from(inviteTable)
-        .update(fallbackFields)
-        .eq("id", id)
-        .select()
-        .single());
-    }
-
-    if (error) return res.status(500).json({ error });
+    if (error) return res.status(500).json({ error, details: error.message, table: inviteTable });
     return res.status(200).json({ data: normalizeParticipant(data) });
   }
 
