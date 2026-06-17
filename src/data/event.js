@@ -1,7 +1,7 @@
 export const event = {
   meta: {
-    pageTitle: "Zaproszenie ślubne Angelo i Giny",
-    shareTitle: "Zaproszenie Angelo i Giny",
+    pageTitle: "Zaproszenie ślubne Angelo i Luigii",
+    shareTitle: "Zaproszenie Angelo i Luigii",
     shareDescription: "Będzie nam bardzo miło dzielić z Wami dzień naszego ślubu.",
     shareImage: "https://invitoginapl.vercel.app/images/img2.jpeg",
     shareImageWidth: "1536",
@@ -14,25 +14,25 @@ export const event = {
   },
 
   content: {
-    title: "Angelo & Gina",
+    title: "Angelo & Luigia",
     subtitle: "Mają zaszczyt zaprosić Was na swój ślub",
     description: "",
     envelope: {
       title: "Mamy dla Ciebie zaproszenie",
       subtitle: "",
       buttonLabel: "Otwórz zaproszenie",
-      seal: "A&G",
+      seal: "A&L",
     },
     date: "20 grudnia 2026",
     time: "Godz. 10:00",
     calendar: {
       buttonLabel: "Dodaj do kalendarza",
-      title: "Ślub Angelo i Giny",
-      description: "Angelo i Gina będą szczęśliwi, mogąc dzielić z Wami dzień swojego ślubu.",
+      title: "Ślub Angelo i Luigii",
+      description: "Angelo i Luigia będą szczęśliwi, mogąc dzielić z Wami dzień swojego ślubu.",
       location: "Chiesa Maria SS della Neve",
       start: "2026-12-20T10:00:00",
       end: "2026-12-20T18:00:00",
-      fileName: "slub-angelo-gina.ics",
+      fileName: "slub-angelo-luigia.ics",
     },
     locations: {
       ceremony: {
