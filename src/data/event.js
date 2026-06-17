@@ -1,7 +1,7 @@
 export const event = {
   meta: {
-    pageTitle: "Zaproszenie ślubne Angelo i Luigii",
-    shareTitle: "Zaproszenie Angelo i Luigii",
+    pageTitle: "Zaproszenie ślubne Angelo i Luigia",
+    shareTitle: "Zaproszenie Angelo i Luigia",
     shareDescription: "Będzie nam bardzo miło dzielić z Wami dzień naszego ślubu.",
     shareImage: "https://invitoginapl.vercel.app/images/img2.jpeg",
     shareImageWidth: "1536",
