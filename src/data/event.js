@@ -60,8 +60,8 @@ export const event = {
     attendingLabel: "Będę obecny/a",
     guestsLabel: "Liczba osób",
     guestsHelpText: "Wpisz łączną liczbę osób, łącznie z Tobą. Jeśli przychodzisz sam/a, zostaw 1; jeśli z osobą towarzyszącą, wpisz 2.",
-    foodPreferencesLabel: "Alergie / nietolerancje",
-    foodPreferencesPlaceholder: "Wybierz alergie, nietolerancje lub preferencje",
+    foodPreferencesLabel: "Nietolerancje / Preferencje żywieniowe",
+    foodPreferencesPlaceholder: "Wybierz nietolerancje lub preferencje żywieniowe",
     foodPreferencesOptions: [
       "Gluten (celiakia)",
       "Mleko i produkty mleczne (laktoza)",
@@ -79,6 +79,7 @@ export const event = {
       "Siarczyny",
       "Wegetariańskie",
       "Wegańskie",
+      "Menu dziecięce",
     ],
     notesLabel: "Uwagi",
     notesPlaceholder: "Tutaj możesz dodać uwagi lub wiadomość dla nas!",

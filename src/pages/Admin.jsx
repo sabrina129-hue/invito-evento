@@ -440,7 +440,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                 <th className="p-4">Nome</th>
                                 <th className="p-4">Partecipa</th>
                                 <th className="p-4">Ospiti</th>
-                                <th className="p-4">Allergie / Intolleranze</th>
+                                <th className="p-4">Intolleranze / Preferenze Alimentari</th>
                                 <th className="p-4">Messaggio</th>
                                 <th className="p-4">Azioni</th>
                             </tr>
@@ -567,7 +567,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                             </label>
 
                             <label className="block text-sm font-medium text-gray-700">
-                                Allergie / Intolleranze
+                                Intolleranze / Preferenze Alimentari
                                 <div className="mt-1 max-h-44 overflow-y-auto rounded border p-3 space-y-2">
                                     {foodPreferenceOptions.map(option => (
                                         <label key={option} className="flex items-center gap-2 text-sm font-normal text-gray-700">
@@ -655,7 +655,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
 
                             <div className="relative">
                                 <label className="mb-1 block text-sm font-medium text-gray-700">
-                                    Allergie / Intolleranze
+                                    Intolleranze / Preferenze Alimentari
                                 </label>
                                 <button
                                     type="button"
@@ -665,7 +665,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                     aria-expanded={addFoodMenuOpen}
                                 >
                                     <span className={newParticipant.food_preferences ? "" : "text-gray-400"}>
-                                        {newParticipant.food_preferences || "Seleziona allergie, intolleranze o preferenze"}
+                                        {newParticipant.food_preferences || "Seleziona intolleranze o preferenze alimentari"}
                                     </span>
                                     <ChevronDown size={18} aria-hidden="true" className="shrink-0 text-gray-500" />
                                 </button>
