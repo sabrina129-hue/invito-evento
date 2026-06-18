@@ -63,6 +63,7 @@ export const event = {
     foodPreferencesLabel: "Nietolerancje / Preferencje żywieniowe",
     foodPreferencesPlaceholder: "Wybierz nietolerancje lub preferencje żywieniowe",
     foodPreferencesOptions: [
+      "Menu dziecięce",
       "Gluten (celiakia)",
       "Mleko i produkty mleczne (laktoza)",
       "Jaja",
@@ -79,7 +80,6 @@ export const event = {
       "Siarczyny",
       "Wegetariańskie",
       "Wegańskie",
-      "Menu dziecięce",
     ],
     notesLabel: "Uwagi",
     notesPlaceholder: "Tutaj możesz dodać uwagi lub wiadomość dla nas!",
