@@ -3,7 +3,7 @@ export const event = {
     pageTitle: "Invito matrimonio Angelo e Luigia",
     shareTitle: "Angelo & Luigia",
     shareDescription: "Saremo felici di condividere con voi il giorno delle nostre nozze.",
-    shareImage: "https://invito-evento-omega.vercel.app/images/link-preview-whatsapp-large.jpg",
+    shareImage: "https://invito-evento-omega.vercel.app/images/link-preview-1200x630.jpg",
     shareImageWidth: "1200",
     shareImageHeight: "630",
     shareImageType: "image/jpeg",
