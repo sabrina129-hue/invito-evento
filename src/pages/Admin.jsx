@@ -15,14 +15,16 @@ const foodPreferencesToList = value =>
         .map(item => item.trim())
         .filter(Boolean);
 
+const normalizeGuestCount = guests => Math.max(1, Number(guests) || 1);
+
 const resizeGuestFoodPreferences = (groups, guests) =>
-    Array.from({ length: Math.max(1, Number(guests) || 1) }, (_, index) =>
+    Array.from({ length: normalizeGuestCount(guests) }, (_, index) =>
         Array.isArray(groups[index]) ? groups[index] : []
     );
 
 const parseGuestFoodPreferences = (value, guests) => {
     const textValue = String(value || "").trim();
-    const guestCount = Math.max(1, Number(guests) || 1);
+    const guestCount = normalizeGuestCount(guests);
 
     if (!textValue) {
         return resizeGuestFoodPreferences([], guestCount);
@@ -300,10 +302,18 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
     };
 
     const handleSaveEdit = async () => {
+        const guestCount = editing.partecipate ? normalizeGuestCount(editing.guests) : 0;
+        const normalizedEditing = {
+            ...editing,
+            guests: guestCount,
+            food_preferences: editing.partecipate
+                ? serializeGuestFoodPreferences(parseGuestFoodPreferences(editing.food_preferences, editing.guests), guestCount)
+                : "",
+        };
         const res = await fetch("/api/rsvps", {
             method: "PUT",
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-            body: JSON.stringify(editing),
+            body: JSON.stringify(normalizedEditing),
         });
         const result = await res.json();
 
@@ -313,7 +323,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
         }
 
         setPartecipanti(prev =>
-            prev.map(p => (p.id === editing.id ? result.data : p))
+            prev.map(p => (p.id === normalizedEditing.id ? result.data : p))
         );
         setEditing(null);
         setEditFoodMenuOpen(null);
@@ -325,10 +335,18 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
         setAddingParticipant(true);
 
         try {
+            const guestCount = newParticipant.partecipate ? normalizeGuestCount(newParticipant.guests) : 0;
+            const normalizedParticipant = {
+                ...newParticipant,
+                guests: guestCount,
+                food_preferences: newParticipant.partecipate
+                    ? serializeGuestFoodPreferences(parseGuestFoodPreferences(newParticipant.food_preferences, newParticipant.guests), guestCount)
+                    : "",
+            };
             const res = await fetch("/api/rsvps", {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-                body: JSON.stringify(newParticipant),
+                body: JSON.stringify(normalizedParticipant),
             });
             const result = await res.json();
 
@@ -600,7 +618,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                             ...editing,
                                             partecipa: e.target.value === "true",
                                             partecipate: e.target.value === "true",
-                                            guests: e.target.value === "true" ? Math.max(1, editing.guests || 1) : 0,
+                                            guests: e.target.value === "true" ? normalizeGuestCount(editing.guests) : 0,
                                             food_preferences: e.target.value === "true" ? editing.food_preferences || "" : "",
                                         })
                                     }
@@ -619,8 +637,27 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                     className="mt-1 w-full border p-2 rounded disabled:bg-gray-100"
                                     value={editing.guests}
                                     onChange={e => {
-                                        const guests = editing.partecipate ? Math.max(1, Number(e.target.value) || 1) : 0;
+                                        if (e.target.value === "") {
+                                            setEditFoodMenuOpen(null);
+                                            setEditing({ ...editing, guests: "" });
+                                            return;
+                                        }
+
+                                        const guests = editing.partecipate ? normalizeGuestCount(e.target.value) : 0;
                                         setEditFoodMenuOpen(null);
+                                        setEditing({
+                                            ...editing,
+                                            guests,
+                                            food_preferences: editing.partecipate
+                                                ? serializeGuestFoodPreferences(
+                                                    parseGuestFoodPreferences(editing.food_preferences, editing.guests),
+                                                    guests
+                                                )
+                                                : "",
+                                        });
+                                    }}
+                                    onBlur={() => {
+                                        const guests = editing.partecipate ? normalizeGuestCount(editing.guests) : 0;
                                         setEditing({
                                             ...editing,
                                             guests,
@@ -722,7 +759,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                     setNewParticipant({
                                         ...newParticipant,
                                         partecipate: e.target.value === "true",
-                                        guests: e.target.value === "true" ? Math.max(1, newParticipant.guests || 1) : 0,
+                                        guests: e.target.value === "true" ? normalizeGuestCount(newParticipant.guests) : 0,
                                         food_preferences: e.target.value === "true" ? newParticipant.food_preferences : "",
                                     })
                                 }
@@ -739,8 +776,14 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                 value={newParticipant.guests}
                                 onChange={e =>
                                     {
+                                        if (e.target.value === "") {
+                                            setAddFoodMenuOpen(null);
+                                            setNewParticipant({ ...newParticipant, guests: "" });
+                                            return;
+                                        }
+
                                         const guests = newParticipant.partecipate
-                                            ? Math.max(1, Number(e.target.value) || 1)
+                                            ? normalizeGuestCount(e.target.value)
                                             : 0;
                                         setAddFoodMenuOpen(null);
                                         setNewParticipant({
@@ -751,10 +794,23 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                                     parseGuestFoodPreferences(newParticipant.food_preferences, newParticipant.guests),
                                                     guests
                                                 )
-                                                : "",
+                                            : "",
                                         });
                                     }
                                 }
+                                onBlur={() => {
+                                    const guests = newParticipant.partecipate ? normalizeGuestCount(newParticipant.guests) : 0;
+                                    setNewParticipant({
+                                        ...newParticipant,
+                                        guests,
+                                        food_preferences: newParticipant.partecipate
+                                            ? serializeGuestFoodPreferences(
+                                                parseGuestFoodPreferences(newParticipant.food_preferences, newParticipant.guests),
+                                                guests
+                                            )
+                                            : "",
+                                    });
+                                }}
                             />
 
                             <div className="space-y-2">

@@ -4,11 +4,13 @@ import { ChevronDown } from "lucide-react";
 
 const MotionDiv = motion.div;
 
+const normalizeGuests = guests => Math.max(1, Number(guests) || 1);
+
 const emptyFoodPreferences = guests =>
-  Array.from({ length: Math.max(1, Number(guests) || 1) }, () => []);
+  Array.from({ length: normalizeGuests(guests) }, () => []);
 
 const resizeFoodPreferences = (preferences, guests) => {
-  const nextLength = Math.max(1, Number(guests) || 1);
+  const nextLength = normalizeGuests(guests);
   return Array.from({ length: nextLength }, (_, index) =>
     Array.isArray(preferences[index]) ? preferences[index] : []
   );
@@ -48,8 +50,12 @@ export default function RSVP({ config }) {
       }
 
       if (name === "guests") {
-        const guests = Math.max(1, Number(value) || 1);
         setFoodMenuOpen(null);
+        if (value === "") {
+          return { ...prev, guests: value };
+        }
+
+        const guests = normalizeGuests(value);
         return { ...prev, guests, foodPreferences: resizeFoodPreferences(prev.foodPreferences, guests) };
       }
 
@@ -57,6 +63,13 @@ export default function RSVP({ config }) {
         ...prev,
         [name]: type === "checkbox" ? checked : value,
       };
+    });
+  };
+
+  const handleGuestsBlur = () => {
+    setForm(prev => {
+      const guests = normalizeGuests(prev.guests);
+      return { ...prev, guests, foodPreferences: resizeFoodPreferences(prev.foodPreferences, guests) };
     });
   };
 
@@ -80,14 +93,16 @@ export default function RSVP({ config }) {
     setError("");
 
     try {
+      const guests = form.attending ? normalizeGuests(form.guests) : 0;
+      const foodPreferences = resizeFoodPreferences(form.foodPreferences, guests || 1);
       const res = await fetch("/api/rsvp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: form.name,
           partecipa: form.attending,
-          guests: form.attending ? Number(form.guests) : 0,
-          food_preferences: formatFoodPreferences(resizeFoodPreferences(form.foodPreferences, form.guests)),
+          guests,
+          food_preferences: formatFoodPreferences(foodPreferences),
           message: form.notes,
         }),
       });
@@ -148,6 +163,7 @@ export default function RSVP({ config }) {
                 name="guests"
                 value={form.guests}
                 onChange={handleChange}
+                onBlur={handleGuestsBlur}
                 aria-describedby="guests-help"
               />
               <p id="guests-help" className="text-xs leading-relaxed text-muted">
