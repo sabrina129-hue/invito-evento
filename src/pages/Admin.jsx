@@ -15,14 +15,62 @@ const foodPreferencesToList = value =>
         .map(item => item.trim())
         .filter(Boolean);
 
-const toggleFoodPreference = (value, option) => {
-    const selected = foodPreferencesToList(value);
+const resizeGuestFoodPreferences = (groups, guests) =>
+    Array.from({ length: Math.max(1, Number(guests) || 1) }, (_, index) =>
+        Array.isArray(groups[index]) ? groups[index] : []
+    );
 
-    if (selected.includes(option)) {
-        return selected.filter(item => item !== option).join(", ");
+const parseGuestFoodPreferences = (value, guests) => {
+    const textValue = String(value || "").trim();
+    const guestCount = Math.max(1, Number(guests) || 1);
+
+    if (!textValue) {
+        return resizeGuestFoodPreferences([], guestCount);
     }
 
-    return [...selected, option].join(", ");
+    if (textValue.includes("Persona ")) {
+        const groups = [];
+
+        textValue.split("|").forEach(part => {
+            const match = part.trim().match(/^Persona\s+(\d+):\s*(.*)$/i);
+
+            if (!match) return;
+
+            const index = Number(match[1]) - 1;
+            const values = match[2].trim();
+
+            groups[index] = values && values !== "-"
+                ? values.split(",").map(item => item.trim()).filter(Boolean)
+                : [];
+        });
+
+        return resizeGuestFoodPreferences(groups, guestCount);
+    }
+
+    return resizeGuestFoodPreferences([foodPreferencesToList(textValue)], guestCount);
+};
+
+const serializeGuestFoodPreferences = (groups, guests) => {
+    const resized = resizeGuestFoodPreferences(groups, guests);
+
+    if (resized.length <= 1) {
+        return resized[0].join(", ");
+    }
+
+    return resized
+        .map((items, index) => `Persona ${index + 1}: ${items.length ? items.join(", ") : "-"}`)
+        .join(" | ");
+};
+
+const toggleGuestFoodPreference = (value, guests, guestIndex, option) => {
+    const groups = parseGuestFoodPreferences(value, guests);
+    const selected = groups[guestIndex] || [];
+
+    groups[guestIndex] = selected.includes(option)
+        ? selected.filter(item => item !== option)
+        : [...selected, option];
+
+    return serializeGuestFoodPreferences(groups, guests);
 };
 
 const toPdfText = value =>
@@ -209,7 +257,8 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
     const [notice, setNotice] = useState("");
     const [search, setSearch] = useState("");
     const [newParticipant, setNewParticipant] = useState(emptyParticipant);
-    const [addFoodMenuOpen, setAddFoodMenuOpen] = useState(false);
+    const [addFoodMenuOpen, setAddFoodMenuOpen] = useState(null);
+    const [editFoodMenuOpen, setEditFoodMenuOpen] = useState(null);
 
     const token = localStorage.getItem("adminToken");
 
@@ -267,6 +316,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
             prev.map(p => (p.id === editing.id ? result.data : p))
         );
         setEditing(null);
+        setEditFoodMenuOpen(null);
     };
 
     const handleAdd = async () => {
@@ -292,7 +342,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
 
             setPartecipanti(prev => [result.data, ...prev]);
             setNewParticipant(emptyParticipant);
-            setAddFoodMenuOpen(false);
+            setAddFoodMenuOpen(null);
             setAdding(false);
         } finally {
             setAddingParticipant(false);
@@ -459,7 +509,13 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                     </td>
                                     <td className="p-4">
                                         <div className="flex justify-center gap-2">
-                                        <button onClick={() => setEditing(p)} className="text-blue-600">
+                                        <button
+                                            onClick={() => {
+                                                setEditing(p);
+                                                setEditFoodMenuOpen(null);
+                                            }}
+                                            className="text-blue-600"
+                                        >
                                             Modifica
                                         </button>
                                         <button
@@ -562,31 +618,69 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                     disabled={!editing.partecipate}
                                     className="mt-1 w-full border p-2 rounded disabled:bg-gray-100"
                                     value={editing.guests}
-                                    onChange={e => setEditing({ ...editing, guests: editing.partecipate ? Math.max(1, Number(e.target.value)) : 0 })}
+                                    onChange={e => {
+                                        const guests = editing.partecipate ? Math.max(1, Number(e.target.value) || 1) : 0;
+                                        setEditFoodMenuOpen(null);
+                                        setEditing({
+                                            ...editing,
+                                            guests,
+                                            food_preferences: editing.partecipate
+                                                ? serializeGuestFoodPreferences(
+                                                    parseGuestFoodPreferences(editing.food_preferences, editing.guests),
+                                                    guests
+                                                )
+                                                : "",
+                                        });
+                                    }}
                                 />
                             </label>
 
-                            <label className="block text-sm font-medium text-gray-700">
+                            <div className="block text-sm font-medium text-gray-700">
                                 Intolleranze / Preferenze Alimentari
-                                <div className="mt-1 max-h-44 overflow-y-auto rounded border p-3 space-y-2">
-                                    {foodPreferenceOptions.map(option => (
-                                        <label key={option} className="flex items-center gap-2 text-sm font-normal text-gray-700">
-                                            <input
-                                                type="checkbox"
-                                                checked={foodPreferencesToList(editing.food_preferences).includes(option)}
+                                <div className="mt-1 space-y-2">
+                                    {parseGuestFoodPreferences(editing.food_preferences, editing.guests).map((guestPreferences, guestIndex) => (
+                                        <div key={guestIndex} className="relative">
+                                            {Number(editing.guests) > 1 && (
+                                                <p className="mb-1 text-xs font-normal text-gray-500">Persona {guestIndex + 1}</p>
+                                            )}
+                                            <button
+                                                type="button"
+                                                className="flex w-full items-center justify-between gap-3 rounded border p-2 text-left font-normal disabled:bg-gray-100 disabled:text-gray-500"
                                                 disabled={!editing.partecipate}
-                                                onChange={() =>
-                                                    setEditing({
-                                                        ...editing,
-                                                        food_preferences: toggleFoodPreference(editing.food_preferences, option),
-                                                    })
-                                                }
-                                            />
-                                            {option}
-                                        </label>
+                                                onClick={() => setEditFoodMenuOpen(prev => (prev === guestIndex ? null : guestIndex))}
+                                                aria-expanded={editFoodMenuOpen === guestIndex}
+                                            >
+                                                <span className={guestPreferences.length ? "" : "text-gray-400"}>
+                                                    {guestPreferences.length ? guestPreferences.join(", ") : "Seleziona intolleranze o preferenze alimentari"}
+                                                </span>
+                                                <ChevronDown size={18} aria-hidden="true" className="shrink-0 text-gray-500" />
+                                            </button>
+
+                                            {editFoodMenuOpen === guestIndex && editing.partecipate && (
+                                                <div className="absolute z-20 mt-2 max-h-44 w-full overflow-y-auto rounded border bg-white p-3 shadow-lg">
+                                                    <div className="space-y-2">
+                                                        {foodPreferenceOptions.map(option => (
+                                                            <label key={option} className="flex items-center gap-2 text-sm font-normal text-gray-700">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={guestPreferences.includes(option)}
+                                                                    onChange={() =>
+                                                                        setEditing({
+                                                                            ...editing,
+                                                                            food_preferences: toggleGuestFoodPreference(editing.food_preferences, editing.guests, guestIndex, option),
+                                                                        })
+                                                                    }
+                                                                />
+                                                                {option}
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     ))}
                                 </div>
-                            </label>
+                            </div>
 
                             <label className="block text-sm font-medium text-gray-700">
                                 Messaggio
@@ -644,53 +738,70 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                 className="w-full border p-2 rounded"
                                 value={newParticipant.guests}
                                 onChange={e =>
-                                    setNewParticipant({
-                                        ...newParticipant,
-                                        guests: newParticipant.partecipate
-                                            ? Math.max(1, Number(e.target.value))
-                                            : 0,
-                                    })
+                                    {
+                                        const guests = newParticipant.partecipate
+                                            ? Math.max(1, Number(e.target.value) || 1)
+                                            : 0;
+                                        setAddFoodMenuOpen(null);
+                                        setNewParticipant({
+                                            ...newParticipant,
+                                            guests,
+                                            food_preferences: newParticipant.partecipate
+                                                ? serializeGuestFoodPreferences(
+                                                    parseGuestFoodPreferences(newParticipant.food_preferences, newParticipant.guests),
+                                                    guests
+                                                )
+                                                : "",
+                                        });
+                                    }
                                 }
                             />
 
-                            <div className="relative">
+                            <div className="space-y-2">
                                 <label className="mb-1 block text-sm font-medium text-gray-700">
                                     Intolleranze / Preferenze Alimentari
                                 </label>
-                                <button
-                                    type="button"
-                                    className="flex w-full items-center justify-between gap-3 rounded border p-2 text-left disabled:bg-gray-100 disabled:text-gray-500"
-                                    disabled={!newParticipant.partecipate}
-                                    onClick={() => setAddFoodMenuOpen(prev => !prev)}
-                                    aria-expanded={addFoodMenuOpen}
-                                >
-                                    <span className={newParticipant.food_preferences ? "" : "text-gray-400"}>
-                                        {newParticipant.food_preferences || "Seleziona intolleranze o preferenze alimentari"}
-                                    </span>
-                                    <ChevronDown size={18} aria-hidden="true" className="shrink-0 text-gray-500" />
-                                </button>
+                                {parseGuestFoodPreferences(newParticipant.food_preferences, newParticipant.guests).map((guestPreferences, guestIndex) => (
+                                    <div key={guestIndex} className="relative">
+                                        {Number(newParticipant.guests) > 1 && (
+                                            <p className="mb-1 text-xs text-gray-500">Persona {guestIndex + 1}</p>
+                                        )}
+                                        <button
+                                            type="button"
+                                            className="flex w-full items-center justify-between gap-3 rounded border p-2 text-left disabled:bg-gray-100 disabled:text-gray-500"
+                                            disabled={!newParticipant.partecipate}
+                                            onClick={() => setAddFoodMenuOpen(prev => (prev === guestIndex ? null : guestIndex))}
+                                            aria-expanded={addFoodMenuOpen === guestIndex}
+                                        >
+                                            <span className={guestPreferences.length ? "" : "text-gray-400"}>
+                                                {guestPreferences.length ? guestPreferences.join(", ") : "Seleziona intolleranze o preferenze alimentari"}
+                                            </span>
+                                            <ChevronDown size={18} aria-hidden="true" className="shrink-0 text-gray-500" />
+                                        </button>
 
-                                {addFoodMenuOpen && newParticipant.partecipate && (
-                                    <div className="absolute z-20 mt-2 max-h-44 w-full overflow-y-auto rounded border bg-white p-3 shadow-lg">
-                                        <div className="space-y-2">
-                                            {foodPreferenceOptions.map(option => (
-                                                <label key={option} className="flex items-center gap-2 text-sm font-normal text-gray-700">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={foodPreferencesToList(newParticipant.food_preferences).includes(option)}
-                                                        onChange={() =>
-                                                            setNewParticipant({
-                                                                ...newParticipant,
-                                                                food_preferences: toggleFoodPreference(newParticipant.food_preferences, option),
-                                                            })
-                                                        }
-                                                    />
-                                                    {option}
-                                                </label>
-                                            ))}
-                                        </div>
+                                        {addFoodMenuOpen === guestIndex && newParticipant.partecipate && (
+                                            <div className="absolute z-20 mt-2 max-h-44 w-full overflow-y-auto rounded border bg-white p-3 shadow-lg">
+                                                <div className="space-y-2">
+                                                    {foodPreferenceOptions.map(option => (
+                                                        <label key={option} className="flex items-center gap-2 text-sm font-normal text-gray-700">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={guestPreferences.includes(option)}
+                                                                onChange={() =>
+                                                                    setNewParticipant({
+                                                                        ...newParticipant,
+                                                                        food_preferences: toggleGuestFoodPreference(newParticipant.food_preferences, newParticipant.guests, guestIndex, option),
+                                                                    })
+                                                                }
+                                                            />
+                                                            {option}
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
-                                )}
+                                ))}
                             </div>
 
                             <textarea
@@ -709,7 +820,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                 <button
                                     onClick={() => {
                                         setAdding(false);
-                                        setAddFoodMenuOpen(false);
+                                        setAddFoodMenuOpen(null);
                                     }}
                                 >
                                     Annulla

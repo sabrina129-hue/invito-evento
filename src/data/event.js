@@ -63,6 +63,7 @@ export const event = {
     foodPreferencesLabel: "Intolleranze / Preferenze Alimentari",
     foodPreferencesPlaceholder: "Seleziona intolleranze o preferenze alimentari",
     foodPreferencesOptions: [
+      "Menu bambino",
       "Glutine (celiachia)",
       "Latte e derivati (lattosio)",
       "Uova",
@@ -79,7 +80,6 @@ export const event = {
       "Solfiti",
       "Vegetariano",
       "Vegano",
-      "Menu bambino",
     ],
     notesLabel: "Note",
     notesPlaceholder: "Aggiungi qui note o messaggi che vuoi inviarci!",

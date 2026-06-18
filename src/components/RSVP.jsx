@@ -4,9 +4,29 @@ import { ChevronDown } from "lucide-react";
 
 const MotionDiv = motion.div;
 
+const emptyFoodPreferences = guests =>
+  Array.from({ length: Math.max(1, Number(guests) || 1) }, () => []);
+
+const resizeFoodPreferences = (preferences, guests) => {
+  const nextLength = Math.max(1, Number(guests) || 1);
+  return Array.from({ length: nextLength }, (_, index) =>
+    Array.isArray(preferences[index]) ? preferences[index] : []
+  );
+};
+
+const formatFoodPreferences = preferences => {
+  if (preferences.length <= 1) {
+    return (preferences[0] || []).join(", ");
+  }
+
+  return preferences
+    .map((items, index) => `Persona ${index + 1}: ${items.length ? items.join(", ") : "-"}`)
+    .join(" | ");
+};
+
 export default function RSVP({ config }) {
-  const [form, setForm] = useState({ name: "", guests: 1, attending: true, foodPreferences: [], notes: "" });
-  const [foodMenuOpen, setFoodMenuOpen] = useState(false);
+  const [form, setForm] = useState({ name: "", guests: 1, attending: true, foodPreferences: emptyFoodPreferences(1), notes: "" });
+  const [foodMenuOpen, setFoodMenuOpen] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -15,32 +35,42 @@ export default function RSVP({ config }) {
     const { name, value, type, checked } = e.target;
 
     if (name === "attending" && !checked) {
-      setFoodMenuOpen(false);
+      setFoodMenuOpen(null);
     }
 
-    setForm(prev => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-      ...(name === "attending" && !checked ? { guests: 0, foodPreferences: [] } : {}),
-      ...(name === "attending" && checked ? { guests: 1 } : {}),
-    }));
-  };
-
-  const toggleFoodPreference = option => {
     setForm(prev => {
-      const selected = prev.foodPreferences.includes(option);
+      if (name === "attending" && !checked) {
+        return { ...prev, attending: false, guests: 0, foodPreferences: emptyFoodPreferences(1) };
+      }
 
-      if (selected) {
-        return {
-          ...prev,
-          foodPreferences: prev.foodPreferences.filter(item => item !== option),
-        };
+      if (name === "attending" && checked) {
+        return { ...prev, attending: true, guests: 1, foodPreferences: resizeFoodPreferences(prev.foodPreferences, 1) };
+      }
+
+      if (name === "guests") {
+        const guests = Math.max(1, Number(value) || 1);
+        setFoodMenuOpen(null);
+        return { ...prev, guests, foodPreferences: resizeFoodPreferences(prev.foodPreferences, guests) };
       }
 
       return {
         ...prev,
-        foodPreferences: [...prev.foodPreferences, option],
+        [name]: type === "checkbox" ? checked : value,
       };
+    });
+  };
+
+  const toggleFoodPreference = (guestIndex, option) => {
+    setForm(prev => {
+      const foodPreferences = resizeFoodPreferences(prev.foodPreferences, prev.guests);
+      const guestPreferences = foodPreferences[guestIndex] || [];
+      const selected = guestPreferences.includes(option);
+
+      foodPreferences[guestIndex] = selected
+        ? guestPreferences.filter(item => item !== option)
+        : [...guestPreferences, option];
+
+      return { ...prev, foodPreferences };
     });
   };
 
@@ -57,7 +87,7 @@ export default function RSVP({ config }) {
           name: form.name,
           partecipa: form.attending,
           guests: form.attending ? Number(form.guests) : 0,
-          food_preferences: form.foodPreferences.join(", "),
+          food_preferences: formatFoodPreferences(resizeFoodPreferences(form.foodPreferences, form.guests)),
           message: form.notes,
         }),
       });
@@ -67,8 +97,8 @@ export default function RSVP({ config }) {
       }
 
       setShowSuccess(true);
-      setForm({ name: "", guests: 1, attending: true, foodPreferences: [], notes: "" });
-      setFoodMenuOpen(false);
+      setForm({ name: "", guests: 1, attending: true, foodPreferences: emptyFoodPreferences(1), notes: "" });
+      setFoodMenuOpen(null);
     } catch {
       setError(config.errorMessage);
     } finally {
@@ -125,41 +155,48 @@ export default function RSVP({ config }) {
               </p>
             </div>
 
-            <div className="relative text-left">
+            <div className="space-y-3 text-left">
               <label className="mb-2 block text-sm font-body text-text" htmlFor="food-preferences-button">
                 {config.foodPreferencesLabel}
               </label>
-              <button
-                id="food-preferences-button"
-                type="button"
-                className="w-full border rounded-input px-4 py-2 text-body text-left bg-white flex items-center justify-between gap-3"
-                onClick={() => setFoodMenuOpen(prev => !prev)}
-                aria-expanded={foodMenuOpen}
-              >
-                <span className={form.foodPreferences.length ? "" : "text-muted"}>
-                  {form.foodPreferences.length
-                    ? form.foodPreferences.join(", ")
-                    : config.foodPreferencesPlaceholder}
-                </span>
-                <ChevronDown size={18} aria-hidden="true" className="shrink-0 text-text" />
-              </button>
+              {resizeFoodPreferences(form.foodPreferences, form.guests).map((guestPreferences, guestIndex) => (
+                <div key={guestIndex} className="relative">
+                  {Number(form.guests) > 1 && (
+                    <p className="mb-1 text-xs font-body text-muted">Persona {guestIndex + 1}</p>
+                  )}
+                  <button
+                    id={guestIndex === 0 ? "food-preferences-button" : undefined}
+                    type="button"
+                    className="w-full border rounded-input px-4 py-2 text-body text-left bg-white flex items-center justify-between gap-3"
+                    onClick={() => setFoodMenuOpen(prev => (prev === guestIndex ? null : guestIndex))}
+                    aria-expanded={foodMenuOpen === guestIndex}
+                  >
+                    <span className={guestPreferences.length ? "" : "text-muted"}>
+                      {guestPreferences.length
+                        ? guestPreferences.join(", ")
+                        : config.foodPreferencesPlaceholder}
+                    </span>
+                    <ChevronDown size={18} aria-hidden="true" className="shrink-0 text-text" />
+                  </button>
 
-              {foodMenuOpen && (
-                <div className="absolute z-20 mt-2 max-h-40 w-full overflow-y-auto rounded-input border bg-white p-3 shadow-lg">
-                  <div className="space-y-2">
-                    {config.foodPreferencesOptions.map(option => (
-                      <label key={option} className="flex items-center gap-2 text-sm font-body text-text">
-                        <input
-                          type="checkbox"
-                          checked={form.foodPreferences.includes(option)}
-                          onChange={() => toggleFoodPreference(option)}
-                        />
-                        {option}
-                      </label>
-                    ))}
-                  </div>
+                  {foodMenuOpen === guestIndex && (
+                    <div className="absolute z-20 mt-2 max-h-40 w-full overflow-y-auto rounded-input border bg-white p-3 shadow-lg">
+                      <div className="space-y-2">
+                        {config.foodPreferencesOptions.map(option => (
+                          <label key={option} className="flex items-center gap-2 text-sm font-body text-text">
+                            <input
+                              type="checkbox"
+                              checked={guestPreferences.includes(option)}
+                              onChange={() => toggleFoodPreference(guestIndex, option)}
+                            />
+                            {option}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+              ))}
             </div>
           </MotionDiv>
         )}
