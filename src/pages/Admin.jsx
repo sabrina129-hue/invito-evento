@@ -631,30 +631,16 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                             <label className="block text-sm font-medium text-gray-700">
                                 Numero ospiti
                                 <input
-                                    type="number"
-                                    min={editing.partecipate ? 1 : 0}
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
                                     disabled={!editing.partecipate}
                                     className="mt-1 w-full border p-2 rounded disabled:bg-gray-100"
                                     value={editing.guests}
                                     onChange={e => {
-                                        if (e.target.value === "") {
-                                            setEditFoodMenuOpen(null);
-                                            setEditing({ ...editing, guests: "" });
-                                            return;
-                                        }
-
-                                        const guests = editing.partecipate ? normalizeGuestCount(e.target.value) : 0;
+                                        const guests = e.target.value.replace(/\D/g, "");
                                         setEditFoodMenuOpen(null);
-                                        setEditing({
-                                            ...editing,
-                                            guests,
-                                            food_preferences: editing.partecipate
-                                                ? serializeGuestFoodPreferences(
-                                                    parseGuestFoodPreferences(editing.food_preferences, editing.guests),
-                                                    guests
-                                                )
-                                                : "",
-                                        });
+                                        setEditing({ ...editing, guests });
                                     }}
                                     onBlur={() => {
                                         const guests = editing.partecipate ? normalizeGuestCount(editing.guests) : 0;
@@ -769,33 +755,17 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                             </select>
 
                             <input
-                                type="number"
-                                min={newParticipant.partecipate ? 1 : 0}
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                                 disabled={!newParticipant.partecipate}
                                 className="w-full border p-2 rounded"
                                 value={newParticipant.guests}
                                 onChange={e =>
                                     {
-                                        if (e.target.value === "") {
-                                            setAddFoodMenuOpen(null);
-                                            setNewParticipant({ ...newParticipant, guests: "" });
-                                            return;
-                                        }
-
-                                        const guests = newParticipant.partecipate
-                                            ? normalizeGuestCount(e.target.value)
-                                            : 0;
+                                        const guests = e.target.value.replace(/\D/g, "");
                                         setAddFoodMenuOpen(null);
-                                        setNewParticipant({
-                                            ...newParticipant,
-                                            guests,
-                                            food_preferences: newParticipant.partecipate
-                                                ? serializeGuestFoodPreferences(
-                                                    parseGuestFoodPreferences(newParticipant.food_preferences, newParticipant.guests),
-                                                    guests
-                                                )
-                                            : "",
-                                        });
+                                        setNewParticipant({ ...newParticipant, guests });
                                     }
                                 }
                                 onBlur={() => {
