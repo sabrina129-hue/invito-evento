@@ -80,14 +80,6 @@ const countFoodPreferencePeople = (participant, preference) => {
         return 0;
     }
 
-    const foodPreferences = String(participant.food_preferences || "");
-
-    if (!foodPreferences.includes("Persona ")) {
-        return foodPreferencesToList(foodPreferences).includes(preference)
-            ? normalizeGuestCount(participant.guests)
-            : 0;
-    }
-
     return parseGuestFoodPreferences(participant.food_preferences, participant.guests)
         .filter(guestPreferences => guestPreferences.includes(preference))
         .length;
@@ -552,16 +544,29 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Filtra per intolleranza o preferenza alimentare
                         </label>
-                        <select
-                            className="w-full border rounded p-2"
-                            value={foodPreferenceFilter}
-                            onChange={e => setFoodPreferenceFilter(e.target.value)}
-                        >
-                            <option value="">Tutte le preferenze</option>
-                            {foodPreferenceOptions.map(option => (
-                                <option key={option} value={option}>{option}</option>
-                            ))}
-                        </select>
+                        <div className="flex gap-2">
+                            <select
+                                className="w-full border rounded p-2"
+                                value={foodPreferenceFilter}
+                                onChange={e => setFoodPreferenceFilter(e.target.value)}
+                            >
+                                <option value="">Tutte le preferenze</option>
+                                {foodPreferenceOptions.map(option => (
+                                    <option key={option} value={option}>{option}</option>
+                                ))}
+                            </select>
+                            {foodPreferenceFilter && (
+                                <button
+                                    type="button"
+                                    className="rounded border px-3 py-2 text-gray-600 hover:bg-gray-100"
+                                    onClick={() => setFoodPreferenceFilter("")}
+                                    aria-label="Rimuovi filtro preferenza alimentare"
+                                    title="Rimuovi filtro"
+                                >
+                                    X
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     {hasActiveFilters && (
