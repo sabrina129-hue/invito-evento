@@ -2,6 +2,67 @@ import { createClient } from "@supabase/supabase-js";
 import { inviteTable } from "../lib/inviteConfig.js";
 import { getServerEnv } from "../lib/serverEnv.js";
 
+const foodPreferenceTranslations = new Map([
+  ["Menu dziecięce", "Menu bambino"],
+  ["Gluten (celiakia)", "Glutine (celiachia)"],
+  ["Mleko i produkty mleczne (laktoza)", "Latte e derivati (lattosio)"],
+  ["Jaja", "Uova"],
+  ["Orzechy (włoskie, migdały, laskowe, pistacje itd.)", "Frutta a guscio (noci, mandorle, nocciole, pistacchi, ecc.)"],
+  ["Orzeszki ziemne", "Arachidi"],
+  ["Soja", "Soia"],
+  ["Ryby", "Pesce"],
+  ["Skorupiaki", "Crostacei"],
+  ["Mięczaki", "Molluschi"],
+  ["Sezam", "Sesamo"],
+  ["Gorczyca", "Senape"],
+  ["Seler", "Sedano"],
+  ["Lubin", "Lupini"],
+  ["Siarczyny", "Solfiti"],
+  ["Wegetariańskie", "Vegetariano"],
+  ["Wegańskie", "Vegano"],
+]);
+
+const translateFoodPreferenceItem = item => {
+  const trimmed = item.trim();
+  return foodPreferenceTranslations.get(trimmed) || trimmed;
+};
+
+const translateFoodPreferenceList = value => {
+  const trimmed = value.trim();
+
+  if (!trimmed || trimmed === "-") {
+    return trimmed || "-";
+  }
+
+  return trimmed
+    .split(",")
+    .map(translateFoodPreferenceItem)
+    .filter(Boolean)
+    .join(", ");
+};
+
+const translateFoodPreferencesToItalian = value => {
+  const textValue = String(value || "").trim();
+
+  if (!textValue) {
+    return "";
+  }
+
+  return textValue
+    .split("|")
+    .map(part => {
+      const trimmedPart = part.trim();
+      const match = trimmedPart.match(/^(?:Osoba|Persona)\s+(\d+):\s*(.*)$/i);
+
+      if (!match) {
+        return translateFoodPreferenceList(trimmedPart);
+      }
+
+      return `Persona ${match[1]}: ${translateFoodPreferenceList(match[2])}`;
+    })
+    .join(" | ");
+};
+
 const participantPayloadVariants = ({
   cleanName,
   cleanPartecipate,
@@ -67,7 +128,7 @@ export default async function handler(req, res) {
     const { name, guests, message } = req.body;
     const cleanName = String(name || "").trim();
     const cleanMessage = String(message || "").trim();
-    const cleanFoodPreferences = String(req.body.food_preferences || req.body.foodPreferences || "").trim();
+    const cleanFoodPreferences = translateFoodPreferencesToItalian(req.body.food_preferences || req.body.foodPreferences);
     const cleanPartecipate = Boolean(req.body.partecipa ?? req.body.partecipate);
     const cleanGuests = cleanPartecipate ? Math.max(1, Number(guests) || 1) : 0;
 
