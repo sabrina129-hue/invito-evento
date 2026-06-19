@@ -80,6 +80,14 @@ const countFoodPreferencePeople = (participant, preference) => {
         return 0;
     }
 
+    const foodPreferences = String(participant.food_preferences || "");
+
+    if (!foodPreferences.includes("Persona ")) {
+        return foodPreferencesToList(foodPreferences).includes(preference)
+            ? normalizeGuestCount(participant.guests)
+            : 0;
+    }
+
     return parseGuestFoodPreferences(participant.food_preferences, participant.guests)
         .filter(guestPreferences => guestPreferences.includes(preference))
         .length;
