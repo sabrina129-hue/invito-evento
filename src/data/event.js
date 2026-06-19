@@ -62,6 +62,7 @@ export const event = {
     guestsHelpText: "Wpisz łączną liczbę osób, łącznie z Tobą. Jeśli przychodzisz sam/a, zostaw 1; jeśli z osobą towarzyszącą, wpisz 2.",
     foodPreferencesLabel: "Nietolerancje / Preferencje żywieniowe",
     foodPreferencesPlaceholder: "Wybierz nietolerancje lub preferencje żywieniowe",
+    personLabel: "Osoba",
     foodPreferencesOptions: [
       "Menu dziecięce",
       "Gluten (celiakia)",

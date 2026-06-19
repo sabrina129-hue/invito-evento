@@ -16,13 +16,13 @@ const resizeFoodPreferences = (preferences, guests) => {
   );
 };
 
-const formatFoodPreferences = preferences => {
+const formatFoodPreferences = (preferences, personLabel = "Persona") => {
   if (preferences.length <= 1) {
     return (preferences[0] || []).join(", ");
   }
 
   return preferences
-    .map((items, index) => `Persona ${index + 1}: ${items.length ? items.join(", ") : "-"}`)
+    .map((items, index) => `${personLabel} ${index + 1}: ${items.length ? items.join(", ") : "-"}`)
     .join(" | ");
 };
 
@@ -97,7 +97,7 @@ export default function RSVP({ config }) {
           name: form.name,
           partecipa: form.attending,
           guests,
-          food_preferences: formatFoodPreferences(foodPreferences),
+          food_preferences: formatFoodPreferences(foodPreferences, config.personLabel),
           message: form.notes,
         }),
       });
@@ -174,7 +174,7 @@ export default function RSVP({ config }) {
               {resizeFoodPreferences(form.foodPreferences, form.guests).map((guestPreferences, guestIndex) => (
                 <div key={guestIndex} className="relative">
                   {Number(form.guests) > 1 && (
-                    <p className="mb-1 text-xs font-body text-muted">Persona {guestIndex + 1}</p>
+                    <p className="mb-1 text-xs font-body text-muted">{config.personLabel || "Persona"} {guestIndex + 1}</p>
                   )}
                   <button
                     id={guestIndex === 0 ? "food-preferences-button" : undefined}
