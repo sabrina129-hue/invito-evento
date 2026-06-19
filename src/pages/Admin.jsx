@@ -75,6 +75,16 @@ const toggleGuestFoodPreference = (value, guests, guestIndex, option) => {
     return serializeGuestFoodPreferences(groups, guests);
 };
 
+const countFoodPreferencePeople = (participant, preference) => {
+    if (!preference || !participant.partecipate) {
+        return 0;
+    }
+
+    return parseGuestFoodPreferences(participant.food_preferences, participant.guests)
+        .filter(guestPreferences => guestPreferences.includes(preference))
+        .length;
+};
+
 const toPdfText = value =>
     String(value ?? "")
         .normalize("NFD")
@@ -260,6 +270,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
     const [editFormError, setEditFormError] = useState("");
     const [addFormError, setAddFormError] = useState("");
     const [search, setSearch] = useState("");
+    const [foodPreferenceFilter, setFoodPreferenceFilter] = useState("");
     const [newParticipant, setNewParticipant] = useState(emptyParticipant);
     const [addFoodMenuOpen, setAddFoodMenuOpen] = useState(null);
     const [editFoodMenuOpen, setEditFoodMenuOpen] = useState(null);
@@ -414,7 +425,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
             : ["non partecipa", "no", "assente"].includes(searchTerm)
                 ? false
                 : null;
-    const partecipantiFiltrati = searchTerm
+    const partecipantiFiltratiPerRicerca = searchTerm
         ? partecipanti.filter(p => {
             if (statusFilter !== null) {
                 return Boolean(p.partecipate) === statusFilter;
@@ -433,6 +444,13 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                 .includes(searchTerm);
         })
         : partecipanti;
+    const partecipantiFiltrati = foodPreferenceFilter
+        ? partecipantiFiltratiPerRicerca.filter(p => countFoodPreferencePeople(p, foodPreferenceFilter) > 0)
+        : partecipantiFiltratiPerRicerca;
+    const totalePreferenzaSelezionata = foodPreferenceFilter
+        ? partecipantiFiltrati.reduce((total, participant) => total + countFoodPreferencePeople(participant, foodPreferenceFilter), 0)
+        : 0;
+    const hasActiveFilters = Boolean(searchTerm || foodPreferenceFilter);
     const handleDownloadPdf = () => {
         setError("");
         setNotice("");
@@ -445,13 +463,13 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                 yes: risposteSi,
                 no: risposteNo,
             },
-            isFiltered: Boolean(searchTerm),
+            isFiltered: hasActiveFilters,
         });
         const pdfBytes = new TextEncoder().encode(pdf);
         const blob = new Blob([pdfBytes], { type: "application/pdf" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
-        const suffix = searchTerm ? "filtrata" : "completa";
+        const suffix = hasActiveFilters ? "filtrata" : "completa";
 
         link.href = url;
         link.download = `lista-invitati-${suffix}.pdf`;
@@ -508,21 +526,47 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                     </button>
                 </div>
 
-                <div className="bg-white rounded-xl shadow p-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Cerca invitato
-                    </label>
-                    <input
-                        type="search"
-                        className="w-full border rounded p-2"
-                        placeholder="Cerca per nome, partecipa, ospiti o messaggio"
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                    />
-                    {searchTerm && (
-                        <p className="mt-2 text-xs text-gray-500">
-                            Risultati: {partecipantiFiltrati.length} di {partecipanti.length}
-                        </p>
+                <div className="bg-white rounded-xl shadow p-4 space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Cerca invitato
+                        </label>
+                        <input
+                            type="search"
+                            className="w-full border rounded p-2"
+                            placeholder="Cerca per nome, partecipa, ospiti o messaggio"
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Filtra per intolleranza o preferenza alimentare
+                        </label>
+                        <select
+                            className="w-full border rounded p-2"
+                            value={foodPreferenceFilter}
+                            onChange={e => setFoodPreferenceFilter(e.target.value)}
+                        >
+                            <option value="">Tutte le preferenze</option>
+                            {foodPreferenceOptions.map(option => (
+                                <option key={option} value={option}>{option}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {hasActiveFilters && (
+                        <div className="rounded border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
+                            <p>
+                                Risultati: <b>{partecipantiFiltrati.length}</b> di <b>{partecipanti.length}</b>
+                            </p>
+                            {foodPreferenceFilter && (
+                                <p className="mt-1">
+                                    Totale persone con <b>{foodPreferenceFilter}</b>: <b>{totalePreferenzaSelezionata}</b>
+                                </p>
+                            )}
+                        </div>
                     )}
                 </div>
 
