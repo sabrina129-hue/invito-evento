@@ -257,6 +257,8 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
     const [toDelete, setToDelete] = useState(null);
     const [error, setError] = useState("");
     const [notice, setNotice] = useState("");
+    const [editFormError, setEditFormError] = useState("");
+    const [addFormError, setAddFormError] = useState("");
     const [search, setSearch] = useState("");
     const [newParticipant, setNewParticipant] = useState(emptyParticipant);
     const [addFoodMenuOpen, setAddFoodMenuOpen] = useState(null);
@@ -302,9 +304,18 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
     };
 
     const handleSaveEdit = async () => {
+        setError("");
+        setEditFormError("");
+
+        if (!String(editing.name || "").trim()) {
+            setEditFormError("Il nome è obbligatorio");
+            return;
+        }
+
         const guestCount = editing.partecipate ? normalizeGuestCount(editing.guests) : 0;
         const normalizedEditing = {
             ...editing,
+            name: String(editing.name || "").trim(),
             guests: guestCount,
             food_preferences: editing.partecipate
                 ? serializeGuestFoodPreferences(parseGuestFoodPreferences(editing.food_preferences, editing.guests), guestCount)
@@ -318,7 +329,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
         const result = await res.json();
 
         if (!res.ok) {
-            setError("Errore durante il salvataggio.");
+            setEditFormError(result.error || result.details || "Errore durante il salvataggio.");
             return;
         }
 
@@ -327,10 +338,19 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
         );
         setEditing(null);
         setEditFoodMenuOpen(null);
+        setEditFormError("");
     };
 
     const handleAdd = async () => {
         if (addingParticipant) return;
+
+        setError("");
+        setAddFormError("");
+
+        if (!String(newParticipant.name || "").trim()) {
+            setAddFormError("Il nome è obbligatorio");
+            return;
+        }
 
         setAddingParticipant(true);
 
@@ -338,6 +358,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
             const guestCount = newParticipant.partecipate ? normalizeGuestCount(newParticipant.guests) : 0;
             const normalizedParticipant = {
                 ...newParticipant,
+                name: String(newParticipant.name || "").trim(),
                 guests: guestCount,
                 food_preferences: newParticipant.partecipate
                     ? serializeGuestFoodPreferences(parseGuestFoodPreferences(newParticipant.food_preferences, newParticipant.guests), guestCount)
@@ -354,13 +375,14 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                 const details = typeof result.error === "string"
                     ? result.error
                     : result.details || result.error?.message;
-                setError(details || "Errore durante l'inserimento.");
+                setAddFormError(details || "Errore durante l'inserimento.");
                 return;
             }
 
             setPartecipanti(prev => [result.data, ...prev]);
             setNewParticipant(emptyParticipant);
             setAddFoodMenuOpen(null);
+            setAddFormError("");
             setAdding(false);
         } finally {
             setAddingParticipant(false);
@@ -476,7 +498,10 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                         Scarica PDF
                     </button>
                     <button
-                        onClick={() => setAdding(true)}
+                        onClick={() => {
+                            setAddFormError("");
+                            setAdding(true);
+                        }}
                         className="bg-green-600 text-white px-4 py-2 rounded"
                     >
                         + Aggiungi partecipante
@@ -529,6 +554,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                         <div className="flex justify-center gap-2">
                                         <button
                                             onClick={() => {
+                                                setEditFormError("");
                                                 setEditing(p);
                                                 setEditFoodMenuOpen(null);
                                             }}
@@ -599,12 +625,20 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                     <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
                         <div className="bg-white p-6 rounded-xl space-y-4 w-full max-w-md">
                             <h2 className="font-bold">Modifica</h2>
+                            {editFormError && (
+                                <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+                                    {editFormError}
+                                </p>
+                            )}
                             <label className="block text-sm font-medium text-gray-700">
                                 Nome
                                 <input
                                     className="mt-1 w-full border p-2 rounded"
                                     value={editing.name}
-                                    onChange={e => setEditing({ ...editing, name: e.target.value })}
+                                    onChange={e => {
+                                        setEditFormError("");
+                                        setEditing({ ...editing, name: e.target.value });
+                                    }}
                                 />
                             </label>
 
@@ -714,7 +748,10 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                 />
                             </label>
                             <div className="flex justify-end gap-2">
-                                <button onClick={() => setEditing(null)}>Annulla</button>
+                                <button onClick={() => {
+                                    setEditing(null);
+                                    setEditFormError("");
+                                }}>Annulla</button>
                                 <button onClick={handleSaveEdit} className="bg-blue-600 text-white px-4 py-2 rounded">
                                     Salva
                                 </button>
@@ -728,13 +765,21 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                         <div className="bg-white p-6 rounded-xl w-full max-w-md space-y-4">
 
                             <h2 className="text-lg font-bold">Nuovo partecipante</h2>
+                            {addFormError && (
+                                <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+                                    {addFormError}
+                                </p>
+                            )}
 
                             <input
                                 className="w-full border p-2 rounded"
                                 placeholder="Nome"
                                 value={newParticipant.name}
                                 onChange={e =>
-                                    setNewParticipant({ ...newParticipant, name: e.target.value })
+                                    {
+                                        setAddFormError("");
+                                        setNewParticipant({ ...newParticipant, name: e.target.value });
+                                    }
                                 }
                             />
 
@@ -847,6 +892,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                     onClick={() => {
                                         setAdding(false);
                                         setAddFoodMenuOpen(null);
+                                        setAddFormError("");
                                     }}
                                 >
                                     Annulla
