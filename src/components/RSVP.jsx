@@ -128,6 +128,8 @@ export default function RSVP({ config }) {
           name="name"
           value={form.name}
           onChange={handleChange}
+          onInvalid={e => e.currentTarget.setCustomValidity(config.requiredMessage || "")}
+          onInput={e => e.currentTarget.setCustomValidity("")}
           required
         />
       </label>

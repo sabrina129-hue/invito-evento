@@ -57,6 +57,7 @@ export const event = {
     title: "Potwierdź swoją obecność",
     nameLabel: "Imię i nazwisko",
     namePlaceholder: "Imię i nazwisko",
+    requiredMessage: "Wypełnij to pole",
     attendingLabel: "Będę obecny/a",
     guestsLabel: "Liczba osób",
     guestsHelpText: "Wpisz łączną liczbę osób, łącznie z Tobą. Jeśli przychodzisz sam/a, zostaw 1; jeśli z osobą towarzyszącą, wpisz 2.",
