@@ -51,12 +51,7 @@ export default function RSVP({ config }) {
 
       if (name === "guests") {
         setFoodMenuOpen(null);
-        if (value === "") {
-          return { ...prev, guests: value };
-        }
-
-        const guests = normalizeGuests(value);
-        return { ...prev, guests, foodPreferences: resizeFoodPreferences(prev.foodPreferences, guests) };
+        return { ...prev, guests: value.replace(/\D/g, "") };
       }
 
       return {
@@ -158,8 +153,9 @@ export default function RSVP({ config }) {
               <input
                 id="guests"
                 className="w-full border rounded-input px-4 py-2 text-body"
-                type="number"
-                min="1"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 name="guests"
                 value={form.guests}
                 onChange={handleChange}
