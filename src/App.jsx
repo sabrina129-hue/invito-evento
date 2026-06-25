@@ -4,6 +4,7 @@ import RSVP from "./components/RSVP";
 import EnvelopeIntro from "./components/EnvelopeIntro";
 import { event } from "./data/event";
 import Admin from "./pages/Admin.jsx";
+import TablePlanner from "./pages/TablePlanner.jsx";
 import { HashRouter, Routes, Route } from "react-router-dom";
 import AdminLogin from "./pages/AdminLogin.jsx";
 import { useEffect, useState } from "react";
@@ -36,17 +37,21 @@ function Home() {
   );
 }
 
-function AdminProtected() {
+function AdminProtected({ page = "list" }) {
   const [ok, setOk] = useState(() => !!localStorage.getItem("adminToken"));
 
-  return ok ? (
+  if (!ok) {
+    return <AdminLogin labels={event.admin} onLogin={() => setOk(true)} />;
+  }
+
+  return page === "tables" ? (
+    <TablePlanner />
+  ) : (
     <Admin
       labels={event.admin}
       foodPreferenceOptions={event.rsvp.foodPreferencesOptions}
       onLogout={() => setOk(false)}
     />
-  ) : (
-    <AdminLogin labels={event.admin} onLogin={() => setOk(true)} />
   );
 }
 
@@ -57,6 +62,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/admin" element={<AdminProtected />} />
+        <Route path="/admin/tavoli" element={<AdminProtected page="tables" />} />
       </Routes>
     </HashRouter>
   );

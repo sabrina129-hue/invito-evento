@@ -1,11 +1,19 @@
 import { supabase } from "../lib/supabase.js";
 import { inviteTable } from "../lib/inviteConfig.js";
 import { getServerEnv } from "../lib/serverEnv.js";
+import {
+  getParticipantGuestNames,
+  mergeMessageWithGuestNames,
+  serializeGuestNames,
+  stripGuestNamesFromMessage,
+} from "../src/lib/guestNames.js";
 
 const normalizeParticipant = participant => ({
   ...participant,
   partecipate: participant.partecipa ?? participant.partecipate,
   food_preferences: participant.food_preferences || "",
+  guest_names: serializeGuestNames(getParticipantGuestNames(participant)),
+  message: stripGuestNamesFromMessage(participant.message || ""),
 });
 
 const participantPayloadVariants = ({
@@ -14,6 +22,7 @@ const participantPayloadVariants = ({
   cleanGuests,
   cleanFoodPreferences,
   cleanMessage,
+  cleanGuestNames,
 }) => {
   const variants = [];
 
@@ -24,12 +33,15 @@ const participantPayloadVariants = ({
       { food: true, message: false },
       { food: false, message: false },
     ].forEach(({ food, message }) => {
-      variants.push({
-        name: cleanName,
-        [participationColumn]: cleanPartecipate,
-        guests: cleanGuests,
-        ...(food ? { food_preferences: cleanFoodPreferences } : {}),
-        ...(message ? { message: cleanMessage } : {}),
+      [true, false].forEach(guestNames => {
+        variants.push({
+          name: cleanName,
+          [participationColumn]: cleanPartecipate,
+          guests: cleanGuests,
+          ...(food ? { food_preferences: cleanFoodPreferences } : {}),
+          ...(guestNames ? { guest_names: serializeGuestNames(cleanGuestNames) } : {}),
+          ...(message ? { message: guestNames ? cleanMessage : mergeMessageWithGuestNames(cleanMessage, cleanGuestNames) } : {}),
+        });
       });
     });
   });
@@ -77,6 +89,11 @@ export default async function handler(req, res) {
     const cleanGuests = cleanPartecipate ? Math.max(1, Number(guests) || 1) : 0;
     const cleanFoodPreferences = String(req.body.food_preferences || req.body.foodPreferences || "").trim();
     const cleanMessage = String(message || "").trim();
+    const rawGuestNames = req.body.guest_names || req.body.guestNames || [];
+    const cleanGuestNames = Array.isArray(rawGuestNames)
+      ? rawGuestNames.map(guestName => String(guestName || "").trim())
+        .filter(Boolean)
+      : [];
 
     if (!cleanName) {
       return res.status(400).json({ error: "Il nome è obbligatorio" });
@@ -90,6 +107,7 @@ export default async function handler(req, res) {
         cleanGuests,
         cleanFoodPreferences,
         cleanMessage,
+        cleanGuestNames,
       })
     );
 
@@ -106,6 +124,10 @@ export default async function handler(req, res) {
       guests: cleanPartecipate ? Math.max(1, Number(fields.guests) || 1) : 0,
       food_preferences: String(fields.food_preferences || fields.foodPreferences || "").trim(),
       message: String(fields.message || "").trim(),
+      guest_names: Array.isArray(fields.guest_names || fields.guestNames)
+        ? (fields.guest_names || fields.guestNames).map(guestName => String(guestName || "").trim())
+          .filter(Boolean)
+        : getParticipantGuestNames(fields),
     };
 
     const { data, error } = await tryWriteParticipant(
@@ -116,6 +138,7 @@ export default async function handler(req, res) {
         cleanGuests: cleanFields.guests,
         cleanFoodPreferences: cleanFields.food_preferences,
         cleanMessage: cleanFields.message,
+        cleanGuestNames: cleanFields.guest_names,
       })
     );
 

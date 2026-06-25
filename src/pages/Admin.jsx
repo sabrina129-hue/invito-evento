@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { Link } from "react-router-dom";
+
+import { getParticipantGuestNames } from "../lib/guestNames.js";
 
 const emptyParticipant = {
     name: "",
@@ -75,14 +78,53 @@ const toggleGuestFoodPreference = (value, guests, guestIndex, option) => {
     return serializeGuestFoodPreferences(groups, guests);
 };
 
+const getParticipantPeople = participant => {
+    const guestCount = participant.partecipate ? normalizeGuestCount(participant.guests) : 0;
+    const guestNames = getParticipantGuestNames(participant);
+    const preferences = parseGuestFoodPreferences(participant.food_preferences, guestCount || 1);
+
+    return Array.from({ length: guestCount }, (_, index) => ({
+        id: `${participant.id || participant.name}-${index}`,
+        name: guestNames[index] || (index === 0 ? participant.name || "Invitato senza nome" : `Persona ${index + 1}`),
+        invitationName: participant.name || "Invitato senza nome",
+        preferences: preferences[index] || [],
+    }));
+};
+
 const countFoodPreferencePeople = (participant, preference) => {
     if (!preference || !participant.partecipate) {
         return 0;
     }
 
-    return parseGuestFoodPreferences(participant.food_preferences, participant.guests)
-        .filter(guestPreferences => guestPreferences.includes(preference))
+    return getParticipantPeople(participant)
+        .filter(person => person.preferences.includes(preference))
         .length;
+};
+
+const getFoodPreferenceMatches = (participants, preference) =>
+    preference
+        ? participants.flatMap(participant =>
+            getParticipantPeople(participant)
+                .filter(person => person.preferences.includes(preference))
+                .map(person => ({
+                    ...person,
+                    participantId: participant.id,
+                }))
+        )
+        : [];
+
+const formatParticipantFoodPreferences = participant => {
+    const people = getParticipantPeople(participant);
+
+    if (!people.length) {
+        return participant.food_preferences || "-";
+    }
+
+    const rows = people
+        .filter(person => person.preferences.length)
+        .map(person => `${person.name}: ${person.preferences.join(", ")}`);
+
+    return rows.length ? rows.join(" | ") : "-";
 };
 
 const toPdfText = value =>
@@ -434,9 +476,10 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
             const stato = p.partecipate ? "partecipa si presente" : "non partecipa no assente";
             return [
                 p.name,
+                ...getParticipantPeople(p).map(person => person.name),
                 stato,
                 String(p.guests ?? 0),
-                p.food_preferences,
+                formatParticipantFoodPreferences(p),
                 p.message,
             ]
                 .join(" ")
@@ -447,9 +490,8 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
     const partecipantiFiltrati = foodPreferenceFilter
         ? partecipantiFiltratiPerRicerca.filter(p => countFoodPreferencePeople(p, foodPreferenceFilter) > 0)
         : partecipantiFiltratiPerRicerca;
-    const totalePreferenzaSelezionata = foodPreferenceFilter
-        ? partecipantiFiltrati.reduce((total, participant) => total + countFoodPreferencePeople(participant, foodPreferenceFilter), 0)
-        : 0;
+    const personeConPreferenza = getFoodPreferenceMatches(partecipantiFiltrati, foodPreferenceFilter);
+    const totalePreferenzaSelezionata = personeConPreferenza.length;
     const hasActiveFilters = Boolean(searchTerm || foodPreferenceFilter);
     const handleDownloadPdf = () => {
         setError("");
@@ -524,6 +566,12 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                     >
                         + Aggiungi partecipante
                     </button>
+                    <Link
+                        to="/admin/tavoli"
+                        className="rounded bg-amber-600 px-4 py-2 text-white hover:bg-amber-700"
+                    >
+                        Organizza tavoli
+                    </Link>
                 </div>
 
                 <div className="bg-white rounded-xl shadow p-4 space-y-4">
@@ -579,6 +627,11 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                     Totale persone con <b>{foodPreferenceFilter}</b>: <b>{totalePreferenzaSelezionata}</b>
                                 </p>
                             )}
+                            {foodPreferenceFilter && personeConPreferenza.length > 0 && (
+                                <p className="mt-1">
+                                    Persone: <b>{personeConPreferenza.map(person => person.name).join(", ")}</b>
+                                </p>
+                            )}
                         </div>
                     )}
                 </div>
@@ -602,7 +655,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                     <td className="p-4">{p.partecipate ? "Sì" : "No"}</td>
                                     <td className="p-4">{p.guests ?? 0}</td>
                                     <td className="p-4 max-w-xs break-words text-center">
-                                        {p.food_preferences || "-"}
+                                        {formatParticipantFoodPreferences(p)}
                                     </td>
                                     <td className="p-4 max-w-md break-words text-center">
                                         {p.message || "-"}

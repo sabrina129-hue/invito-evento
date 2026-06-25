@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { inviteTable } from "../lib/inviteConfig.js";
 import { getServerEnv } from "../lib/serverEnv.js";
+import { mergeMessageWithGuestNames, serializeGuestNames } from "../src/lib/guestNames.js";
 
 const participantPayloadVariants = ({
   cleanName,
@@ -8,6 +9,7 @@ const participantPayloadVariants = ({
   cleanGuests,
   cleanFoodPreferences,
   cleanMessage,
+  cleanGuestNames,
 }) => {
   const variants = [];
 
@@ -18,12 +20,15 @@ const participantPayloadVariants = ({
       { food: true, message: false },
       { food: false, message: false },
     ].forEach(({ food, message }) => {
-      variants.push({
-        name: cleanName,
-        [participationColumn]: cleanPartecipate,
-        guests: cleanGuests,
-        ...(food ? { food_preferences: cleanFoodPreferences } : {}),
-        ...(message ? { message: cleanMessage } : {}),
+      [true, false].forEach(guestNames => {
+        variants.push({
+          name: cleanName,
+          [participationColumn]: cleanPartecipate,
+          guests: cleanGuests,
+          ...(food ? { food_preferences: cleanFoodPreferences } : {}),
+          ...(guestNames ? { guest_names: serializeGuestNames(cleanGuestNames) } : {}),
+          ...(message ? { message: guestNames ? cleanMessage : mergeMessageWithGuestNames(cleanMessage, cleanGuestNames) } : {}),
+        });
       });
     });
   });
@@ -70,9 +75,18 @@ export default async function handler(req, res) {
     const cleanFoodPreferences = String(req.body.food_preferences || req.body.foodPreferences || "").trim();
     const cleanPartecipate = Boolean(req.body.partecipa ?? req.body.partecipate);
     const cleanGuests = cleanPartecipate ? Math.max(1, Number(guests) || 1) : 0;
+    const rawGuestNames = req.body.guest_names || req.body.guestNames || [];
+    const cleanGuestNames = Array.isArray(rawGuestNames)
+      ? rawGuestNames.map(guestName => String(guestName || "").trim())
+        .filter(Boolean)
+      : [];
 
     if (!cleanName) {
       return res.status(400).json({ error: "Il nome è obbligatorio" });
+    }
+
+    if (cleanPartecipate && cleanGuestNames.length < cleanGuests) {
+      return res.status(400).json({ error: "Inserisci il nome di tutti gli ospiti" });
     }
 
     const { data, error } = await tryInsertParticipant(
@@ -83,6 +97,7 @@ export default async function handler(req, res) {
         cleanGuests,
         cleanFoodPreferences,
         cleanMessage,
+        cleanGuestNames,
       })
     );
 

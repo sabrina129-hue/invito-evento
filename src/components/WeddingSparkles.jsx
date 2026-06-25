@@ -6,20 +6,36 @@ const sparkleColors = [
   "rgba(245, 216, 137, 0.94)",
 ];
 
-const pieces = Array.from({ length: 620 }, (_, index) => ({
-  id: index,
-  left: `${(index * 17) % 100}%`,
-  delay: `${(index % 96) * 0.035}s`,
-  duration: `${3.2 + (index % 12) * 0.12}s`,
-  size: index % 10 === 0
-    ? `${3.8 + (index % 3) * 0.45}px`
-    : index % 5 === 0 || index % 5 === 1
-      ? `${2.35 + (index % 3) * 0.35}px`
-      : `${1.05 + (index % 4) * 0.28}px`,
-  color: sparkleColors[index % sparkleColors.length],
-  drift: `${((index % 17) - 8) * 6}px`,
-  shape: "glitter",
-}));
+const seededRandom = (index, salt) => {
+  const value = Math.sin((index + 1) * (12.9898 + salt * 4.1414)) * 43758.5453;
+  return value - Math.floor(value);
+};
+
+const toUnit = (value, unit) => `${Number(value.toFixed(3))}${unit}`;
+
+const pieces = Array.from({ length: 620 }, (_, index) => {
+  const delaySeed = seededRandom(index, 2);
+  const sizeSeed = seededRandom(index, 5);
+  const delay = delaySeed < 0.82
+    ? -seededRandom(index, 3) * 1.25
+    : seededRandom(index, 4) * 0.22;
+  const size = sizeSeed > 0.9
+    ? 3.8 + seededRandom(index, 6) * 1.25
+    : sizeSeed > 0.56
+      ? 2.1 + seededRandom(index, 7) * 1.05
+      : 0.95 + seededRandom(index, 8) * 0.9;
+
+  return {
+    id: index,
+    left: toUnit(seededRandom(index, 1) * 100, "%"),
+    delay: toUnit(delay, "s"),
+    duration: toUnit(2.9 + seededRandom(index, 9) * 1.9, "s"),
+    size: toUnit(size, "px"),
+    color: sparkleColors[Math.floor(seededRandom(index, 10) * sparkleColors.length)],
+    drift: toUnit((seededRandom(index, 11) - 0.5) * 150, "px"),
+    shape: "glitter",
+  };
+});
 
 export default function WeddingSparkles() {
   const visiblePieces = typeof window !== "undefined" && window.matchMedia("(max-width: 480px)").matches
