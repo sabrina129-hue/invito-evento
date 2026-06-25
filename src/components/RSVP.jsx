@@ -44,6 +44,7 @@ const formatFoodPreferences = preferences => {
 export default function RSVP({ config }) {
   const [form, setForm] = useState({ name: "", guests: 1, attending: true, foodPreferences: emptyFoodPreferences(1), guestNames: resizeGuestNames([], 1), notes: "" });
   const [foodMenuOpen, setFoodMenuOpen] = useState(null);
+  const [primaryGuestInfoVisible, setPrimaryGuestInfoVisible] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -63,6 +64,20 @@ export default function RSVP({ config }) {
       document.removeEventListener("pointerdown", closeMenuOnOutsidePointerDown, true);
     };
   }, [foodMenuOpen]);
+
+  useEffect(() => {
+    if (!primaryGuestInfoVisible) return undefined;
+
+    const timer = window.setTimeout(() => setPrimaryGuestInfoVisible(false), 4200);
+
+    return () => window.clearTimeout(timer);
+  }, [primaryGuestInfoVisible]);
+
+  useEffect(() => {
+    if (form.name.trim() || normalizeGuests(form.guests) <= 1) {
+      setPrimaryGuestInfoVisible(false);
+    }
+  }, [form.guests, form.name]);
 
   const handleChange = e => {
     const { name, value, type, checked } = e.target;
@@ -111,6 +126,12 @@ export default function RSVP({ config }) {
 
       return { ...prev, guestNames };
     });
+  };
+
+  const showPrimaryGuestInfo = () => {
+    if (!form.name.trim() && normalizeGuests(form.guests) > 1) {
+      setPrimaryGuestInfoVisible(true);
+    }
   };
 
   const removeGuest = guestIndex => {
@@ -361,12 +382,23 @@ export default function RSVP({ config }) {
                             className={`mt-1 w-full border rounded-input px-3 py-2 text-sm ${isPrimaryGuest ? "bg-surface text-muted" : ""}`}
                             value={guestName}
                             onChange={event => handleGuestNameChange(guestIndex, event.target.value)}
+                            onFocus={isPrimaryGuest ? showPrimaryGuestInfo : undefined}
+                            onClick={isPrimaryGuest ? showPrimaryGuestInfo : undefined}
                             placeholder={config.guestNamePlaceholder || "Nome e cognome"}
                             readOnly={isPrimaryGuest}
                             aria-readonly={isPrimaryGuest}
                             aria-label={guestLabel}
+                            aria-describedby={isPrimaryGuest && primaryGuestInfoVisible ? "primary-guest-info" : undefined}
                             required
                           />
+                          {isPrimaryGuest && primaryGuestInfoVisible && (
+                            <span
+                              id="primary-guest-info"
+                              className="mt-1 block rounded-input bg-amber-50 px-2.5 py-1.5 text-xs leading-relaxed text-amber-900"
+                            >
+                              Questo campo si compila automaticamente con il Nome e Cognome inserito nella casella in alto.
+                            </span>
+                          )}
                         </label>
 
                         <div>
