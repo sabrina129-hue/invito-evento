@@ -3,37 +3,38 @@ import { inviteTable } from "../lib/inviteConfig.js";
 import { getServerEnv } from "../lib/serverEnv.js";
 import { mergeMessageWithGuestNames, serializeGuestNames } from "../src/lib/guestNames.js";
 
+const normalizeTranslationKey = value =>
+  String(value || "")
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
 const foodPreferenceTranslations = new Map([
-  ["Menu dzieciece", "Menu bambino"],
-  ["Menu wegetarianskie", "Menu vegetariano"],
-  ["Menu weganskie", "Menu vegano"],
-  ["Gluten (celiakia)", "Glutine (celiachia)"],
-  ["Mleko i produkty mleczne (laktoza)", "Latte e derivati (lattosio)"],
-  ["Jaja", "Uova"],
-  ["Orzechy (wloskie, migdaly, laskowe, pistacje itd.)", "Frutta a guscio (noci, mandorle, nocciole, pistacchi, ecc.)"],
-  ["Orzeszki ziemne", "Arachidi"],
-  ["Soja", "Soia"],
-  ["Ryby", "Pesce"],
-  ["Skorupiaki", "Crostacei"],
-  ["Mieczaki", "Molluschi"],
-  ["Sezam", "Sesamo"],
-  ["Gorczyca", "Senape"],
-  ["Seler", "Sedano"],
-  ["Lubin", "Lupini"],
-  ["Siarczyny", "Solfiti"],
-  ["Menu dziecięce", "Menu bambino"],
-  ["Menu wegetariańskie", "Menu vegetariano"],
-  ["Menu wegańskie", "Menu vegano"],
-  ["Mleko i produkty mleczne (laktoza)", "Latte e derivati (lattosio)"],
-  ["Orzechy (włoskie, migdały, laskowe, pistacje itd.)", "Frutta a guscio (noci, mandorle, nocciole, pistacchi, ecc.)"],
-  ["Mięczaki", "Molluschi"],
-  ["Wegetariańskie", "Menu vegetariano"],
-  ["Wegańskie", "Menu vegano"],
+  ["menu dzieciece", "Menu bambino"],
+  ["menu wegetarianskie", "Menu vegetariano"],
+  ["menu weganskie", "Menu vegano"],
+  ["wegetarianskie", "Menu vegetariano"],
+  ["weganskie", "Menu vegano"],
+  ["gluten (celiakia)", "Glutine (celiachia)"],
+  ["mleko i produkty mleczne (laktoza)", "Latte e derivati (lattosio)"],
+  ["jaja", "Uova"],
+  ["orzechy (wloskie, migdaly, laskowe, pistacje itd.)", "Frutta a guscio (noci, mandorle, nocciole, pistacchi, ecc.)"],
+  ["orzeszki ziemne", "Arachidi"],
+  ["soja", "Soia"],
+  ["ryby", "Pesce"],
+  ["skorupiaki", "Crostacei"],
+  ["mieczaki", "Molluschi"],
+  ["sezam", "Sesamo"],
+  ["gorczyca", "Senape"],
+  ["seler", "Sedano"],
+  ["lubin", "Lupini"],
+  ["siarczyny", "Solfiti"],
 ]);
 
 const translateFoodPreferenceItem = item => {
   const trimmed = item.trim();
-  return foodPreferenceTranslations.get(trimmed) || trimmed;
+  return foodPreferenceTranslations.get(normalizeTranslationKey(trimmed)) || trimmed;
 };
 
 const translateFoodPreferenceList = value => {
