@@ -1,25 +1,34 @@
 import { createClient } from "@supabase/supabase-js";
 import { inviteTable } from "../lib/inviteConfig.js";
 import { getServerEnv } from "../lib/serverEnv.js";
+import { mergeMessageWithGuestNames, serializeGuestNames } from "../src/lib/guestNames.js";
 
 const foodPreferenceTranslations = new Map([
-  ["Menu dziecięce", "Menu bambino"],
+  ["Menu dzieciece", "Menu bambino"],
+  ["Menu wegetarianskie", "Menu vegetariano"],
+  ["Menu weganskie", "Menu vegano"],
   ["Gluten (celiakia)", "Glutine (celiachia)"],
   ["Mleko i produkty mleczne (laktoza)", "Latte e derivati (lattosio)"],
   ["Jaja", "Uova"],
-  ["Orzechy (włoskie, migdały, laskowe, pistacje itd.)", "Frutta a guscio (noci, mandorle, nocciole, pistacchi, ecc.)"],
+  ["Orzechy (wloskie, migdaly, laskowe, pistacje itd.)", "Frutta a guscio (noci, mandorle, nocciole, pistacchi, ecc.)"],
   ["Orzeszki ziemne", "Arachidi"],
   ["Soja", "Soia"],
   ["Ryby", "Pesce"],
   ["Skorupiaki", "Crostacei"],
-  ["Mięczaki", "Molluschi"],
+  ["Mieczaki", "Molluschi"],
   ["Sezam", "Sesamo"],
   ["Gorczyca", "Senape"],
   ["Seler", "Sedano"],
   ["Lubin", "Lupini"],
   ["Siarczyny", "Solfiti"],
-  ["Wegetariańskie", "Vegetariano"],
-  ["Wegańskie", "Vegano"],
+  ["Menu dziecięce", "Menu bambino"],
+  ["Menu wegetariańskie", "Menu vegetariano"],
+  ["Menu wegańskie", "Menu vegano"],
+  ["Mleko i produkty mleczne (laktoza)", "Latte e derivati (lattosio)"],
+  ["Orzechy (włoskie, migdały, laskowe, pistacje itd.)", "Frutta a guscio (noci, mandorle, nocciole, pistacchi, ecc.)"],
+  ["Mięczaki", "Molluschi"],
+  ["Wegetariańskie", "Menu vegetariano"],
+  ["Wegańskie", "Menu vegano"],
 ]);
 
 const translateFoodPreferenceItem = item => {
@@ -69,6 +78,7 @@ const participantPayloadVariants = ({
   cleanGuests,
   cleanFoodPreferences,
   cleanMessage,
+  cleanGuestNames,
 }) => {
   const variants = [];
 
@@ -79,12 +89,15 @@ const participantPayloadVariants = ({
       { food: true, message: false },
       { food: false, message: false },
     ].forEach(({ food, message }) => {
-      variants.push({
-        name: cleanName,
-        [participationColumn]: cleanPartecipate,
-        guests: cleanGuests,
-        ...(food ? { food_preferences: cleanFoodPreferences } : {}),
-        ...(message ? { message: cleanMessage } : {}),
+      [true, false].forEach(guestNames => {
+        variants.push({
+          name: cleanName,
+          [participationColumn]: cleanPartecipate,
+          guests: cleanGuests,
+          ...(food ? { food_preferences: cleanFoodPreferences } : {}),
+          ...(guestNames ? { guest_names: serializeGuestNames(cleanGuestNames) } : {}),
+          ...(message ? { message: guestNames ? cleanMessage : mergeMessageWithGuestNames(cleanMessage, cleanGuestNames) } : {}),
+        });
       });
     });
   });
@@ -131,9 +144,18 @@ export default async function handler(req, res) {
     const cleanFoodPreferences = translateFoodPreferencesToItalian(req.body.food_preferences || req.body.foodPreferences);
     const cleanPartecipate = Boolean(req.body.partecipa ?? req.body.partecipate);
     const cleanGuests = cleanPartecipate ? Math.max(1, Number(guests) || 1) : 0;
+    const rawGuestNames = req.body.guest_names || req.body.guestNames || [];
+    const cleanGuestNames = Array.isArray(rawGuestNames)
+      ? rawGuestNames.map(guestName => String(guestName || "").trim())
+        .filter(Boolean)
+      : [];
 
     if (!cleanName) {
-      return res.status(400).json({ error: "Il nome è obbligatorio" });
+      return res.status(400).json({ error: "Il nome e obbligatorio" });
+    }
+
+    if (cleanPartecipate && cleanGuestNames.length < cleanGuests) {
+      return res.status(400).json({ error: "Inserisci il nome di tutti gli ospiti" });
     }
 
     const { data, error } = await tryInsertParticipant(
@@ -144,6 +166,7 @@ export default async function handler(req, res) {
         cleanGuests,
         cleanFoodPreferences,
         cleanMessage,
+        cleanGuestNames,
       })
     );
 

@@ -1,6 +1,14 @@
+import { Buffer } from 'node:buffer'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { event } from './src/data/event.js'
+
+const apiRoutes = {
+  '/api/admin-login': () => import('./api/admin-login.js'),
+  '/api/rsvps': () => import('./api/rsvps.js'),
+  '/api/rsvp': () => import('./api/rsvp.js'),
+  '/api/env-check': () => import('./api/env-check.js'),
+}
 
 function htmlMetaPlugin() {
   const replacements = {
@@ -28,8 +36,68 @@ function htmlMetaPlugin() {
   }
 }
 
+function localApiPlugin() {
+  return {
+    name: 'local-api',
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        const pathname = req.url?.split('?')[0]
+        const loadRoute = apiRoutes[pathname]
+
+        if (!loadRoute) {
+          next()
+          return
+        }
+
+        const chunks = []
+
+        for await (const chunk of req) {
+          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+        }
+
+        const rawBody = Buffer.concat(chunks).toString('utf8').trim()
+
+        if (rawBody) {
+          try {
+            req.body = JSON.parse(rawBody)
+          } catch {
+            res.statusCode = 400
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ error: 'Body JSON non valido' }))
+            return
+          }
+        } else {
+          req.body = {}
+        }
+
+        res.status = code => {
+          res.statusCode = code
+          return res
+        }
+        res.json = payload => {
+          res.setHeader('Content-Type', 'application/json')
+          res.end(JSON.stringify(payload))
+          return res
+        }
+
+        try {
+          const route = await loadRoute()
+          await route.default(req, res)
+        } catch (error) {
+          server.config.logger.error(error)
+          if (!res.headersSent) {
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ error: 'Errore API locale' }))
+          }
+        }
+      })
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [react(), htmlMetaPlugin()],
+  plugins: [react(), htmlMetaPlugin(), localApiPlugin()],
   css: {
     postcss: './postcss.config.js'
   }

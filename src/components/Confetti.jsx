@@ -1,11 +1,11 @@
 const confettiColors = [
   "var(--color-primary)",
   "var(--color-secondary)",
-  "#F59E0B",
-  "#EF4444",
-  "#3B82F6",
-  "#10B981",
-  "#EC4899",
+  "#f5d889",
+  "#a97823",
+  "#fff8e2",
+  "#5f1119",
+  "#9f252f",
 ];
 
 const pieces = Array.from({ length: 48 }, (_, index) => ({

@@ -26,8 +26,10 @@ export default function EnvelopeIntro({ config, children }) {
 
     setIsOpening(true);
     schedule(() => setHideEnvelope(true), 640);
-    schedule(() => setShowInvitation(true), 860);
-    schedule(() => setShowSparkles(true), 2650);
+    schedule(() => {
+      setShowInvitation(true);
+      setShowSparkles(true);
+    }, 860);
   };
 
   return (
