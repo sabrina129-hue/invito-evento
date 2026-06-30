@@ -3,11 +3,8 @@ import EventInfo from "./components/EventInfo";
 import RSVP from "./components/RSVP";
 import EnvelopeIntro from "./components/EnvelopeIntro";
 import { event } from "./data/event";
-import Admin from "./pages/Admin.jsx";
-import TablePlanner from "./pages/TablePlanner.jsx";
 import { HashRouter, Routes, Route } from "react-router-dom";
-import AdminLogin from "./pages/AdminLogin.jsx";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 function Home() {
   useEffect(() => {
@@ -37,32 +34,12 @@ function Home() {
   );
 }
 
-function AdminProtected({ page = "list" }) {
-  const [ok, setOk] = useState(() => !!localStorage.getItem("adminToken"));
-
-  if (!ok) {
-    return <AdminLogin labels={event.admin} onLogin={() => setOk(true)} />;
-  }
-
-  return page === "tables" ? (
-    <TablePlanner />
-  ) : (
-    <Admin
-      labels={event.admin}
-      foodPreferenceOptions={event.rsvp.foodPreferencesOptions}
-      onLogout={() => setOk(false)}
-    />
-  );
-}
-
-// Pagina web per mostrare all'organizzatore le risposte all'invito
 export default function App() {
   return (
     <HashRouter>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/admin" element={<AdminProtected />} />
-        <Route path="/admin/tavoli" element={<AdminProtected page="tables" />} />
+        <Route path="*" element={<Home />} />
       </Routes>
     </HashRouter>
   );

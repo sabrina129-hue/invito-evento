@@ -104,11 +104,4 @@ export const event = {
     successButton: "OK",
   },
 
-  admin: {
-    loginTitle: "Dostęp administratora",
-    passwordPlaceholder: "Hasło",
-    loginButton: "Zaloguj",
-    wrongPassword: "Nieprawidłowe hasło",
-    dashboardTitle: "Panel organizatora",
-  },
 };
