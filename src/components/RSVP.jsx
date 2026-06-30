@@ -5,6 +5,7 @@ import { ChevronDown, X } from "lucide-react";
 
 const MotionDiv = motion.div;
 const foodPreferenceMenuOptions = ["Menu bambino", "Menu vegetariano", "Menu vegano"];
+const requiredFieldMessage = "Compila questo campo";
 
 const normalizeGuests = guests => Math.max(1, Number(guests) || 1);
 
@@ -45,6 +46,7 @@ export default function RSVP({ config }) {
   const [form, setForm] = useState({ name: "", guests: 1, attending: true, foodPreferences: emptyFoodPreferences(1), guestNames: resizeGuestNames([], 1), notes: "" });
   const [foodMenuOpen, setFoodMenuOpen] = useState(null);
   const [primaryGuestInfoVisible, setPrimaryGuestInfoVisible] = useState(false);
+  const [fieldError, setFieldError] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -68,16 +70,26 @@ export default function RSVP({ config }) {
   useEffect(() => {
     if (!primaryGuestInfoVisible) return undefined;
 
+    const closePrimaryGuestInfoOnOutsidePointerDown = event => {
+      if (!event.target.closest("[data-primary-guest-info-area]")) {
+        setPrimaryGuestInfoVisible(false);
+      }
+    };
     const timer = window.setTimeout(() => setPrimaryGuestInfoVisible(false), 4200);
 
-    return () => window.clearTimeout(timer);
+    document.addEventListener("pointerdown", closePrimaryGuestInfoOnOutsidePointerDown, true);
+
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("pointerdown", closePrimaryGuestInfoOnOutsidePointerDown, true);
+    };
   }, [primaryGuestInfoVisible]);
 
   useEffect(() => {
-    if (form.name.trim() || normalizeGuests(form.guests) <= 1) {
+    if (normalizeGuests(form.guests) <= 1) {
       setPrimaryGuestInfoVisible(false);
     }
-  }, [form.guests, form.name]);
+  }, [form.guests]);
 
   const handleChange = e => {
     const { name, value, type, checked } = e.target;
@@ -97,6 +109,7 @@ export default function RSVP({ config }) {
 
       if (name === "guests") {
         setFoodMenuOpen(null);
+        setFieldError(null);
         return { ...prev, guests: value.replace(/\D/g, "") };
       }
 
@@ -105,6 +118,10 @@ export default function RSVP({ config }) {
         [name]: type === "checkbox" ? checked : value,
       };
     });
+
+    if (name === "name") {
+      setFieldError(null);
+    }
   };
 
   const handleGuestsBlur = () => {
@@ -126,10 +143,12 @@ export default function RSVP({ config }) {
 
       return { ...prev, guestNames };
     });
+
+    setFieldError(prev => (prev?.field === `guest-${guestIndex}` ? null : prev));
   };
 
   const showPrimaryGuestInfo = () => {
-    if (!form.name.trim() && normalizeGuests(form.guests) > 1) {
+    if (normalizeGuests(form.guests) > 1) {
       setPrimaryGuestInfoVisible(true);
     }
   };
@@ -138,6 +157,7 @@ export default function RSVP({ config }) {
     if (guestIndex <= 0) return;
 
     setFoodMenuOpen(null);
+    setFieldError(null);
     setForm(prev => {
       const currentGuests = normalizeGuests(prev.guests);
       const nextGuests = Math.max(1, currentGuests - 1);
@@ -209,6 +229,7 @@ export default function RSVP({ config }) {
     e.preventDefault();
     setSubmitting(true);
     setError("");
+    setFieldError(null);
 
     try {
       const guests = form.attending ? normalizeGuests(form.guests) : 0;
@@ -216,8 +237,17 @@ export default function RSVP({ config }) {
       const guestNames = resizeGuestNames(form.guestNames, guests || 1);
       const completeGuestNames = [form.name.trim(), ...guestNames.slice(1).map(name => name.trim())];
 
+      if (form.attending && !form.name.trim()) {
+        setPrimaryGuestInfoVisible(false);
+        setFieldError({ field: "name", message: requiredFieldMessage });
+        setSubmitting(false);
+        return;
+      }
+
       if (form.attending && completeGuestNames.some(name => !name)) {
-        setError(config.guestNamesErrorMessage || "Inserisci il nome di tutti gli ospiti.");
+        const emptyGuestIndex = completeGuestNames.findIndex(name => !name);
+        setPrimaryGuestInfoVisible(false);
+        setFieldError({ field: `guest-${emptyGuestIndex}`, message: requiredFieldMessage });
         setSubmitting(false);
         return;
       }
@@ -250,10 +280,10 @@ export default function RSVP({ config }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="section">
+    <form onSubmit={handleSubmit} className="section" noValidate>
       <h2 className="h2">{config.title}</h2>
 
-      <label className="block text-left text-sm font-body text-text">
+      <label className="relative block text-left text-sm font-body text-text">
         {config.nameLabel}
         <input
           className="mt-2 w-full border rounded-input px-4 py-2 text-body"
@@ -261,8 +291,19 @@ export default function RSVP({ config }) {
           name="name"
           value={form.name}
           onChange={handleChange}
+          aria-invalid={fieldError?.field === "name"}
+          aria-describedby={fieldError?.field === "name" ? "name-field-error" : undefined}
           required
         />
+        {fieldError?.field === "name" && (
+          <span
+            id="name-field-error"
+            className="pointer-events-none absolute left-0 top-full z-30 mt-1 w-full rounded-input border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-xs leading-relaxed text-amber-900 shadow-lg"
+            role="alert"
+          >
+            {fieldError.message}
+          </span>
+        )}
       </label>
 
       <label className="flex items-center justify-center gap-2 text-body">
@@ -376,7 +417,7 @@ export default function RSVP({ config }) {
                       </div>
 
                       <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(13rem,0.9fr)] sm:items-end">
-                        <label className="block text-xs font-body text-muted">
+                        <label className="relative block text-xs font-body text-muted" {...(isPrimaryGuest ? { "data-primary-guest-info-area": true } : {})}>
                           Nome e Cognome
                           <input
                             className={`mt-1 w-full border rounded-input px-3 py-2 text-sm ${isPrimaryGuest ? "bg-surface text-muted" : ""}`}
@@ -388,13 +429,27 @@ export default function RSVP({ config }) {
                             readOnly={isPrimaryGuest}
                             aria-readonly={isPrimaryGuest}
                             aria-label={guestLabel}
-                            aria-describedby={isPrimaryGuest && primaryGuestInfoVisible ? "primary-guest-info" : undefined}
+                            aria-invalid={fieldError?.field === `guest-${guestIndex}`}
+                            aria-describedby={[
+                              isPrimaryGuest && primaryGuestInfoVisible ? "primary-guest-info" : "",
+                              fieldError?.field === `guest-${guestIndex}` ? `guest-${guestIndex}-field-error` : "",
+                            ].filter(Boolean).join(" ") || undefined}
                             required
                           />
+                          {fieldError?.field === `guest-${guestIndex}` && (
+                            <span
+                              id={`guest-${guestIndex}-field-error`}
+                              className="pointer-events-none absolute left-0 top-full z-30 mt-1 w-full rounded-input border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-xs leading-relaxed text-amber-900 shadow-lg"
+                              role="alert"
+                            >
+                              {fieldError.message}
+                            </span>
+                          )}
                           {isPrimaryGuest && primaryGuestInfoVisible && (
                             <span
                               id="primary-guest-info"
-                              className="mt-1 block rounded-input bg-amber-50 px-2.5 py-1.5 text-xs leading-relaxed text-amber-900"
+                              className="pointer-events-none absolute left-0 top-full z-30 mt-1 w-full rounded-input border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-xs leading-relaxed text-amber-900 shadow-lg"
+                              role="status"
                             >
                               Questo campo si compila automaticamente con il Nome e Cognome inserito nella casella in alto.
                             </span>
