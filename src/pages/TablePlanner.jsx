@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, RefreshCw, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { getParticipantGuestNames } from "../lib/guestNames.js";
@@ -70,7 +70,7 @@ const clampNumber = (value, min, max, fallback = min) => {
   return Math.min(max, Math.max(min, safeValue));
 };
 
-const hasTableCountValue = value => String(value ?? "").trim() !== "";
+const hasTableCountValue = value => Number(value) > 0;
 
 const normalizeTableSeats = (tableSeats, tableCount, defaultSeats) => {
   if (!hasTableCountValue(tableCount)) {
@@ -133,7 +133,7 @@ const normalizeTablePositions = (tablePositions, tableCount) => {
 const normalizeTablePlanner = planner => {
   const tableCount = hasTableCountValue(planner?.tableCount)
     ? clampNumber(planner?.tableCount, 1, 80)
-    : 1;
+    : 0;
   const seatsPerTable = clampNumber(planner?.seatsPerTable, 1, 80, 8);
 
   return {
@@ -215,28 +215,15 @@ const distributeAttendees = (attendees, tableSeats) => {
   return assignments;
 };
 
-const sanitizeFamilyAssignments = (attendees, assignments, tableSeats) => {
+const sanitizeAssignments = (attendees, assignments, tableSeats) => {
+  const attendeeIds = new Set(attendees.map(attendee => attendee.id));
   const nextAssignments = {};
 
-  groupAttendeesByFamily(attendees).forEach(group => {
-    const preferredTables = group.reduce((counts, attendee) => {
-      const tableId = assignments?.[attendee.id];
-      const tableIndex = Number(tableId) - 1;
+  Object.entries(assignments || {}).forEach(([attendeeId, tableId]) => {
+    const tableIndex = Number(tableId) - 1;
 
-      if (tableIndex >= 0 && tableSeats[tableIndex] !== undefined) {
-        counts[tableId] = (counts[tableId] || 0) + 1;
-      }
-
-      return counts;
-    }, {});
-    const tableId = Object.entries(preferredTables)
-      .sort((a, b) => b[1] - a[1])
-      .map(([preferredTableId]) => preferredTableId)[0];
-
-    if (tableId) {
-      group.forEach(attendee => {
-        nextAssignments[attendee.id] = tableId;
-      });
+    if (attendeeIds.has(attendeeId) && tableIndex >= 0 && tableSeats[tableIndex] !== undefined) {
+      nextAssignments[attendeeId] = tableId;
     }
   });
 
@@ -355,99 +342,6 @@ const buildTablePlan = (attendees, assignments, tableSeats, tableNames, seatPosi
   return { tables, unassigned };
 };
 
-function SeatCard({
-  person,
-  seatNumber,
-  tableId,
-  tableOptions,
-  peopleOptions,
-  onMove,
-  onAssignToSeat,
-  isExpanded,
-  onToggle,
-  isOverflow,
-  feedback,
-}) {
-  if (!person) {
-    return (
-      <div className={`seat-card empty-seat ${isExpanded ? "is-expanded" : ""}`}>
-        <button type="button" className="seat-person-button" onClick={onToggle}>
-          <span>Posto {seatNumber}</span>
-          <strong>Libero</strong>
-        </button>
-        {isExpanded && (
-          <div className="seat-expanded-details empty-seat-details">
-            <label>
-              Scegli persona
-              <select value="" onChange={event => event.target.value && onAssignToSeat(event.target.value)}>
-                <option value="">Seleziona invitato</option>
-                {peopleOptions.map(option => (
-                  <option key={option.id} value={option.id}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {feedback && (
-              <p className={`seat-action-feedback ${feedback.type}`}>
-                {feedback.message}
-              </p>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className={`seat-card occupied-seat ${isExpanded ? "is-expanded" : ""} ${isOverflow ? "overflow-seat" : ""}`}
-      style={{
-        backgroundColor: person.color.background,
-        borderColor: person.color.border,
-        color: person.color.text,
-      }}
-    >
-      <button type="button" className="seat-person-button" onClick={onToggle}>
-        <span>Posto {seatNumber}</span>
-        <strong>{person.name}</strong>
-      </button>
-      {isExpanded && (
-        <div className="seat-expanded-details">
-          <dl>
-            <div>
-              <dt>Invito</dt>
-              <dd>{person.familyName}</dd>
-            </div>
-            <div>
-              <dt>Dettaglio</dt>
-              <dd>{person.seatLabel}</dd>
-            </div>
-            <div>
-              <dt>Intolleranze</dt>
-              <dd>{person.foodDetails}</dd>
-            </div>
-          </dl>
-          <label>
-            Sposta invito
-            <select value={tableId} onChange={event => onMove(person.familyId, event.target.value)}>
-              <option value="">Non assegnata</option>
-              {tableOptions.map(table => (
-                <option key={table.id} value={table.id}>{table.name}</option>
-              ))}
-            </select>
-          </label>
-          {feedback && (
-            <p className={`seat-action-feedback ${feedback.type}`}>
-              {feedback.message}
-            </p>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
 export default function TablePlanner() {
   const plannerCanvasRef = useRef(null);
   const dragStateRef = useRef(null);
@@ -479,7 +373,7 @@ export default function TablePlanner() {
     [planner.tableCount, planner.tablePositions]
   );
   const effectiveAssignments = useMemo(
-    () => sanitizeFamilyAssignments(attendees, planner.assignments, tableSeats),
+    () => sanitizeAssignments(attendees, planner.assignments, tableSeats),
     [attendees, planner.assignments, tableSeats]
   );
   const effectiveSeatPositions = useMemo(
@@ -517,13 +411,14 @@ export default function TablePlanner() {
         .includes(search)
     );
   }, [guestSearch, tablePlan.unassigned]);
+  const addTablePosition = useMemo(() => getDefaultTablePosition(tableSeats.length), [tableSeats.length]);
   const canvasSize = useMemo(() => {
-    const positions = Object.values(tablePositions);
+    const positions = [...Object.values(tablePositions), addTablePosition];
     const width = positions.reduce((max, position) => Math.max(max, position.x + 220), 860);
     const height = positions.reduce((max, position) => Math.max(max, position.y + 190), 520);
 
     return { width, height };
-  }, [tablePositions]);
+  }, [addTablePosition, tablePositions]);
 
   useEffect(() => {
     fetch("/api/rsvps", {
@@ -545,10 +440,6 @@ export default function TablePlanner() {
   }, [token]);
 
   useEffect(() => {
-    if (!hasTablesConfigured) {
-      return;
-    }
-
     localStorage.setItem(tablePlannerStorageKey, JSON.stringify({
       ...planner,
       assignments: effectiveAssignments,
@@ -559,49 +450,92 @@ export default function TablePlanner() {
     }));
   }, [effectiveAssignments, effectiveSeatPositions, hasTablesConfigured, planner, tableNames, tablePositions, tableSeats]);
 
-  const updateTableCount = value => {
-    setPlanner(prev => {
-      if (!hasTableCountValue(value)) {
-        return { ...prev, tableCount: "", tableNames: [], tablePositions: {}, tableSeats: [] };
-      }
-
-      const tableCount = clampNumber(value, 1, 80);
-      const nextSeats = normalizeTableSeats(prev.tableSeats, tableCount, prev.seatsPerTable);
-      const nextNames = normalizeTableNames(prev.tableNames, tableCount);
-      const nextPositions = normalizeTablePositions(prev.tablePositions, tableCount);
-      const assignments = Object.fromEntries(
-        Object.entries(prev.assignments).filter(([, tableId]) => Number(tableId) <= tableCount)
-      );
-      const seatPositions = Object.fromEntries(
-        Object.entries(prev.seatPositions || {}).filter(([attendeeId]) => assignments[attendeeId])
-      );
-
-      return { ...prev, tableCount, tableNames: nextNames, tablePositions: nextPositions, tableSeats: nextSeats, assignments, seatPositions };
-    });
-  };
-
-  const updateSeatsPerTable = value => {
-    const seatsPerTable = clampNumber(value, 1, 80);
-
-    setPlanner(prev => {
-      const tableCount = hasTableCountValue(prev.tableCount)
-        ? clampNumber(prev.tableCount, 1, 80)
-        : 0;
-
-      return {
-        ...prev,
-        seatsPerTable,
-        tableSeats: Array.from({ length: tableCount }, () => seatsPerTable),
-      };
-    });
-  };
-
   const updateSingleTableSeats = (tableIndex, value) => {
     setPlanner(prev => {
       const nextSeats = normalizeTableSeats(prev.tableSeats, prev.tableCount, prev.seatsPerTable);
       nextSeats[tableIndex] = clampNumber(value, 1, 80);
 
       return { ...prev, tableSeats: nextSeats };
+    });
+  };
+
+  const addTable = () => {
+    const nextSelectedTableId = String(Math.min(80, tableSeats.length + 1));
+
+    setPlanner(prev => {
+      const currentSeats = normalizeTableSeats(prev.tableSeats, prev.tableCount, prev.seatsPerTable);
+      const currentCount = currentSeats.length;
+      const nextCount = Math.min(80, currentCount + 1);
+
+      if (nextCount === currentCount) {
+        return prev;
+      }
+
+      const nextTableId = String(nextCount);
+      const nextNames = normalizeTableNames(prev.tableNames, currentCount);
+      const nextPositions = normalizeTablePositions(prev.tablePositions, currentCount);
+
+      nextNames.push(`Tavolo ${nextCount}`);
+      nextPositions[nextTableId] = getDefaultTablePosition(currentCount);
+
+      return {
+        ...prev,
+        tableCount: nextCount,
+        tableNames: nextNames,
+        tablePositions: nextPositions,
+        tableSeats: [...currentSeats, clampNumber(prev.seatsPerTable, 1, 80, 8)],
+      };
+    });
+    setSelectedTableId(nextSelectedTableId);
+  };
+
+  const deleteTable = tableId => {
+    const deleteIndex = Number(tableId) - 1;
+
+    if (deleteIndex < 0) return;
+
+    setSelectedTableId("");
+    setExpandedPanelId("");
+    setMoveFeedback({});
+
+    setPlanner(prev => {
+      const currentSeats = normalizeTableSeats(prev.tableSeats, prev.tableCount, prev.seatsPerTable);
+      const currentNames = normalizeTableNames(prev.tableNames, currentSeats.length);
+      const currentPositions = normalizeTablePositions(prev.tablePositions, currentSeats.length);
+
+      if (!currentSeats[deleteIndex]) {
+        return prev;
+      }
+
+      const tableCount = currentSeats.length - 1;
+      const tableSeats = currentSeats.filter((_, index) => index !== deleteIndex);
+      const tableNames = currentNames.filter((_, index) => index !== deleteIndex);
+      const tablePositions = {};
+
+      currentSeats.forEach((_, index) => {
+        if (index === deleteIndex) return;
+
+        const nextIndex = index > deleteIndex ? index - 1 : index;
+        tablePositions[String(nextIndex + 1)] = currentPositions[String(index + 1)] || getDefaultTablePosition(nextIndex);
+      });
+
+      const assignments = {};
+      Object.entries(prev.assignments || {}).forEach(([attendeeId, assignedTableId]) => {
+        const assignedIndex = Number(assignedTableId) - 1;
+
+        if (assignedIndex === deleteIndex || assignedIndex < 0 || assignedIndex >= currentSeats.length) {
+          return;
+        }
+
+        assignments[attendeeId] = String(assignedIndex > deleteIndex ? assignedIndex : assignedIndex + 1);
+      });
+      const seatPositions = Object.fromEntries(
+        Object.entries(prev.seatPositions || {}).filter(([attendeeId]) => assignments[attendeeId])
+      );
+
+      setNotice(`Eliminato Tavolo ${deleteIndex + 1}. Gli invitati di quel tavolo sono tornati da sistemare.`);
+
+      return { ...prev, tableCount, tableSeats, tableNames, tablePositions, assignments, seatPositions };
     });
   };
 
@@ -637,7 +571,7 @@ export default function TablePlanner() {
   };
 
   const canStartTableDrag = event =>
-    !event.target.closest("input, select, textarea, .table-detail-popover, .seat-card, .seat-person-button, .unassigned-card");
+    !event.target.closest("input, select, textarea, button, .table-detail-popover, .seat-card, .seat-person-button, .unassigned-card");
 
   const startTableDrag = (event, tableId) => {
     if (event.button !== undefined && event.button !== 0) {
@@ -782,15 +716,14 @@ export default function TablePlanner() {
     });
   };
 
-  const moveFamily = (familyId, tableId, options = {}) => {
+  const movePerson = (personId, tableId, options = {}) => {
     setPlanner(prev => {
-      const assignments = { ...sanitizeFamilyAssignments(attendees, prev.assignments, tableSeats) };
+      const assignments = { ...sanitizeAssignments(attendees, prev.assignments, tableSeats) };
       const seatPositions = { ...normalizeSeatPositions(attendees, assignments, prev.seatPositions, tableSeats) };
-      const family = attendees.filter(attendee => attendee.familyId === familyId);
-      const selectedPersonId = options.personId || family[0]?.id;
+      const person = attendees.find(attendee => attendee.id === personId);
       const preferredSeatIndex = Number(options.seatIndex);
       const hasPreferredSeat = Number.isInteger(preferredSeatIndex) && preferredSeatIndex >= 0;
-      const feedbackKeys = [familyId, options.feedbackKey].filter((key, index, all) => key && all.indexOf(key) === index);
+      const feedbackKeys = [personId, person?.familyId, options.feedbackKey].filter((key, index, all) => key && all.indexOf(key) === index);
       const setLocalFeedback = feedback => {
         setMoveFeedback(prevFeedback => ({
           ...prevFeedback,
@@ -798,11 +731,13 @@ export default function TablePlanner() {
         }));
       };
 
-      if (!family.length) {
+      if (!person) {
         return prev;
       }
 
       setNotice("");
+      delete assignments[person.id];
+      delete seatPositions[person.id];
 
       if (tableId) {
         const tableIndex = Number(tableId) - 1;
@@ -813,49 +748,10 @@ export default function TablePlanner() {
           return prev;
         }
 
-        if (family.length > tableCapacity) {
-          setLocalFeedback({
-            type: "error",
-            message: `${family[0].familyName} ha ${family.length} persone: il Tavolo ${tableId} ha solo ${tableCapacity} posti.`,
-          });
-          return prev;
-        }
-
-        family.forEach(attendee => {
-          delete assignments[attendee.id];
-          delete seatPositions[attendee.id];
-        });
-
         const targetOccupants = attendees.filter(attendee => assignments[attendee.id] === tableId);
-        let freeSeats = tableCapacity - targetOccupants.length;
-        const displacedFamilies = [];
         const preferredSeatOccupant = hasPreferredSeat
           ? targetOccupants.find(attendee => seatPositions[attendee.id] === preferredSeatIndex)
           : null;
-        const targetFamilyGroups = groupAttendeesByFamily(targetOccupants);
-        const prioritizedTargetGroups = [
-          ...(preferredSeatOccupant
-            ? targetFamilyGroups.filter(group => group.some(attendee => attendee.id === preferredSeatOccupant.id))
-            : []),
-          ...targetFamilyGroups
-            .filter(group => !preferredSeatOccupant || !group.some(attendee => attendee.id === preferredSeatOccupant.id))
-            .reverse(),
-        ];
-
-        if (freeSeats < family.length || preferredSeatOccupant) {
-          for (const targetFamily of prioritizedTargetGroups) {
-            const preferredSeatStillOccupied = hasPreferredSeat && targetFamily.some(attendee => seatPositions[attendee.id] === preferredSeatIndex);
-
-            if (freeSeats >= family.length && !preferredSeatStillOccupied) break;
-
-            targetFamily.forEach(attendee => {
-              delete assignments[attendee.id];
-              delete seatPositions[attendee.id];
-            });
-            displacedFamilies.push(targetFamily);
-            freeSeats += targetFamily.length;
-          }
-        }
 
         const occupiedSeats = new Set(
           attendees
@@ -863,38 +759,39 @@ export default function TablePlanner() {
             .map(attendee => seatPositions[attendee.id])
             .filter(position => Number.isInteger(position) && position >= 0 && position < tableCapacity)
         );
-        const selectedPerson = family.find(attendee => attendee.id === selectedPersonId) || family[0];
-        const familyOrder = [
-          selectedPerson,
-          ...family.filter(attendee => attendee.id !== selectedPerson.id),
-        ];
 
-        familyOrder.forEach((attendee, index) => {
-          let targetSeat = index === 0 && hasPreferredSeat && !occupiedSeats.has(preferredSeatIndex)
+        if (preferredSeatOccupant) {
+          occupiedSeats.delete(preferredSeatIndex);
+          let replacementSeat = 0;
+
+          while (occupiedSeats.has(replacementSeat) && replacementSeat < tableCapacity) {
+            replacementSeat += 1;
+          }
+
+          assignments[preferredSeatOccupant.id] = tableId;
+          seatPositions[preferredSeatOccupant.id] = replacementSeat;
+          occupiedSeats.add(replacementSeat);
+        }
+
+        let targetSeat = hasPreferredSeat && !occupiedSeats.has(preferredSeatIndex)
             ? preferredSeatIndex
             : 0;
 
-          while (occupiedSeats.has(targetSeat) && targetSeat < tableCapacity) {
-            targetSeat += 1;
-          }
+        while (occupiedSeats.has(targetSeat) && targetSeat < tableCapacity) {
+          targetSeat += 1;
+        }
 
-          assignments[attendee.id] = tableId;
-          seatPositions[attendee.id] = targetSeat;
-          occupiedSeats.add(targetSeat);
-        });
+        assignments[person.id] = tableId;
+        seatPositions[person.id] = targetSeat;
         setLocalFeedback({
-          type: displacedFamilies.length ? "warning" : "success",
-          message: displacedFamilies.length
-            ? `${family[0].familyName} spostato al Tavolo ${tableId}. Liberato ${displacedFamilies.map(group => group[0].familyName).join(", ")}.`
-            : `${family[0].familyName} spostato al Tavolo ${tableId}.`,
+          type: targetSeat >= tableCapacity ? "warning" : "success",
+          message: targetSeat >= tableCapacity
+            ? `${person.name} spostato al Tavolo ${tableId}. Capienza superata.`
+            : `${person.name} spostato al Tavolo ${tableId}.`,
         });
-        setExpandedPanelId(`person-${selectedPerson.id}`);
+        setExpandedPanelId(`person-${person.id}`);
       } else {
-        family.forEach(attendee => {
-          delete assignments[attendee.id];
-          delete seatPositions[attendee.id];
-        });
-        setLocalFeedback({ type: "success", message: `${family[0].familyName} rimosso dai tavoli.` });
+        setLocalFeedback({ type: "success", message: `${person.name} rimosso dai tavoli.` });
       }
 
       return { ...prev, assignments, seatPositions };
@@ -930,10 +827,34 @@ export default function TablePlanner() {
 
     if (!person) return;
 
-    moveFamily(person.familyId, tableId, {
+    movePerson(person.id, tableId, {
       feedbackKey: `empty-${tableId}-${seatIndex}`,
-      personId,
       seatIndex,
+    });
+  };
+
+  const startPersonDrag = (event, personId) => {
+    event.stopPropagation();
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", personId);
+  };
+
+  const allowPersonDrop = event => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+  };
+
+  const dropPersonOnTable = (event, tableId, seatIndex) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const personId = event.dataTransfer.getData("text/plain");
+
+    if (!personId) return;
+
+    movePerson(personId, tableId, {
+      seatIndex,
+      feedbackKey: Number.isInteger(seatIndex) ? `empty-${tableId}-${seatIndex}` : undefined,
     });
   };
 
@@ -995,52 +916,6 @@ export default function TablePlanner() {
 
       <section className="planner-layout">
         <aside className="planner-sidebar" aria-label="Controlli e invitati">
-          <section className="tables-controls">
-            <label>
-              Numero tavoli
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={planner.tableCount}
-                onChange={event => updateTableCount(event.target.value.replace(/\D/g, ""))}
-              />
-            </label>
-            {hasTablesConfigured && (
-              <label>
-                Posti per tavolo
-                <input
-                  type="number"
-                  min="1"
-                  max="80"
-                  value={planner.seatsPerTable}
-                  onChange={event => updateSeatsPerTable(event.target.value)}
-                />
-              </label>
-            )}
-          </section>
-
-          {hasTablesConfigured ? (
-            <section className="table-seat-controls">
-              {tableSeats.map((seats, tableIndex) => (
-                <label key={tableIndex}>
-                  Tavolo {tableIndex + 1}
-                  <input
-                    type="number"
-                    min="1"
-                    max="80"
-                    value={seats}
-                    onChange={event => updateSingleTableSeats(tableIndex, event.target.value)}
-                  />
-                </label>
-              ))}
-            </section>
-          ) : (
-            <section className="tables-empty-state">
-              Cancella pure il campo mentre modifichi. Inserisci un numero di tavoli per mostrare posti e mappa.
-            </section>
-          )}
-
           <section className="unassigned-panel">
             <div className="unassigned-panel-header">
               <div>
@@ -1059,6 +934,8 @@ export default function TablePlanner() {
                 <article
                   key={person.id}
                   className="unassigned-card"
+                  draggable
+                  onDragStart={event => startPersonDrag(event, person.id)}
                   style={{
                     backgroundColor: person.color.background,
                     borderColor: person.color.border,
@@ -1092,7 +969,7 @@ export default function TablePlanner() {
                       )}
                     </div>
                   )}
-                  <select value="" onChange={event => moveFamily(person.familyId, event.target.value)}>
+                  <select value="" onChange={event => movePerson(person.id, event.target.value)}>
                     <option value="">Non assegnata</option>
                     {tablePlan.tables.map(table => (
                       <option key={table.id} value={table.id}>{table.name}</option>
@@ -1108,141 +985,225 @@ export default function TablePlanner() {
         </aside>
 
         <section className="planner-canvas" aria-label="Piantina tavoli" ref={plannerCanvasRef}>
-          {hasTablesConfigured ? (
-            <section
-              className="tables-board"
-              style={{
-                minWidth: `${canvasSize.width}px`,
-                minHeight: `${canvasSize.height}px`,
-              }}
-            >
-              {tablePlan.tables.map(table => {
-                const isOverCapacity = table.people.length > table.seats;
-                const tablePosition = tablePositions[table.id] || getDefaultTablePosition(Number(table.id) - 1);
+          <section
+            className="tables-board"
+            style={{
+              minWidth: `${canvasSize.width}px`,
+              minHeight: `${canvasSize.height}px`,
+            }}
+          >
+            {tablePlan.tables.map(table => {
+              const tableIndex = Number(table.id) - 1;
+              const isOverCapacity = table.people.length > table.seats;
+              const tablePosition = tablePositions[table.id] || getDefaultTablePosition(tableIndex);
 
-                return (
-                  <article
-                    className={`table-map-card compact-table-node ${selectedTableId === table.id ? "is-selected" : ""} ${isOverCapacity ? "is-over-capacity" : ""} ${draggingTableId === table.id ? "is-dragging" : ""}`}
-                    key={table.id}
-                    style={{
-                      left: `${tablePosition.x}px`,
-                      top: `${tablePosition.y}px`,
-                    }}
-                    onPointerDown={event => startTableDrag(event, table.id)}
-                    onPointerMove={moveTableDrag}
-                    onPointerUp={endTableDrag}
-                    onPointerCancel={endTableDrag}
-                    onMouseDown={event => startTableMouseDrag(event, table.id)}
-                    onClick={() => {
-                      if (suppressTableClickRef.current) {
-                        suppressTableClickRef.current = false;
-                        return;
-                      }
+              return (
+                <article
+                  className={`table-map-card compact-table-node ${selectedTableId === table.id ? "is-selected" : ""} ${isOverCapacity ? "is-over-capacity" : ""} ${draggingTableId === table.id ? "is-dragging" : ""}`}
+                  key={table.id}
+                  style={{
+                    left: `${tablePosition.x}px`,
+                    top: `${tablePosition.y}px`,
+                  }}
+                  onDragOver={allowPersonDrop}
+                  onDrop={event => dropPersonOnTable(event, table.id)}
+                  onPointerDown={event => startTableDrag(event, table.id)}
+                  onPointerMove={moveTableDrag}
+                  onPointerUp={endTableDrag}
+                  onPointerCancel={endTableDrag}
+                  onMouseDown={event => startTableMouseDrag(event, table.id)}
+                  onClick={() => {
+                    if (suppressTableClickRef.current) {
+                      suppressTableClickRef.current = false;
+                      return;
+                    }
 
-                      setSelectedTableId(prev => (prev === table.id ? "" : table.id));
-                    }}
-                  >
-                    <div className="compact-table-face" role="button" tabIndex={0} aria-label={`${table.name}, ${table.people.length} persone su ${table.seats}`}>
-                      <span className="compact-table-core">
-                        <strong>{table.name}</strong>
-                        <small>{table.people.length} / {table.seats}</small>
-                      </span>
-                      <span className="compact-seat-ring" aria-hidden="true">
-                        {table.slots.slice(0, table.seats).map((slot, index) => {
-                          const angle = (Math.PI * 2 * index) / Math.max(table.seats, 1) - Math.PI / 2;
+                    setSelectedTableId(prev => (prev === table.id ? "" : table.id));
+                  }}
+                >
+                  <div className="compact-table-face" role="button" tabIndex={0} aria-label={`${table.name}, ${table.people.length} persone su ${table.seats}`}>
+                    <span className="compact-table-core">
+                      <input
+                        className="table-surface-name-input"
+                        value={tableNames[tableIndex] || table.name}
+                        onClick={event => event.stopPropagation()}
+                        onPointerDown={event => event.stopPropagation()}
+                        onChange={event => updateTableName(tableIndex, event.target.value)}
+                        onBlur={() => normalizeTableNameOnBlur(tableIndex)}
+                        aria-label={`Nome ${table.name}`}
+                      />
+                      <input
+                        type="number"
+                        min="1"
+                        max="80"
+                        value={table.seats}
+                        onClick={event => event.stopPropagation()}
+                        onPointerDown={event => event.stopPropagation()}
+                        onChange={event => updateSingleTableSeats(tableIndex, event.target.value)}
+                        aria-label={`Posti ${table.name}`}
+                      />
+                      <small>posti</small>
+                    </span>
+                    <span className="compact-seat-ring">
+                      {table.slots.slice(0, table.seats).map((slot, index) => {
+                        const angle = (Math.PI * 2 * index) / Math.max(table.seats, 1) - Math.PI / 2;
+                        const seatPanelId = `seat-${table.id}-${slot.id}`;
 
-                          return (
-                            <span
-                              key={slot.id}
-                              className={`compact-seat-dot ${slot.person ? "is-filled" : ""}`}
-                              style={{
-                                "--seat-x": `${50 + Math.cos(angle) * 45}%`,
-                                "--seat-y": `${50 + Math.sin(angle) * 45}%`,
-                                ...(slot.person ? { backgroundColor: slot.person.color.border } : {}),
-                              }}
-                            >
-                              {slot.person && <span>{slot.person.name}</span>}
-                            </span>
-                          );
-                        })}
-                      </span>
-                    </div>
-
-                    {isOverCapacity && <span className="compact-capacity-alert">Capienza superata</span>}
-
-                    {selectedTableId === table.id && (
-                      <section className="table-detail-popover" onClick={event => event.stopPropagation()}>
-                        <div className="selected-table-header">
-                          <input
-                            className="selected-table-name-input"
-                            value={tableNames[Number(table.id) - 1] || table.name}
-                            onChange={event => updateTableName(Number(table.id) - 1, event.target.value)}
-                            onBlur={() => normalizeTableNameOnBlur(Number(table.id) - 1)}
-                            aria-label={`Nome ${table.name}`}
-                          />
-                          <span>{table.people.length} / {table.seats}</span>
+                        return (
                           <button
                             type="button"
-                            className="table-detail-close"
-                            onClick={() => {
-                              setSelectedTableId("");
-                              setExpandedPanelId("");
+                            key={slot.id}
+                            className={`compact-seat-dot ${slot.person ? "is-filled" : ""}`}
+                            draggable={Boolean(slot.person)}
+                            onClick={event => {
+                              event.stopPropagation();
+                              setSelectedTableId(table.id);
+                              setExpandedPanelId(prev => (prev === seatPanelId ? "" : seatPanelId));
                             }}
-                            aria-label="Chiudi dettaglio tavolo"
+                            onPointerDown={event => event.stopPropagation()}
+                            onDragStart={event => slot.person && startPersonDrag(event, slot.person.id)}
+                            onDragOver={allowPersonDrop}
+                            onDrop={event => dropPersonOnTable(event, table.id, slot.id)}
+                            aria-label={slot.person ? `Posto ${slot.id + 1}, ${slot.person.name}` : `Posto ${slot.id + 1} libero`}
+                            style={{
+                              "--seat-x": `${50 + Math.cos(angle) * 45}%`,
+                              "--seat-y": `${50 + Math.sin(angle) * 45}%`,
+                              ...(slot.person ? { backgroundColor: slot.person.color.border } : {}),
+                            }}
                           >
-                            X
+                            {slot.person && <span>{slot.person.name}</span>}
                           </button>
-                        </div>
+                        );
+                      })}
+                    </span>
+                  </div>
 
-                        <div className="selected-seat-grid">
-                          {table.slots.map(slot => {
-                            const panelId = slot.person
-                              ? `person-${slot.person.id}`
-                              : `empty-${table.id}-${slot.id}`;
-                            const isExpanded = expandedPanelId === panelId;
+                  <span className="compact-table-count">{table.people.length} / {table.seats}</span>
+                  {isOverCapacity && <span className="compact-capacity-alert">Capienza superata</span>}
 
-                            return (
-                              <SeatCard
-                                key={`${table.id}-${slot.id}`}
-                                person={slot.person}
-                                seatNumber={slot.id + 1}
-                                tableId={table.id}
-                                tableOptions={tablePlan.tables}
-                                peopleOptions={peopleOptions}
-                                onMove={moveFamily}
-                                onAssignToSeat={personId => assignPersonToSeat(personId, table.id, slot.id)}
-                                isExpanded={isExpanded}
-                                onToggle={() => setExpandedPanelId(prev => (prev === panelId ? "" : panelId))}
-                                isOverflow={slot.isOverflow}
-                                feedback={slot.person ? moveFeedback[slot.person.familyId] : moveFeedback[panelId]}
-                              />
-                            );
-                          })}
-                        </div>
+                  {selectedTableId === table.id && (
+                    <section className="table-detail-popover" onClick={event => event.stopPropagation()}>
+                      <div className="selected-table-header">
+                        <input
+                          className="selected-table-name-input"
+                          value={tableNames[tableIndex] || table.name}
+                          onChange={event => updateTableName(tableIndex, event.target.value)}
+                          onBlur={() => normalizeTableNameOnBlur(tableIndex)}
+                          aria-label={`Nome ${table.name}`}
+                        />
+                        <span>{table.people.length} / {table.seats}</span>
+                        <button
+                          type="button"
+                          className="table-detail-close"
+                          onClick={() => {
+                            setSelectedTableId("");
+                            setExpandedPanelId("");
+                          }}
+                          aria-label="Chiudi dettaglio tavolo"
+                        >
+                          X
+                        </button>
+                      </div>
 
-                        <div className="table-food-summary compact-summary">
-                          <strong>Intolleranze / preferenze</strong>
-                          {Object.entries(table.foodCounts).length ? (
+                      <button type="button" className="delete-table-button" onClick={() => deleteTable(table.id)}>
+                        <Trash2 size={16} aria-hidden="true" />
+                        Elimina tavolo
+                      </button>
+
+                      {(() => {
+                        const selectedSeat = table.slots.find(slot => expandedPanelId === `seat-${table.id}-${slot.id}`);
+                        const seatFeedback = selectedSeat?.person
+                          ? moveFeedback[selectedSeat.person.id]
+                          : selectedSeat
+                            ? moveFeedback[`empty-${table.id}-${selectedSeat.id}`]
+                            : null;
+
+                        if (!selectedSeat) {
+                          return (
+                            <p className="seat-picker-hint">Seleziona un posto sul tavolo per assegnare o cambiare invitato.</p>
+                          );
+                        }
+
+                        return (
+                          <section className="seat-picker-panel">
                             <div>
-                              {Object.entries(table.foodCounts).map(([preference, count]) => (
-                                <span key={preference}>{preference}: {count}</span>
-                              ))}
+                              <span>Posto {selectedSeat.id + 1}</span>
+                              <strong>{selectedSeat.person ? selectedSeat.person.name : "Libero"}</strong>
                             </div>
-                          ) : (
-                            <p>Nessuna intolleranza indicata.</p>
-                          )}
-                        </div>
-                      </section>
-                    )}
-                  </article>
-                );
-              })}
-            </section>
-          ) : (
-            <section className="canvas-empty-state">
-              Inserisci il numero di tavoli per iniziare la piantina.
-            </section>
-          )}
+                            {selectedSeat.person && (
+                              <dl>
+                                <div>
+                                  <dt>Invito</dt>
+                                  <dd>{selectedSeat.person.familyName}</dd>
+                                </div>
+                                <div>
+                                  <dt>Intolleranze</dt>
+                                  <dd>{selectedSeat.person.foodDetails}</dd>
+                                </div>
+                              </dl>
+                            )}
+                            <label>
+                              Invitato
+                              <select
+                                value={selectedSeat.person?.id || ""}
+                                onChange={event => {
+                                  if (event.target.value) {
+                                    assignPersonToSeat(event.target.value, table.id, selectedSeat.id);
+                                  } else if (selectedSeat.person) {
+                                    movePerson(selectedSeat.person.id, "");
+                                  }
+                                }}
+                              >
+                                <option value="">Posto libero</option>
+                                {peopleOptions.map(option => (
+                                  <option key={option.id} value={option.id}>
+                                    {option.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            {seatFeedback && (
+                              <p className={`seat-action-feedback ${seatFeedback.type}`}>
+                                {seatFeedback.message}
+                              </p>
+                            )}
+                          </section>
+                        );
+                      })()}
+
+                      <div className="table-food-summary compact-summary">
+                        <strong>Intolleranze / preferenze</strong>
+                        {Object.entries(table.foodCounts).length ? (
+                          <div>
+                            {Object.entries(table.foodCounts).map(([preference, count]) => (
+                              <span key={preference}>{preference}: {count}</span>
+                            ))}
+                          </div>
+                        ) : (
+                          <p>Nessuna intolleranza indicata.</p>
+                        )}
+                      </div>
+                    </section>
+                  )}
+                </article>
+              );
+            })}
+
+            <button
+              type="button"
+              className="table-map-card add-table-node"
+              style={{
+                left: `${addTablePosition.x}px`,
+                top: `${addTablePosition.y}px`,
+              }}
+              onClick={addTable}
+              aria-label="Aggiungi tavolo"
+            >
+              <span className="add-table-face">
+                <Plus size={34} aria-hidden="true" />
+              </span>
+            </button>
+          </section>
         </section>
       </section>
     </main>
