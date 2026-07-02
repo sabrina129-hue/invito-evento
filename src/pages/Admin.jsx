@@ -1,28 +1,52 @@
-import { useEffect, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ChevronDown, Download, LogOut, Pencil, Plus, Trash2, Utensils } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { getParticipantGuestNames } from "../lib/guestNames.js";
+import { notifyRsvpDataChanged } from "../lib/rsvpSync.js";
+import "./Admin.css";
 
 const emptyParticipant = {
     name: "",
     partecipate: true,
     guests: 1,
+    guest_names: [],
     food_preferences: "",
     message: "",
+};
+
+const nameRequiredMessage = "Il nome è obbligatorio";
+const noFoodPreferenceOption = "Nessuna intolleranza/preferenza alimentare";
+
+const isNoFoodPreferenceOption = option =>
+    String(option || "").trim().toLowerCase() === noFoodPreferenceOption.toLowerCase();
+
+const isNameRequiredError = error =>
+    String(error || "").trim() === nameRequiredMessage;
+
+const normalizeFoodPreferenceItems = items => {
+    const normalized = (Array.isArray(items) ? items : [])
+        .map(item => String(item || "").trim())
+        .filter(Boolean)
+        .map(item => (isNoFoodPreferenceOption(item) ? noFoodPreferenceOption : item));
+
+    return normalized.some(isNoFoodPreferenceOption)
+        ? [noFoodPreferenceOption]
+        : normalized;
 };
 
 const foodPreferencesToList = value =>
     String(value || "")
         .split(",")
         .map(item => item.trim())
-        .filter(Boolean);
+        .filter(Boolean)
+        .map(item => (isNoFoodPreferenceOption(item) ? noFoodPreferenceOption : item));
 
 const normalizeGuestCount = guests => Math.max(1, Number(guests) || 1);
 
 const resizeGuestFoodPreferences = (groups, guests) =>
     Array.from({ length: normalizeGuestCount(guests) }, (_, index) =>
-        Array.isArray(groups[index]) ? groups[index] : []
+        Array.isArray(groups[index]) ? normalizeFoodPreferenceItems(groups[index]) : []
     );
 
 const parseGuestFoodPreferences = (value, guests) => {
@@ -45,7 +69,7 @@ const parseGuestFoodPreferences = (value, guests) => {
             const values = match[2].trim();
 
             groups[index] = values && values !== "-"
-                ? values.split(",").map(item => item.trim()).filter(Boolean)
+                ? normalizeFoodPreferenceItems(values.split(","))
                 : [];
         });
 
@@ -58,11 +82,13 @@ const parseGuestFoodPreferences = (value, guests) => {
 const serializeGuestFoodPreferences = (groups, guests) => {
     const resized = resizeGuestFoodPreferences(groups, guests);
 
-    if (resized.length <= 1) {
-        return resized[0].join(", ");
+    const normalized = resized.map(normalizeFoodPreferenceItems);
+
+    if (normalized.length <= 1) {
+        return normalized[0].join(", ");
     }
 
-    return resized
+    return normalized
         .map((items, index) => `Persona ${index + 1}: ${items.length ? items.join(", ") : "-"}`)
         .join(" | ");
 };
@@ -71,24 +97,106 @@ const toggleGuestFoodPreference = (value, guests, guestIndex, option) => {
     const groups = parseGuestFoodPreferences(value, guests);
     const selected = groups[guestIndex] || [];
 
-    groups[guestIndex] = selected.includes(option)
-        ? selected.filter(item => item !== option)
-        : [...selected, option];
+    if (selected.includes(option)) {
+        groups[guestIndex] = selected.filter(item => item !== option);
+    } else if (isNoFoodPreferenceOption(option)) {
+        groups[guestIndex] = [noFoodPreferenceOption];
+    } else {
+        groups[guestIndex] = [
+            ...selected.filter(item => !isNoFoodPreferenceOption(item)),
+            option,
+        ];
+    }
 
     return serializeGuestFoodPreferences(groups, guests);
 };
 
+const getParticipantPersonName = (participant, index) => {
+    const guestNames = getParticipantGuestNames(participant);
+
+    if (index === 0) {
+        return participant.name || guestNames[index] || "Invitato senza nome";
+    }
+
+    if (guestNames[index]) {
+        return guestNames[index];
+    }
+
+    return `Persona ${index + 1}`;
+};
+
 const getParticipantPeople = participant => {
     const guestCount = participant.partecipate ? normalizeGuestCount(participant.guests) : 0;
-    const guestNames = getParticipantGuestNames(participant);
     const preferences = parseGuestFoodPreferences(participant.food_preferences, guestCount || 1);
 
     return Array.from({ length: guestCount }, (_, index) => ({
         id: `${participant.id || participant.name}-${index}`,
-        name: guestNames[index] || (index === 0 ? participant.name || "Invitato senza nome" : `Persona ${index + 1}`),
+        name: getParticipantPersonName(participant, index),
         invitationName: participant.name || "Invitato senza nome",
         preferences: preferences[index] || [],
     }));
+};
+
+const getParticipantGuestNameValues = (participant, guests = participant.guests) => {
+    const guestCount = normalizeGuestCount(guests);
+    const guestNames = getParticipantGuestNames(participant);
+
+    return Array.from({ length: guestCount }, (_, index) => {
+        if (index === 0) {
+            return String(participant.name || guestNames[index] || "").trim();
+        }
+
+        return String(guestNames[index] || "").trim();
+    });
+};
+
+const getParticipantGuestNameValue = (participant, guestIndex) =>
+    getParticipantGuestNameValues(participant, participant.guests)[guestIndex] || "";
+
+const getMissingGuestNameIndexes = (participant, guests = participant.guests) => {
+    if (!participant.partecipate) {
+        return [];
+    }
+
+    const guestCount = normalizeGuestCount(guests);
+    const guestNames = getParticipantGuestNameValues(participant, guestCount);
+
+    return guestNames
+        .map((name, index) => ({ index, name }))
+        .filter(({ index, name }) => index > 0 && !String(name || "").trim())
+        .map(({ index }) => index);
+};
+
+const updateParticipantGuestName = (participant, guestIndex, value) => {
+    const guestNames = getParticipantGuestNameValues(participant, participant.guests);
+
+    guestNames[guestIndex] = value;
+
+    return {
+        ...participant,
+        guest_names: guestNames,
+    };
+};
+
+const removeParticipantGuest = (participant, guestIndex) => {
+    const currentGuestCount = normalizeGuestCount(participant.guests);
+
+    if (guestIndex <= 0 || guestIndex >= currentGuestCount) {
+        return participant;
+    }
+
+    const nextGuestCount = Math.max(1, currentGuestCount - 1);
+    const preferenceGroups = parseGuestFoodPreferences(participant.food_preferences, currentGuestCount)
+        .filter((_, index) => index !== guestIndex);
+    const guestNames = getParticipantGuestNameValues(participant, currentGuestCount)
+        .filter((_, index) => index !== guestIndex);
+
+    return {
+        ...participant,
+        guests: nextGuestCount,
+        food_preferences: serializeGuestFoodPreferences(preferenceGroups, nextGuestCount),
+        guest_names: guestNames,
+    };
 };
 
 const countFoodPreferencePeople = (participant, preference) => {
@@ -125,6 +233,24 @@ const formatParticipantFoodPreferences = participant => {
         .map(person => `${person.name}: ${person.preferences.join(", ")}`);
 
     return rows.length ? rows.join(" | ") : "-";
+};
+
+const formatParticipantGuestNames = participant => {
+    if (!participant.partecipate) {
+        return "-";
+    }
+
+    const guestCount = normalizeGuestCount(participant.guests);
+    const guestNames = getParticipantGuestNames(participant);
+    const names = Array.from({ length: guestCount }, (_, index) => {
+        if (index === 0) {
+            return String(guestNames[index] || participant.name || "").trim();
+        }
+
+        return String(guestNames[index] || "").trim();
+    }).filter(Boolean);
+
+    return names.length ? names.join(", ") : "-";
 };
 
 const toPdfText = value =>
@@ -175,11 +301,11 @@ const buildPdf = ({ title, participants, totals, isFiltered }) => {
     const bottomMargin = 36;
     const columns = [
         { label: "#", x: 42, width: 28 },
-        { label: "Nome", x: 76, width: 150 },
-        { label: "Partecipa", x: 232, width: 90 },
-        { label: "Ospiti", x: 328, width: 48 },
-        { label: "Alimentazione", x: 382, width: 178 },
-        { label: "Messaggio", x: 566, width: 234 },
+        { label: "Nome", x: 76, width: 130 },
+        { label: "Partecipa", x: 212, width: 84 },
+        { label: "Ospiti", x: 302, width: 146 },
+        { label: "Alimentazione", x: 454, width: 142 },
+        { label: "Messaggio", x: 602, width: 198 },
     ];
     const pages = [];
     let currentPage = [];
@@ -198,7 +324,7 @@ const buildPdf = ({ title, participants, totals, isFiltered }) => {
         text(`Totale risposte: ${totals.total}`, margin + 14, pageHeight - 104, 10, "F2"),
         text(`Partecipanti: ${totals.yes}`, margin + 160, pageHeight - 104, 10, "F2"),
         text(`Assenti: ${totals.no}`, margin + 300, pageHeight - 104, 10, "F2"),
-        text(isFiltered ? `Lista filtrata: ${participants.length} risultati` : `Lista completa: ${participants.length} invitati`, margin + 420, pageHeight - 104, 10, "F2"),
+        ...(isFiltered ? [text(`Risultati filtrati: ${participants.length}`, margin + 420, pageHeight - 104, 10, "F2")] : []),
         rect(margin, pageHeight - tableTop - 22, pageWidth - margin * 2, 24, "0.90 0.92 0.95"),
         ...columns.map(column => text(column.label, column.x, pageHeight - tableTop - 6, 10, "F2")),
         line(margin, pageHeight - tableTop - 22, pageWidth - margin, pageHeight - tableTop - 22),
@@ -215,10 +341,11 @@ const buildPdf = ({ title, participants, totals, isFiltered }) => {
     }
 
     participants.forEach((participant, index) => {
-        const foodLines = wrapPdfText(participant.food_preferences || "-", 26);
-        const messageLines = wrapPdfText(participant.message || "-", 36);
-        const nameLines = wrapPdfText(participant.name || "-", 22);
-        const rowLines = Math.max(foodLines.length, messageLines.length, nameLines.length, 1);
+        const foodLines = wrapPdfText(formatParticipantFoodPreferences(participant), 22);
+        const messageLines = wrapPdfText(participant.message || "-", 30);
+        const nameLines = wrapPdfText(participant.name || "-", 19);
+        const guestLines = wrapPdfText(formatParticipantGuestNames(participant), 21);
+        const rowLines = Math.max(foodLines.length, messageLines.length, nameLines.length, guestLines.length, 1);
         const rowHeight = Math.max(minRowHeight, rowLines * lineHeight + rowPadding * 2);
 
         if (y + rowHeight > pageHeight - bottomMargin) {
@@ -243,7 +370,9 @@ const buildPdf = ({ title, participants, totals, isFiltered }) => {
             currentPage.push(text(nameLine, columns[1].x, rowTop - 18 - lineIndex * lineHeight, 9));
         });
         currentPage.push(text(participant.partecipate ? "Partecipa" : "Non partecipa", columns[2].x, rowTop - 18, 9));
-        currentPage.push(text(String(participant.guests ?? 0), columns[3].x, rowTop - 18, 9));
+        guestLines.forEach((guestLine, lineIndex) => {
+            currentPage.push(text(guestLine, columns[3].x, rowTop - 18 - lineIndex * lineHeight, 9));
+        });
         foodLines.forEach((foodLine, lineIndex) => {
             currentPage.push(text(foodLine, columns[4].x, rowTop - 18 - lineIndex * lineHeight, 9));
         });
@@ -311,13 +440,33 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
     const [notice, setNotice] = useState("");
     const [editFormError, setEditFormError] = useState("");
     const [addFormError, setAddFormError] = useState("");
+    const [editGuestNameErrors, setEditGuestNameErrors] = useState({});
+    const [addGuestNameErrors, setAddGuestNameErrors] = useState({});
     const [search, setSearch] = useState("");
     const [foodPreferenceFilter, setFoodPreferenceFilter] = useState("");
     const [newParticipant, setNewParticipant] = useState(emptyParticipant);
     const [addFoodMenuOpen, setAddFoodMenuOpen] = useState(null);
     const [editFoodMenuOpen, setEditFoodMenuOpen] = useState(null);
+    const editNameInputRef = useRef(null);
+    const addNameInputRef = useRef(null);
 
     const token = localStorage.getItem("adminToken");
+
+    const focusNameField = inputRef => {
+        window.requestAnimationFrame(() => {
+            inputRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+            inputRef.current?.focus();
+        });
+    };
+
+    const focusGuestNameField = (mode, guestIndex) => {
+        window.requestAnimationFrame(() => {
+            const input = document.querySelector(`[data-${mode}-guest-name-index="${guestIndex}"]`);
+
+            input?.scrollIntoView({ block: "center", behavior: "smooth" });
+            input?.focus();
+        });
+    };
 
     useEffect(() => {
         fetch("/api/rsvps", {
@@ -353,23 +502,42 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
         }
 
         setPartecipanti(prev => prev.filter(p => p.id !== toDelete.id));
+        notifyRsvpDataChanged({ action: "delete", id: toDelete.id });
         setToDelete(null);
     };
 
     const handleSaveEdit = async () => {
         setError("");
         setEditFormError("");
+        setEditGuestNameErrors({});
 
         if (!String(editing.name || "").trim()) {
-            setEditFormError("Il nome è obbligatorio");
+            setEditFormError(nameRequiredMessage);
+            focusNameField(editNameInputRef);
             return;
         }
 
         const guestCount = editing.partecipate ? normalizeGuestCount(editing.guests) : 0;
+        const missingGuestNameIndexes = getMissingGuestNameIndexes(
+            { ...editing, name: String(editing.name || "").trim() },
+            guestCount
+        );
+
+        if (missingGuestNameIndexes.length) {
+            setEditGuestNameErrors(Object.fromEntries(
+                missingGuestNameIndexes.map(index => [index, nameRequiredMessage])
+            ));
+            focusGuestNameField("edit", missingGuestNameIndexes[0]);
+            return;
+        }
+
         const normalizedEditing = {
             ...editing,
             name: String(editing.name || "").trim(),
             guests: guestCount,
+            guest_names: editing.partecipate
+                ? getParticipantGuestNameValues({ ...editing, name: String(editing.name || "").trim() }, guestCount)
+                : [],
             food_preferences: editing.partecipate
                 ? serializeGuestFoodPreferences(parseGuestFoodPreferences(editing.food_preferences, editing.guests), guestCount)
                 : "",
@@ -389,9 +557,11 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
         setPartecipanti(prev =>
             prev.map(p => (p.id === normalizedEditing.id ? result.data : p))
         );
+        notifyRsvpDataChanged({ action: "update", participant: result.data });
         setEditing(null);
         setEditFoodMenuOpen(null);
         setEditFormError("");
+        setEditGuestNameErrors({});
     };
 
     const handleAdd = async () => {
@@ -399,20 +569,38 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
 
         setError("");
         setAddFormError("");
+        setAddGuestNameErrors({});
 
         if (!String(newParticipant.name || "").trim()) {
-            setAddFormError("Il nome è obbligatorio");
+            setAddFormError(nameRequiredMessage);
+            focusNameField(addNameInputRef);
+            return;
+        }
+
+        const guestCount = newParticipant.partecipate ? normalizeGuestCount(newParticipant.guests) : 0;
+        const missingGuestNameIndexes = getMissingGuestNameIndexes(
+            { ...newParticipant, name: String(newParticipant.name || "").trim() },
+            guestCount
+        );
+
+        if (missingGuestNameIndexes.length) {
+            setAddGuestNameErrors(Object.fromEntries(
+                missingGuestNameIndexes.map(index => [index, nameRequiredMessage])
+            ));
+            focusGuestNameField("add", missingGuestNameIndexes[0]);
             return;
         }
 
         setAddingParticipant(true);
 
         try {
-            const guestCount = newParticipant.partecipate ? normalizeGuestCount(newParticipant.guests) : 0;
             const normalizedParticipant = {
                 ...newParticipant,
                 name: String(newParticipant.name || "").trim(),
                 guests: guestCount,
+                guest_names: newParticipant.partecipate
+                    ? getParticipantGuestNameValues({ ...newParticipant, name: String(newParticipant.name || "").trim() }, guestCount)
+                    : [],
                 food_preferences: newParticipant.partecipate
                     ? serializeGuestFoodPreferences(parseGuestFoodPreferences(newParticipant.food_preferences, newParticipant.guests), guestCount)
                     : "",
@@ -433,9 +621,11 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
             }
 
             setPartecipanti(prev => [result.data, ...prev]);
+            notifyRsvpDataChanged({ action: "create", participant: result.data });
             setNewParticipant(emptyParticipant);
             setAddFoodMenuOpen(null);
             setAddFormError("");
+            setAddGuestNameErrors({});
             setAdding(false);
         } finally {
             setAddingParticipant(false);
@@ -524,77 +714,67 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 p-6">
-            <div className="max-w-6xl mx-auto space-y-6">
+        <main className="admin-page">
+            <div className="admin-shell">
+                <header className="admin-header">
+                    <div>
+                        <p>Dashboard Organizzatore</p>
+                        <h1>{labels.dashboardTitle}</h1>
+                    </div>
 
-                <div className="bg-white rounded-xl shadow p-6 space-y-3">
-                    <div className="flex flex-wrap justify-between gap-4">
-                        <div>
-                            <h1 className="text-2xl font-bold">{labels.dashboardTitle}</h1>
-                            <div className="mt-2 flex flex-wrap gap-6 text-sm">
-                                <span>Totale Risposte: <b>{totaleRisposte}</b></span>
-                                <span className="text-green-600">Partecipanti: <b>{risposteSi}</b></span>
-                                <span className="text-red-600">Assenti: <b>{risposteNo}</b></span>
-                            </div>
-                        </div>
-
-                        <button
-                            onClick={handleLogout}
-                            className="text-sm text-red-600 hover:underline"
-                        >
+                    <div className="admin-header-actions">
+                        <button type="button" onClick={handleDownloadPdf} className="admin-outline-action">
+                            <Download size={17} aria-hidden="true" />
+                            Scarica PDF
+                        </button>
+                        <Link to="/admin/tavoli" className="admin-outline-action">
+                            <Utensils size={17} aria-hidden="true" />
+                            Organizza tavoli
+                        </Link>
+                        <button type="button" onClick={handleLogout} className="admin-danger-action">
+                            <LogOut size={17} aria-hidden="true" />
                             Logout
                         </button>
                     </div>
+                </header>
 
-                    {error && <p className="text-sm text-red-600">{error}</p>}
-                    {notice && <p className="text-sm text-green-700">{notice}</p>}
-                </div>
+                {error && <p className="admin-error">{error}</p>}
+                {notice && <p className="admin-notice">{notice}</p>}
 
-                <div className="flex flex-wrap gap-3">
-                    <button
-                        onClick={handleDownloadPdf}
-                        className="bg-blue-600 text-white px-4 py-2 rounded"
-                    >
-                        Scarica PDF
-                    </button>
-                    <button
-                        onClick={() => {
-                            setAddFormError("");
-                            setAdding(true);
-                        }}
-                        className="bg-green-600 text-white px-4 py-2 rounded"
-                    >
-                        + Aggiungi partecipante
-                    </button>
-                    <Link
-                        to="/admin/tavoli"
-                        className="rounded bg-amber-600 px-4 py-2 text-white hover:bg-amber-700"
-                    >
-                        Organizza tavoli
-                    </Link>
-                </div>
-
-                <div className="bg-white rounded-xl shadow p-4 space-y-4">
+                <section className="admin-summary" aria-label="Riepilogo invitati">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <span>Totale risposte</span>
+                        <strong>{totaleRisposte}</strong>
+                    </div>
+                    <div>
+                        <span>Partecipanti</span>
+                        <strong>{risposteSi}</strong>
+                    </div>
+                    <div>
+                        <span>Assenti</span>
+                        <strong>{risposteNo}</strong>
+                    </div>
+                </section>
+
+                <section className="admin-toolbar" aria-label="Filtri lista invitati">
+                    <div className="admin-filter-field admin-filter-field-wide">
+                        <label>
                             Cerca invitato
                         </label>
                         <input
                             type="search"
-                            className="w-full border rounded p-2"
                             placeholder="Cerca per nome, partecipa, ospiti o messaggio"
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div className="admin-filter-field">
+                        <label>
                             Filtra per intolleranza o preferenza alimentare
                         </label>
-                        <div className="flex gap-2">
+                        <div className="admin-select-row">
                             <select
-                                className="w-full border rounded p-2"
                                 value={foodPreferenceFilter}
                                 onChange={e => setFoodPreferenceFilter(e.target.value)}
                             >
@@ -606,7 +786,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                             {foodPreferenceFilter && (
                                 <button
                                     type="button"
-                                    className="rounded border px-3 py-2 text-gray-600 hover:bg-gray-100"
+                                    className="admin-clear-filter"
                                     onClick={() => setFoodPreferenceFilter("")}
                                     aria-label="Rimuovi filtro preferenza alimentare"
                                     title="Rimuovi filtro"
@@ -618,112 +798,148 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                     </div>
 
                     {hasActiveFilters && (
-                        <div className="rounded border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
-                            <p>
-                                Risultati: <b>{partecipantiFiltrati.length}</b> di <b>{partecipanti.length}</b>
-                            </p>
+                        <div className="admin-filter-summary">
+                            {!foodPreferenceFilter && (
+                                <p>
+                                    Risultati: <b>{partecipantiFiltrati.length}</b> di <b>{partecipanti.length}</b>
+                                </p>
+                            )}
                             {foodPreferenceFilter && (
-                                <p className="mt-1">
+                                <p>
                                     Totale persone con <b>{foodPreferenceFilter}</b>: <b>{totalePreferenzaSelezionata}</b>
                                 </p>
                             )}
                             {foodPreferenceFilter && personeConPreferenza.length > 0 && (
-                                <p className="mt-1">
+                                <p>
                                     Persone: <b>{personeConPreferenza.map(person => person.name).join(", ")}</b>
                                 </p>
                             )}
                         </div>
                     )}
-                </div>
+                </section>
 
-                <div className="bg-white rounded-xl shadow overflow-x-auto">
-                    <table className="w-full text-sm text-center">
-                        <thead className="bg-gray-50 border-b">
-                            <tr>
-                                <th className="p-4">Nome</th>
-                                <th className="p-4">Partecipa</th>
-                                <th className="p-4">Ospiti</th>
-                                <th className="p-4">Intolleranze / Preferenze Alimentari</th>
-                                <th className="p-4">Messaggio</th>
-                                <th className="p-4">Azioni</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y">
-                            {partecipantiFiltrati.map(p => (
-                                <tr key={p.id}>
-                                    <td className="p-4 font-medium text-center">{p.name}</td>
-                                    <td className="p-4">{p.partecipate ? "Sì" : "No"}</td>
-                                    <td className="p-4">{p.guests ?? 0}</td>
-                                    <td className="p-4 max-w-xs break-words text-center">
-                                        {formatParticipantFoodPreferences(p)}
-                                    </td>
-                                    <td className="p-4 max-w-md break-words text-center">
-                                        {p.message || "-"}
-                                    </td>
-                                    <td className="p-4">
-                                        <div className="flex justify-center gap-2">
-                                        <button
+                <section className="admin-table-card" aria-label="Lista invitati">
+                    <div className="admin-list-header">
+                        <div>
+                            <h2>Lista invitati</h2>
+                            <p>{partecipantiFiltrati.length} invitati visualizzati</p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setAddFormError("");
+                                setAddGuestNameErrors({});
+                                setAdding(true);
+                            }}
+                            className="admin-primary-action"
+                        >
+                            <Plus size={17} aria-hidden="true" />
+                            Aggiungi invitato
+                        </button>
+                    </div>
+                    <div className="admin-table-scroll">
+                        <table className="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Partecipa</th>
+                                    <th>Ospiti</th>
+                                    <th>Intolleranze / Preferenze Alimentari</th>
+                                    <th>Messaggio</th>
+                                    <th>Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {partecipantiFiltrati.map(p => (
+                                    <tr key={p.id}>
+                                        <td className="admin-name-cell">{p.name}</td>
+                                        <td>
+                                            <span className={`admin-status-badge ${p.partecipate ? "is-yes" : "is-no"}`}>
+                                                {p.partecipate ? "Sì" : "No"}
+                                            </span>
+                                        </td>
+                                        <td className="admin-text-cell">
+                                            {formatParticipantGuestNames(p)}
+                                        </td>
+                                        <td className="admin-text-cell">
+                                            {formatParticipantFoodPreferences(p)}
+                                        </td>
+                                        <td className="admin-message-cell">
+                                            {p.message || "-"}
+                                        </td>
+                                        <td>
+                                            <div className="admin-row-actions">
+                                            <button
+                                                type="button"
                                             onClick={() => {
                                                 setEditFormError("");
+                                                setEditGuestNameErrors({});
                                                 setEditing(p);
                                                 setEditFoodMenuOpen(null);
                                             }}
-                                            className="text-blue-600"
-                                        >
-                                            Modifica
-                                        </button>
-                                        <button
-                                            onClick={() => setToDelete(p)}
-                                            className="text-red-600 hover:underline"
-                                        >
-                                            Elimina
-                                        </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                            {partecipantiFiltrati.length === 0 && (
-                                <tr>
-                                    <td colSpan="6" className="p-6 text-center text-gray-500">
-                                        Nessun invitato trovato.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                                className="admin-table-action"
+                                            >
+                                                <Pencil size={15} aria-hidden="true" />
+                                                Modifica
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setToDelete(p)}
+                                                className="admin-table-action is-danger"
+                                            >
+                                                <Trash2 size={15} aria-hidden="true" />
+                                                Elimina
+                                            </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {partecipantiFiltrati.length === 0 && (
+                                    <tr>
+                                        <td colSpan="6" className="admin-empty-row">
+                                            Nessun invitato trovato.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
 
                 {toDelete && (
                     <div
-                        className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 animate-fade-in"
+                        className="admin-modal-overlay"
                         onClick={() => setToDelete(null)}
                     >
                         <div
-                            className="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full text-center space-y-4"
+                            className="admin-modal admin-modal-small admin-modal-center"
                             onClick={e => e.stopPropagation()}
                         >
-                            <h2 className="text-lg font-bold text-gray-900">
+                            <h2>
                                 Conferma eliminazione
                             </h2>
 
-                            <p className="text-gray-600">
+                            <p>
                                 Vuoi eliminare <b>{toDelete.name}</b>?
                                 <br />
                                 Questa azione è irreversibile.
                             </p>
 
-                            <div className="flex justify-center gap-4 mt-4">
+                            <div className="admin-modal-actions is-centered">
                                 <button
                                     onClick={() => setToDelete(null)}
-                                    className="px-4 py-2 rounded border"
+                                    type="button"
+                                    className="admin-outline-action"
                                 >
                                     Annulla
                                 </button>
 
                                 <button
                                     onClick={handleDelete}
-                                    className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+                                    type="button"
+                                    className="admin-danger-action"
                                 >
+                                    <Trash2 size={16} aria-hidden="true" />
                                     Elimina
                                 </button>
                             </div>
@@ -732,58 +948,65 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                 )}
 
                 {editing && (
-                    <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-                        <div className="bg-white p-6 rounded-xl space-y-4 w-full max-w-md">
-                            <h2 className="font-bold">Modifica</h2>
-                            {editFormError && (
-                                <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+                    <div className="admin-modal-overlay">
+                        <div className="admin-modal">
+                            <h2>Modifica invitato</h2>
+                            {editFormError && !isNameRequiredError(editFormError) && (
+                                <p className="admin-form-error">
                                     {editFormError}
                                 </p>
                             )}
-                            <label className="block text-sm font-medium text-gray-700">
-                                Nome
+                            <label className="admin-form-field">
+                                <span>Nome</span>
                                 <input
-                                    className="mt-1 w-full border p-2 rounded"
+                                    ref={editNameInputRef}
+                                    className={`admin-input ${isNameRequiredError(editFormError) ? "is-invalid" : ""}`}
                                     value={editing.name}
+                                    aria-invalid={isNameRequiredError(editFormError)}
                                     onChange={e => {
                                         setEditFormError("");
                                         setEditing({ ...editing, name: e.target.value });
                                     }}
                                 />
+                                {isNameRequiredError(editFormError) && (
+                                    <small className="admin-field-error" role="alert">{editFormError}</small>
+                                )}
                             </label>
 
-                            <label className="block text-sm font-medium text-gray-700">
-                                Partecipa
+                            <label className="admin-form-field">
+                                <span>Partecipa</span>
                                 <select
-                                    className="mt-1 w-full border p-2 rounded"
+                                    className="admin-select"
                                     value={String(editing.partecipate)}
-                                    onChange={e =>
+                                    onChange={e => {
+                                        setEditGuestNameErrors({});
                                         setEditing({
                                             ...editing,
                                             partecipa: e.target.value === "true",
                                             partecipate: e.target.value === "true",
                                             guests: e.target.value === "true" ? normalizeGuestCount(editing.guests) : 0,
                                             food_preferences: e.target.value === "true" ? editing.food_preferences || "" : "",
-                                        })
-                                    }
+                                        });
+                                    }}
                                 >
                                     <option value="true">Partecipa</option>
                                     <option value="false">Non partecipa</option>
                                 </select>
                             </label>
 
-                            <label className="block text-sm font-medium text-gray-700">
-                                Numero ospiti
+                            <label className="admin-form-field">
+                                <span>Numero ospiti</span>
                                 <input
                                     type="text"
                                     inputMode="numeric"
                                     pattern="[0-9]*"
                                     disabled={!editing.partecipate}
-                                    className="mt-1 w-full border p-2 rounded disabled:bg-gray-100"
+                                    className="admin-input"
                                     value={editing.guests}
                                     onChange={e => {
                                         const guests = e.target.value.replace(/\D/g, "");
                                         setEditFoodMenuOpen(null);
+                                        setEditGuestNameErrors({});
                                         setEditing({ ...editing, guests });
                                     }}
                                     onBlur={() => {
@@ -802,32 +1025,81 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                 />
                             </label>
 
-                            <div className="block text-sm font-medium text-gray-700">
-                                Intolleranze / Preferenze Alimentari
-                                <div className="mt-1 space-y-2">
+                            <div className="admin-form-field">
+                                <span>Intolleranze / Preferenze Alimentari</span>
+                                <div className="admin-food-list">
                                     {parseGuestFoodPreferences(editing.food_preferences, editing.guests).map((guestPreferences, guestIndex) => (
-                                        <div key={guestIndex} className="relative">
+                                        <div key={guestIndex} className="admin-food-picker">
                                             {Number(editing.guests) > 1 && (
-                                                <p className="mb-1 text-xs font-normal text-gray-500">Persona {guestIndex + 1}</p>
+                                                <div className="admin-person-row">
+                                                    {guestIndex > 0 ? (
+                                                        <label className="admin-guest-name-field">
+                                                            <span>Ospite {guestIndex}</span>
+                                                                <input
+                                                                    data-edit-guest-name-index={guestIndex}
+                                                                    className={`admin-input ${editGuestNameErrors[guestIndex] ? "is-invalid" : ""}`}
+                                                                    value={getParticipantGuestNameValue(editing, guestIndex)}
+                                                                    placeholder={`Persona ${guestIndex + 1}`}
+                                                                    aria-invalid={Boolean(editGuestNameErrors[guestIndex])}
+                                                                    onChange={event => {
+                                                                        setEditFormError("");
+                                                                        setEditGuestNameErrors(prev => {
+                                                                            const nextErrors = { ...prev };
+
+                                                                            delete nextErrors[guestIndex];
+                                                                            return nextErrors;
+                                                                        });
+                                                                        setEditing(prev => updateParticipantGuestName(prev, guestIndex, event.target.value));
+                                                                    }}
+                                                                />
+                                                                {editGuestNameErrors[guestIndex] && (
+                                                                    <small className="admin-field-error" role="alert">
+                                                                        {editGuestNameErrors[guestIndex]}
+                                                                    </small>
+                                                                )}
+                                                            </label>
+                                                    ) : (
+                                                        <p>
+                                                            {getParticipantPersonName(editing, guestIndex)}
+                                                        </p>
+                                                    )}
+                                                    {guestIndex > 0 && (
+                                                        <button
+                                                            type="button"
+                                                            className="admin-remove-guest-button"
+                                                            onClick={() => {
+                                                                setEditFoodMenuOpen(prev => {
+                                                                    if (prev === guestIndex) return null;
+                                                                    if (prev > guestIndex) return prev - 1;
+                                                                    return prev;
+                                                                });
+                                                                setEditGuestNameErrors({});
+                                                                setEditing(prev => removeParticipantGuest(prev, guestIndex));
+                                                            }}
+                                                        >
+                                                            Elimina ospite
+                                                        </button>
+                                                    )}
+                                                </div>
                                             )}
                                             <button
                                                 type="button"
-                                                className="flex w-full items-center justify-between gap-3 rounded border p-2 text-left font-normal disabled:bg-gray-100 disabled:text-gray-500"
+                                                className="admin-food-trigger"
                                                 disabled={!editing.partecipate}
                                                 onClick={() => setEditFoodMenuOpen(prev => (prev === guestIndex ? null : guestIndex))}
                                                 aria-expanded={editFoodMenuOpen === guestIndex}
                                             >
-                                                <span className={guestPreferences.length ? "" : "text-gray-400"}>
+                                                <span className={guestPreferences.length ? "" : "admin-placeholder"}>
                                                     {guestPreferences.length ? guestPreferences.join(", ") : "Seleziona intolleranze o preferenze alimentari"}
                                                 </span>
-                                                <ChevronDown size={18} aria-hidden="true" className="shrink-0 text-gray-500" />
+                                                <ChevronDown size={18} aria-hidden="true" />
                                             </button>
 
                                             {editFoodMenuOpen === guestIndex && editing.partecipate && (
-                                                <div className="absolute z-20 mt-2 max-h-44 w-full overflow-y-auto rounded border bg-white p-3 shadow-lg">
-                                                    <div className="space-y-2">
+                                                <div className="admin-food-menu">
+                                                    <div>
                                                         {foodPreferenceOptions.map(option => (
-                                                            <label key={option} className="flex items-center gap-2 text-sm font-normal text-gray-700">
+                                                            <label key={option} className="admin-food-option">
                                                                 <input
                                                                     type="checkbox"
                                                                     checked={guestPreferences.includes(option)}
@@ -849,20 +1121,21 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                 </div>
                             </div>
 
-                            <label className="block text-sm font-medium text-gray-700">
-                                Messaggio
+                            <label className="admin-form-field">
+                                <span>Messaggio</span>
                                 <textarea
-                                    className="mt-1 w-full border p-2 rounded"
+                                    className="admin-textarea"
                                     value={editing.message || ""}
                                     onChange={e => setEditing({ ...editing, message: e.target.value })}
                                 />
                             </label>
-                            <div className="flex justify-end gap-2">
-                                <button onClick={() => {
+                            <div className="admin-modal-actions">
+                                <button type="button" className="admin-outline-action" onClick={() => {
                                     setEditing(null);
                                     setEditFormError("");
+                                    setEditGuestNameErrors({});
                                 }}>Annulla</button>
-                                <button onClick={handleSaveEdit} className="bg-blue-600 text-white px-4 py-2 rounded">
+                                <button type="button" onClick={handleSaveEdit} className="admin-primary-action">
                                     Salva
                                 </button>
                             </div>
@@ -871,38 +1144,47 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                 )}
 
                 {adding && (
-                    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                        <div className="bg-white p-6 rounded-xl w-full max-w-md space-y-4">
+                    <div className="admin-modal-overlay">
+                        <div className="admin-modal">
 
-                            <h2 className="text-lg font-bold">Nuovo partecipante</h2>
-                            {addFormError && (
-                                <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+                            <h2>Nuovo partecipante</h2>
+                            {addFormError && !isNameRequiredError(addFormError) && (
+                                <p className="admin-form-error">
                                     {addFormError}
                                 </p>
                             )}
 
-                            <input
-                                className="w-full border p-2 rounded"
-                                placeholder="Nome"
-                                value={newParticipant.name}
-                                onChange={e =>
-                                    {
+                            <label className="admin-form-field">
+                                <span>Nome</span>
+                                <input
+                                    ref={addNameInputRef}
+                                    className={`admin-input ${isNameRequiredError(addFormError) ? "is-invalid" : ""}`}
+                                    placeholder="Nome"
+                                    value={newParticipant.name}
+                                    aria-invalid={isNameRequiredError(addFormError)}
+                                    onChange={e => {
                                         setAddFormError("");
                                         setNewParticipant({ ...newParticipant, name: e.target.value });
-                                    }
-                                }
-                            />
+                                    }}
+                                />
+                                {isNameRequiredError(addFormError) && (
+                                    <small className="admin-field-error" role="alert">{addFormError}</small>
+                                )}
+                            </label>
 
                             <select
-                                className="w-full border p-2 rounded"
+                                className="admin-select"
                                 value={String(newParticipant.partecipate)}
-                                onChange={e =>
-                                    setNewParticipant({
-                                        ...newParticipant,
-                                        partecipate: e.target.value === "true",
-                                        guests: e.target.value === "true" ? normalizeGuestCount(newParticipant.guests) : 0,
-                                        food_preferences: e.target.value === "true" ? newParticipant.food_preferences : "",
-                                    })
+                                    onChange={e =>
+                                    {
+                                        setAddGuestNameErrors({});
+                                        setNewParticipant({
+                                            ...newParticipant,
+                                            partecipate: e.target.value === "true",
+                                            guests: e.target.value === "true" ? normalizeGuestCount(newParticipant.guests) : 0,
+                                            food_preferences: e.target.value === "true" ? newParticipant.food_preferences : "",
+                                        });
+                                    }
                                 }
                             >
                                 <option value="true">Partecipa</option>
@@ -914,12 +1196,13 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                 inputMode="numeric"
                                 pattern="[0-9]*"
                                 disabled={!newParticipant.partecipate}
-                                className="w-full border p-2 rounded"
+                                className="admin-input"
                                 value={newParticipant.guests}
                                 onChange={e =>
                                     {
                                         const guests = e.target.value.replace(/\D/g, "");
                                         setAddFoodMenuOpen(null);
+                                        setAddGuestNameErrors({});
                                         setNewParticipant({ ...newParticipant, guests });
                                     }
                                 }
@@ -938,33 +1221,83 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                 }}
                             />
 
-                            <div className="space-y-2">
-                                <label className="mb-1 block text-sm font-medium text-gray-700">
+                            <div className="admin-form-field">
+                                <label>
                                     Intolleranze / Preferenze Alimentari
                                 </label>
                                 {parseGuestFoodPreferences(newParticipant.food_preferences, newParticipant.guests).map((guestPreferences, guestIndex) => (
-                                    <div key={guestIndex} className="relative">
+                                    <div key={guestIndex} className="admin-food-picker">
                                         {Number(newParticipant.guests) > 1 && (
-                                            <p className="mb-1 text-xs text-gray-500">Persona {guestIndex + 1}</p>
+                                            <div className="admin-person-row">
+                                                {guestIndex > 0 ? (
+                                                    <label className="admin-guest-name-field">
+                                                        <span>Ospite {guestIndex}</span>
+                                                        <input
+                                                            data-add-guest-name-index={guestIndex}
+                                                            className={`admin-input ${addGuestNameErrors[guestIndex] ? "is-invalid" : ""}`}
+                                                            value={getParticipantGuestNameValue(newParticipant, guestIndex)}
+                                                            placeholder={`Persona ${guestIndex + 1}`}
+                                                            aria-invalid={Boolean(addGuestNameErrors[guestIndex])}
+                                                            onChange={event => {
+                                                                setAddFormError("");
+                                                                setAddGuestNameErrors(prev => {
+                                                                    const nextErrors = { ...prev };
+
+                                                                    delete nextErrors[guestIndex];
+                                                                    return nextErrors;
+                                                                });
+                                                                setNewParticipant(prev => updateParticipantGuestName(prev, guestIndex, event.target.value));
+                                                            }}
+                                                        />
+                                                        {addGuestNameErrors[guestIndex] && (
+                                                            <small className="admin-field-error" role="alert">
+                                                                {addGuestNameErrors[guestIndex]}
+                                                            </small>
+                                                        )}
+                                                    </label>
+                                                ) : (
+                                                    <p>
+                                                        {getParticipantPersonName(newParticipant, guestIndex)}
+                                                    </p>
+                                                )}
+                                                {guestIndex > 0 && (
+                                                    <button
+                                                        type="button"
+                                                        className="admin-remove-guest-button"
+                                                        onClick={() => {
+                                                            setAddFormError("");
+                                                            setAddFoodMenuOpen(prev => {
+                                                                if (prev === guestIndex) return null;
+                                                                if (prev > guestIndex) return prev - 1;
+                                                                return prev;
+                                                            });
+                                                            setAddGuestNameErrors({});
+                                                            setNewParticipant(prev => removeParticipantGuest(prev, guestIndex));
+                                                        }}
+                                                    >
+                                                        Elimina ospite
+                                                    </button>
+                                                )}
+                                            </div>
                                         )}
                                         <button
                                             type="button"
-                                            className="flex w-full items-center justify-between gap-3 rounded border p-2 text-left disabled:bg-gray-100 disabled:text-gray-500"
+                                            className="admin-food-trigger"
                                             disabled={!newParticipant.partecipate}
                                             onClick={() => setAddFoodMenuOpen(prev => (prev === guestIndex ? null : guestIndex))}
                                             aria-expanded={addFoodMenuOpen === guestIndex}
                                         >
-                                            <span className={guestPreferences.length ? "" : "text-gray-400"}>
+                                            <span className={guestPreferences.length ? "" : "admin-placeholder"}>
                                                 {guestPreferences.length ? guestPreferences.join(", ") : "Seleziona intolleranze o preferenze alimentari"}
                                             </span>
-                                            <ChevronDown size={18} aria-hidden="true" className="shrink-0 text-gray-500" />
+                                            <ChevronDown size={18} aria-hidden="true" />
                                         </button>
 
                                         {addFoodMenuOpen === guestIndex && newParticipant.partecipate && (
-                                            <div className="absolute z-20 mt-2 max-h-44 w-full overflow-y-auto rounded border bg-white p-3 shadow-lg">
-                                                <div className="space-y-2">
+                                            <div className="admin-food-menu">
+                                                <div>
                                                     {foodPreferenceOptions.map(option => (
-                                                        <label key={option} className="flex items-center gap-2 text-sm font-normal text-gray-700">
+                                                        <label key={option} className="admin-food-option">
                                                             <input
                                                                 type="checkbox"
                                                                 checked={guestPreferences.includes(option)}
@@ -986,7 +1319,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                             </div>
 
                             <textarea
-                                className="w-full border p-2 rounded"
+                                className="admin-textarea"
                                 placeholder="Messaggio"
                                 value={newParticipant.message}
                                 onChange={e =>
@@ -997,18 +1330,22 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                 }
                             />
 
-                            <div className="flex justify-end gap-2 pt-2">
+                            <div className="admin-modal-actions">
                                 <button
+                                    type="button"
+                                    className="admin-outline-action"
                                     onClick={() => {
                                         setAdding(false);
                                         setAddFoodMenuOpen(null);
                                         setAddFormError("");
+                                        setAddGuestNameErrors({});
                                     }}
                                 >
                                     Annulla
                                 </button>
                                 <button
-                                    className="bg-green-600 text-white px-4 py-2 rounded disabled:opacity-60"
+                                    type="button"
+                                    className="admin-primary-action"
                                     onClick={handleAdd}
                                     disabled={addingParticipant}
                                 >
@@ -1020,6 +1357,6 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                     </div>
                 )}
             </div>
-        </div>
+        </main>
     );
 }

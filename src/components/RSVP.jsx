@@ -3,11 +3,28 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, X } from "lucide-react";
 
+import { notifyRsvpDataChanged } from "../lib/rsvpSync.js";
+
 const MotionDiv = motion.div;
 const foodPreferenceMenuOptions = ["Menu bambino", "Menu vegetariano", "Menu vegano"];
+const noFoodPreferenceOption = "Nessuna intolleranza/preferenza alimentare";
 const requiredFieldMessage = "Compila questo campo";
 
 const normalizeGuests = guests => Math.max(1, Number(guests) || 1);
+
+const isNoFoodPreferenceOption = option =>
+  String(option || "").trim().toLowerCase() === noFoodPreferenceOption.toLowerCase();
+
+const normalizeFoodPreferenceItems = items => {
+  const normalized = (Array.isArray(items) ? items : [])
+    .map(item => String(item || "").trim())
+    .filter(Boolean)
+    .map(item => (isNoFoodPreferenceOption(item) ? noFoodPreferenceOption : item));
+
+  return normalized.some(isNoFoodPreferenceOption)
+    ? [noFoodPreferenceOption]
+    : normalized;
+};
 
 const emptyFoodPreferences = guests =>
   Array.from({ length: normalizeGuests(guests) }, () => []);
@@ -34,11 +51,15 @@ const resizeFoodPreferences = (preferences, guests) => {
 
 const formatFoodPreferences = preferences => {
   if (preferences.length <= 1) {
-    return (preferences[0] || []).join(", ");
+    return normalizeFoodPreferenceItems(preferences[0] || []).join(", ");
   }
 
   return preferences
-    .map((items, index) => `Persona ${index + 1}: ${items.length ? items.join(", ") : "-"}`)
+    .map((items, index) => {
+      const normalizedItems = normalizeFoodPreferenceItems(items);
+
+      return `Persona ${index + 1}: ${normalizedItems.length ? normalizedItems.join(", ") : "-"}`;
+    })
     .join(" | ");
 };
 
@@ -178,12 +199,19 @@ export default function RSVP({ config }) {
   const toggleFoodPreference = (guestIndex, option) => {
     setForm(prev => {
       const foodPreferences = resizeFoodPreferences(prev.foodPreferences, prev.guests);
-      const guestPreferences = foodPreferences[guestIndex] || [];
+      const guestPreferences = normalizeFoodPreferenceItems(foodPreferences[guestIndex] || []);
       const selected = guestPreferences.includes(option);
 
-      foodPreferences[guestIndex] = selected
-        ? guestPreferences.filter(item => item !== option)
-        : [...guestPreferences, option];
+      if (selected) {
+        foodPreferences[guestIndex] = guestPreferences.filter(item => item !== option);
+      } else if (isNoFoodPreferenceOption(option)) {
+        foodPreferences[guestIndex] = [noFoodPreferenceOption];
+      } else {
+        foodPreferences[guestIndex] = [
+          ...guestPreferences.filter(item => !isNoFoodPreferenceOption(item)),
+          option,
+        ];
+      }
 
       return { ...prev, foodPreferences };
     });
@@ -193,12 +221,14 @@ export default function RSVP({ config }) {
     let currentGroup = "";
 
     return config.foodPreferencesOptions.flatMap(option => {
-      const group = foodPreferenceMenuOptions.includes(option)
+      const group = isNoFoodPreferenceOption(option)
+        ? ""
+        : foodPreferenceMenuOptions.includes(option)
         ? "Preferenze alimentari"
         : "Intolleranze";
       const items = [];
 
-      if (group !== currentGroup) {
+      if (group && group !== currentGroup) {
         currentGroup = group;
         items.push(
           <div
@@ -270,6 +300,7 @@ export default function RSVP({ config }) {
       }
 
       setShowSuccess(true);
+      notifyRsvpDataChanged({ action: "submit" });
       setForm({ name: "", guests: 1, attending: true, foodPreferences: emptyFoodPreferences(1), guestNames: resizeGuestNames([], 1), notes: "" });
       setFoodMenuOpen(null);
     } catch {

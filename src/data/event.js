@@ -68,6 +68,7 @@ export const event = {
     foodPreferencesLabel: "Intolleranze / Preferenze Alimentari",
     foodPreferencesPlaceholder: "Seleziona intolleranze o preferenze alimentari",
     foodPreferencesOptions: [
+      "Nessuna intolleranza/preferenza alimentare",
       "Menu bambino",
       "Menu vegetariano",
       "Menu vegano",
