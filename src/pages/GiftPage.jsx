@@ -1,4 +1,4 @@
-import { Check, Copy, Gift } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import "./GiftPage.css";
@@ -10,9 +10,6 @@ const isConfiguredIban = iban => {
 
 export default function GiftPage({ config }) {
   const [copied, setCopied] = useState(false);
-  const paymentProviders = (config?.paymentProviders || []).filter(provider => (
-    provider?.label && provider?.url
-  ));
   const iban = config?.iban || "";
   const canCopy = isConfiguredIban(iban);
 
@@ -27,13 +24,10 @@ export default function GiftPage({ config }) {
   return (
     <main className="gift-page">
       <section className="gift-card invitation-card" aria-label="Coordinate regalo">
-        <div className="gift-icon" aria-hidden="true">
-          <Gift size={28} />
-        </div>
+        <h1 className="gift-title">{config.title}</h1>
 
         <div className="gift-copy">
           {config.subtitle && <p>{config.subtitle}</p>}
-          <h1>{config.title}</h1>
           {config.message && <p>{config.message}</p>}
         </div>
 
@@ -47,20 +41,6 @@ export default function GiftPage({ config }) {
             <dd className={canCopy ? "" : "is-placeholder"}>{iban}</dd>
           </div>
         </dl>
-
-        {paymentProviders.length > 0 && (
-          <section className="gift-provider-section" aria-label={config.providersTitle}>
-            <h2>{config.providersTitle}</h2>
-            <p className="gift-provider-links">
-              {paymentProviders.map(provider => (
-                <a key={provider.label} href={provider.url} target="_blank" rel="noreferrer">
-                  {provider.label}
-                </a>
-              ))}
-            </p>
-            {config.providersNote && <p>{config.providersNote}</p>}
-          </section>
-        )}
 
         <div className="gift-actions">
           <button type="button" onClick={copyIban} disabled={!canCopy}>

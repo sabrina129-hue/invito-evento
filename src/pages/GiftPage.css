@@ -17,25 +17,13 @@
   text-align: center;
 }
 
-.gift-icon {
-  width: 4rem;
-  height: 4rem;
-  display: inline-grid;
-  place-items: center;
-  margin-bottom: 1.25rem;
-  border: 1px solid rgba(199, 154, 59, 0.4);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  color: var(--color-primary);
-}
-
 .gift-copy {
   display: grid;
   gap: 0.65rem;
 }
 
-.gift-copy h1 {
-  margin: 0;
+.gift-title {
+  margin: 0 0 1rem;
   color: var(--color-primary);
   font-family: var(--font-title);
   font-size: clamp(2.45rem, 9vw, 3.8rem);
@@ -90,52 +78,6 @@
   letter-spacing: 0;
 }
 
-.gift-provider-section {
-  display: grid;
-  gap: 0.8rem;
-  margin: 1.4rem 0;
-}
-
-.gift-provider-section h2 {
-  margin: 0;
-  color: var(--color-primary);
-  font-family: var(--font-body);
-  font-size: 1.08rem;
-  font-weight: 700;
-}
-
-.gift-provider-section p {
-  margin: 0;
-  color: var(--color-muted);
-  font-family: var(--font-body);
-  font-size: 0.84rem;
-  font-weight: 700;
-}
-
-.gift-provider-links {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.45rem 0.7rem;
-}
-
-.gift-provider-links a,
-.gift-provider-links a:visited {
-  color: var(--color-primary);
-  font-weight: 700;
-  text-decoration: underline;
-  text-underline-offset: 0.18rem;
-}
-
-.gift-provider-links a:hover {
-  color: var(--color-gold-deep);
-}
-
-.gift-provider-links a:focus-visible {
-  outline: 2px solid rgba(127, 23, 31, 0.28);
-  outline-offset: 0.2rem;
-}
-
 .gift-actions {
   display: flex;
   flex-wrap: wrap;
@@ -184,6 +126,36 @@
 }
 
 @media (max-width: 520px) {
+  .gift-page {
+    padding: 0.75rem;
+  }
+
+  .gift-card {
+    padding: 1.35rem 1rem;
+  }
+
+  .gift-title {
+    font-size: clamp(2.1rem, 12vw, 2.9rem);
+  }
+
+  .gift-copy p {
+    font-size: 0.92rem;
+  }
+
+  .gift-details {
+    margin: 1.35rem 0 1.1rem;
+  }
+
+  .gift-details div {
+    padding: 0.8rem;
+  }
+
+  .gift-details dd {
+    font-size: clamp(0.72rem, 3.05vw, 0.9rem);
+    letter-spacing: 0.015em;
+    line-height: 1.35;
+  }
+
   .gift-actions {
     display: grid;
   }

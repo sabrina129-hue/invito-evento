@@ -106,30 +106,6 @@ export const event = {
     holder: "Angelo e Luigia",
     ibanLabel: "IBAN",
     iban: "IT 000000000000000000000000",
-    providersTitle: "Altri modi per fare un regalo",
-    providersNote: "Apple Pay e Google Pay richiedono un checkout collegato a un provider.",
-    paymentProviders: [
-      {
-        label: "Apple Pay",
-        url: "https://www.apple.com/it/apple-pay/",
-        note: "Tramite app o checkout compatibili",
-      },
-      {
-        label: "Google Pay",
-        url: "https://pay.google.com/intl/it_it/about/",
-        note: "Tramite app o checkout compatibili",
-      },
-      {
-        label: "PayPal",
-        url: "https://www.paypal.com/it/home",
-        note: "Collegabile a un link PayPal.Me",
-      },
-      {
-        label: "Satispay",
-        url: "https://www.satispay.com/it-it/",
-        note: "Collegabile a profilo o QR dedicato",
-      },
-    ],
     copyLabel: "Copia IBAN",
     copiedLabel: "IBAN copiato",
     backLabel: "Torna all'invito",
