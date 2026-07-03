@@ -5,7 +5,8 @@ import EnvelopeIntro from "./components/EnvelopeIntro";
 import { event } from "./data/event";
 import Admin from "./pages/Admin.jsx";
 import TablePlanner from "./pages/TablePlanner.jsx";
-import { HashRouter, Routes, Route } from "react-router-dom";
+import GiftPage from "./pages/GiftPage.jsx";
+import { HashRouter, Link, Routes, Route } from "react-router-dom";
 import AdminLogin from "./pages/AdminLogin.jsx";
 import { useEffect, useState } from "react";
 
@@ -30,6 +31,12 @@ function Home() {
 
         <div className="invitation-body p-8 pt-6 font-body text-center space-y-8">
           <EventInfo event={event.content} />
+          <section className="section gift-invite-section" aria-label="Regalo agli sposi">
+            <p className="text-body">{event.gift.inviteText}</p>
+            <Link to="/regalo" className="btn gift-invite-link">
+              {event.gift.inviteLinkLabel}
+            </Link>
+          </section>
           <RSVP config={event.rsvp} />
         </div>
       </div>
@@ -61,6 +68,7 @@ export default function App() {
     <HashRouter>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/regalo" element={<GiftPage config={event.gift} />} />
         <Route path="/admin" element={<AdminProtected />} />
         <Route path="/admin/tavoli" element={<AdminProtected page="tables" />} />
       </Routes>

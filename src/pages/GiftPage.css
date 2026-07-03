@@ -1,0 +1,190 @@
+.gift-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: clamp(1rem, 5vw, 3rem);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(199, 154, 59, 0.18), transparent 22rem),
+    var(--color-background);
+  color: var(--color-text);
+}
+
+.gift-card {
+  width: min(100%, 34rem);
+  padding: clamp(2rem, 7vw, 3rem);
+  border-radius: var(--radius-card);
+  box-shadow: 0 1.5rem 4rem rgba(75, 13, 20, 0.14);
+  text-align: center;
+}
+
+.gift-icon {
+  width: 4rem;
+  height: 4rem;
+  display: inline-grid;
+  place-items: center;
+  margin-bottom: 1.25rem;
+  border: 1px solid rgba(199, 154, 59, 0.4);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--color-primary);
+}
+
+.gift-copy {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.gift-copy h1 {
+  margin: 0;
+  color: var(--color-primary);
+  font-family: var(--font-title);
+  font-size: clamp(2.45rem, 9vw, 3.8rem);
+  font-weight: 400;
+  line-height: 0.95;
+}
+
+.gift-copy p {
+  margin: 0;
+  color: #4b0d14;
+  font-family: var(--font-body);
+  font-size: 1.02rem;
+  font-weight: 700;
+}
+
+.gift-details {
+  display: grid;
+  gap: 0.8rem;
+  margin: 2rem 0 1.5rem;
+}
+
+.gift-details div {
+  padding: 1rem;
+  border: 1px solid rgba(199, 154, 59, 0.24);
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.72);
+  text-align: left;
+}
+
+.gift-details dt {
+  margin-bottom: 0.25rem;
+  color: var(--color-muted);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.gift-details dd {
+  margin: 0;
+  color: #4b0d14;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(0.95rem, 3.4vw, 1.15rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+}
+
+.gift-details dd.is-placeholder {
+  color: rgba(75, 13, 20, 0.58);
+  font-family: var(--font-body);
+  letter-spacing: 0;
+}
+
+.gift-provider-section {
+  display: grid;
+  gap: 0.8rem;
+  margin: 1.4rem 0;
+}
+
+.gift-provider-section h2 {
+  margin: 0;
+  color: var(--color-primary);
+  font-family: var(--font-body);
+  font-size: 1.08rem;
+  font-weight: 700;
+}
+
+.gift-provider-section p {
+  margin: 0;
+  color: var(--color-muted);
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.gift-provider-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.45rem 0.7rem;
+}
+
+.gift-provider-links a,
+.gift-provider-links a:visited {
+  color: var(--color-primary);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.18rem;
+}
+
+.gift-provider-links a:hover {
+  color: var(--color-gold-deep);
+}
+
+.gift-provider-links a:focus-visible {
+  outline: 2px solid rgba(127, 23, 31, 0.28);
+  outline-offset: 0.2rem;
+}
+
+.gift-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.gift-actions button,
+.gift-actions a {
+  min-height: 2.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.75rem 1.2rem;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-button);
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.gift-actions button {
+  background: var(--color-primary);
+  color: white;
+}
+
+.gift-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.gift-actions a,
+.gift-actions a:visited {
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--color-primary);
+}
+
+.gift-actions button:not(:disabled):hover,
+.gift-actions button:not(:disabled):focus-visible,
+.gift-actions a:hover,
+.gift-actions a:focus-visible {
+  transform: translateY(-1px);
+}
+
+@media (max-width: 520px) {
+  .gift-actions {
+    display: grid;
+  }
+}

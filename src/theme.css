@@ -154,6 +154,19 @@
   opacity: 1;
 }
 
+.gift-invite-section {
+  padding: 0.25rem 0;
+}
+
+.gift-invite-section p {
+  margin-bottom: 0.75rem;
+}
+
+.gift-invite-link {
+  background: rgba(255, 255, 255, 0.62);
+  text-decoration: none;
+}
+
 .envelope-stage {
   position: fixed;
   inset: 0;

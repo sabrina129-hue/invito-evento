@@ -96,6 +96,45 @@ export const event = {
     successButton: "OK",
   },
 
+  gift: {
+    title: "Un pensiero per gli sposi",
+    subtitle: "Il regalo piu bello sara avervi con noi.",
+    message: "Se desiderate farci un pensiero, potete usare queste coordinate.",
+    inviteText: "Per chi desidera farci un pensiero",
+    inviteLinkLabel: "Vai alla pagina regalo",
+    holderLabel: "Intestatario",
+    holder: "Angelo e Luigia",
+    ibanLabel: "IBAN",
+    iban: "IT 000000000000000000000000",
+    providersTitle: "Altri modi per fare un regalo",
+    providersNote: "Apple Pay e Google Pay richiedono un checkout collegato a un provider.",
+    paymentProviders: [
+      {
+        label: "Apple Pay",
+        url: "https://www.apple.com/it/apple-pay/",
+        note: "Tramite app o checkout compatibili",
+      },
+      {
+        label: "Google Pay",
+        url: "https://pay.google.com/intl/it_it/about/",
+        note: "Tramite app o checkout compatibili",
+      },
+      {
+        label: "PayPal",
+        url: "https://www.paypal.com/it/home",
+        note: "Collegabile a un link PayPal.Me",
+      },
+      {
+        label: "Satispay",
+        url: "https://www.satispay.com/it-it/",
+        note: "Collegabile a profilo o QR dedicato",
+      },
+    ],
+    copyLabel: "Copia IBAN",
+    copiedLabel: "IBAN copiato",
+    backLabel: "Torna all'invito",
+  },
+
   admin: {
     loginTitle: "Accesso Admin",
     passwordPlaceholder: "Password",
