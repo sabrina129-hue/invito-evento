@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Circle, Download, Plus, RefreshCw, Square, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import { getParticipantGuestNames } from "../lib/guestNames.js";
+import { getParticipantGroup, getParticipantGuestNames } from "../lib/guestNames.js";
 import { rsvpDataChangedEventName, rsvpDataVersionStorageKey } from "../lib/rsvpSync.js";
 import "./TablePlanner.css";
 
@@ -327,6 +327,7 @@ const buildTableAttendees = participants =>
       const preferenceGroups = parseGuestFoodPreferences(participant.food_preferences, guestCount);
       const guestNames = getParticipantGuestNames(participant);
       const familyId = String(participant.id ?? `${participant.name}-${participantIndex}`);
+      const groupName = getParticipantGroup(participant);
       const color = familyColors[participantIndex % familyColors.length];
 
       return Array.from({ length: guestCount }, (_, guestIndex) => {
@@ -341,6 +342,8 @@ const buildTableAttendees = participants =>
           id: `${familyId}-${guestIndex}`,
           familyId,
           familyName: participant.name || "Invitato senza nome",
+          group: groupName,
+          groupLabel: groupName || "Senza gruppo",
           name: personName,
           seatLabel: guestIndex === 0 ? "Invito principale" : `Invito di ${participant.name || "invitato"}`,
           foodPreferences,
@@ -359,18 +362,86 @@ const groupAttendeesByFamily = attendees =>
 const distributeAttendees = (attendees, tableSeats) => {
   const assignments = {};
   const remainingSeats = [...tableSeats];
+  let tableCursor = 0;
 
-  groupAttendeesByFamily(attendees)
-    .sort((a, b) => b.length - a.length)
-    .forEach(group => {
-    const tableIndex = remainingSeats.findIndex(seats => seats >= group.length);
+  const findNextOpenTable = startIndex => {
+    for (let offset = 0; offset < remainingSeats.length; offset += 1) {
+      const index = (startIndex + offset) % remainingSeats.length;
 
-    if (tableIndex >= 0) {
-      group.forEach(attendee => {
-        assignments[attendee.id] = String(tableIndex + 1);
-      });
-      remainingSeats[tableIndex] -= group.length;
+      if (remainingSeats[index] > 0) {
+        return index;
+      }
     }
+
+    return -1;
+  };
+
+  const findTableForWholeFamily = (familySize, startIndex) => {
+    for (let offset = 0; offset < remainingSeats.length; offset += 1) {
+      const index = (startIndex + offset) % remainingSeats.length;
+
+      if (remainingSeats[index] >= familySize) {
+        return index;
+      }
+    }
+
+    return -1;
+  };
+
+  const assignPeopleToTable = (people, tableIndex) => {
+    people.forEach(attendee => {
+      assignments[attendee.id] = String(tableIndex + 1);
+    });
+
+    remainingSeats[tableIndex] -= people.length;
+    tableCursor = remainingSeats[tableIndex] > 0
+      ? tableIndex
+      : findNextOpenTable(tableIndex + 1);
+  };
+
+  const familiesByGroup = groupAttendeesByFamily(attendees).reduce((groups, family, familyIndex) => {
+    const groupName = family[0]?.group || "";
+    const groupKey = groupName || "__ungrouped__";
+
+    groups[groupKey] = [
+      ...(groups[groupKey] || []),
+      { family, familyIndex, groupName },
+    ];
+
+    return groups;
+  }, {});
+  const orderedGroupKeys = Object.keys(familiesByGroup)
+    .sort((left, right) => {
+      if (left === "__ungrouped__") return 1;
+      if (right === "__ungrouped__") return -1;
+      return familiesByGroup[left][0].groupName.localeCompare(
+        familiesByGroup[right][0].groupName,
+        "it",
+        { sensitivity: "base" }
+      );
+    });
+
+  orderedGroupKeys.forEach(groupKey => {
+    familiesByGroup[groupKey]
+      .sort((left, right) => right.family.length - left.family.length || left.familyIndex - right.familyIndex)
+      .forEach(({ family }) => {
+        const wholeFamilyTableIndex = findTableForWholeFamily(family.length, Math.max(tableCursor, 0));
+
+        if (wholeFamilyTableIndex >= 0) {
+          assignPeopleToTable(family, wholeFamilyTableIndex);
+          return;
+        }
+
+        family.forEach(attendee => {
+          const tableIndex = findNextOpenTable(Math.max(tableCursor, 0));
+
+          if (tableIndex < 0) {
+            return;
+          }
+
+          assignPeopleToTable([attendee], tableIndex);
+        });
+      });
   });
 
   return assignments;
@@ -995,7 +1066,7 @@ export default function TablePlanner() {
 
     return {
       id: person.id,
-      label: `${person.name} - ${tableName} (${person.familyName})`,
+      label: `${person.name} - ${tableName} (${person.familyName}, ${person.groupLabel})`,
     };
   }), [attendees, effectiveAssignments, tableNames]);
   const filteredSeatPeopleOptions = useMemo(() => {
@@ -1015,7 +1086,7 @@ export default function TablePlanner() {
     }
 
     return tablePlan.unassigned.filter(person =>
-      [person.name, person.familyName, person.seatLabel, person.foodDetails]
+      [person.name, person.familyName, person.groupLabel, person.seatLabel, person.foodDetails]
         .join(" ")
         .toLowerCase()
         .includes(search)
@@ -1041,7 +1112,7 @@ export default function TablePlanner() {
     }
 
     return positionedGuests.filter(person =>
-      [person.name, person.familyName, person.seatLabel, person.foodDetails, person.positionLabel]
+      [person.name, person.familyName, person.groupLabel, person.seatLabel, person.foodDetails, person.positionLabel]
         .join(" ")
         .toLowerCase()
         .includes(search)
@@ -2164,10 +2235,20 @@ export default function TablePlanner() {
             <ArrowLeft size={17} aria-hidden="true" />
             Lista invitati
           </Link>
-          <button type="button" className="primary-table-action" onClick={distributeTables}>
-            <RefreshCw size={17} aria-hidden="true" />
-            Distribuisci
-          </button>
+          <span className="table-action-tooltip">
+            <button
+              type="button"
+              className="primary-table-action"
+              onClick={distributeTables}
+              aria-describedby="distribute-tables-help"
+            >
+              <RefreshCw size={17} aria-hidden="true" />
+              Distribuisci
+            </button>
+            <span id="distribute-tables-help" className="table-action-tooltip-message" role="tooltip">
+              Distribuisce gli invitati in base al gruppo assegnato. Le famiglie restano allo stesso tavolo quando la capienza lo permette; i posti rimasti possono essere completati con altri gruppi.
+            </span>
+          </span>
           <button type="button" className="danger-table-action" onClick={clearAssignments}>
             <Trash2 size={17} aria-hidden="true" />
             Svuota
@@ -2313,6 +2394,10 @@ export default function TablePlanner() {
                           <div>
                             <dt>Invito</dt>
                             <dd>{person.familyName}</dd>
+                          </div>
+                          <div>
+                            <dt>Gruppo</dt>
+                            <dd>{person.groupLabel}</dd>
                           </div>
                           <div>
                             <dt>Intolleranze</dt>
@@ -2602,6 +2687,10 @@ export default function TablePlanner() {
                                 <div>
                                   <dt>Invito</dt>
                                   <dd>{selectedSeat.person.familyName}</dd>
+                                </div>
+                                <div>
+                                  <dt>Gruppo</dt>
+                                  <dd>{selectedSeat.person.groupLabel}</dd>
                                 </div>
                                 <div>
                                   <dt>Intolleranze</dt>

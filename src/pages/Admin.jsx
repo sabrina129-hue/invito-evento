@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Download, LogOut, Pencil, Plus, Trash2, Utensils } from "lucide-react";
+import { ChevronDown, Download, LogOut, Pencil, Plus, Tag, Trash2, Utensils } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import { getParticipantGuestNames } from "../lib/guestNames.js";
+import { getParticipantGroup, getParticipantGuestNames, normalizeInvitationGroup } from "../lib/guestNames.js";
 import { notifyRsvpDataChanged } from "../lib/rsvpSync.js";
 import "./Admin.css";
 
@@ -12,17 +12,56 @@ const emptyParticipant = {
     guests: 1,
     guest_names: [],
     food_preferences: "",
+    group: "",
     message: "",
 };
 
 const nameRequiredMessage = "Il nome è obbligatorio";
 const noFoodPreferenceOption = "Nessuna intolleranza/preferenza alimentare";
+const guestGroupsStorageKey = "adminGuestGroups";
+const groupTagColors = [
+    { background: "#eff6ff", border: "#93c5fd", text: "#1d4ed8" },
+    { background: "#ecfdf5", border: "#86efac", text: "#15803d" },
+    { background: "#fff7ed", border: "#fdba74", text: "#c2410c" },
+    { background: "#fdf2f8", border: "#f9a8d4", text: "#be185d" },
+    { background: "#f5f3ff", border: "#c4b5fd", text: "#6d28d9" },
+    { background: "#ecfeff", border: "#67e8f9", text: "#0e7490" },
+    { background: "#fefce8", border: "#fde047", text: "#a16207" },
+    { background: "#eef2ff", border: "#a5b4fc", text: "#4338ca" },
+];
 
 const isNoFoodPreferenceOption = option =>
     String(option || "").trim().toLowerCase() === noFoodPreferenceOption.toLowerCase();
 
 const isNameRequiredError = error =>
     String(error || "").trim() === nameRequiredMessage;
+
+const sameGroupName = (left, right) =>
+    normalizeInvitationGroup(left).toLowerCase() === normalizeInvitationGroup(right).toLowerCase();
+
+const mergeGroupNames = (...groups) =>
+    groups
+        .flat()
+        .map(normalizeInvitationGroup)
+        .filter(Boolean)
+        .reduce((uniqueGroups, group) => (
+            uniqueGroups.some(existingGroup => sameGroupName(existingGroup, group))
+                ? uniqueGroups
+                : [...uniqueGroups, group]
+        ), [])
+        .sort((a, b) => a.localeCompare(b, "it", { sensitivity: "base" }));
+
+const loadGuestGroups = () => {
+    if (typeof localStorage === "undefined") {
+        return [];
+    }
+
+    try {
+        return mergeGroupNames(JSON.parse(localStorage.getItem(guestGroupsStorageKey) || "[]"));
+    } catch {
+        return [];
+    }
+};
 
 const normalizeFoodPreferenceItems = items => {
     const normalized = (Array.isArray(items) ? items : [])
@@ -444,6 +483,10 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
     const [addGuestNameErrors, setAddGuestNameErrors] = useState({});
     const [search, setSearch] = useState("");
     const [foodPreferenceFilter, setFoodPreferenceFilter] = useState("");
+    const [guestGroups, setGuestGroups] = useState(loadGuestGroups);
+    const [newGroupName, setNewGroupName] = useState("");
+    const [groupError, setGroupError] = useState("");
+    const [removingGroup, setRemovingGroup] = useState("");
     const [newParticipant, setNewParticipant] = useState(emptyParticipant);
     const [addFoodMenuOpen, setAddFoodMenuOpen] = useState(null);
     const [editFoodMenuOpen, setEditFoodMenuOpen] = useState(null);
@@ -477,7 +520,10 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                 return res.json();
             })
             .then(result => {
-                setPartecipanti(result.data || []);
+                const loadedParticipants = result.data || [];
+
+                setPartecipanti(loadedParticipants);
+                setGuestGroups(prev => mergeGroupNames(prev, loadedParticipants.map(getParticipantGroup)));
                 setLoading(false);
             })
             .catch(() => {
@@ -486,6 +532,10 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                 setLoading(false);
             });
     }, [token]);
+
+    useEffect(() => {
+        localStorage.setItem(guestGroupsStorageKey, JSON.stringify(guestGroups));
+    }, [guestGroups]);
 
     const handleDelete = async () => {
         if (!toDelete) return;
@@ -504,6 +554,72 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
         setPartecipanti(prev => prev.filter(p => p.id !== toDelete.id));
         notifyRsvpDataChanged({ action: "delete", id: toDelete.id });
         setToDelete(null);
+    };
+
+    const handleAddGuestGroup = () => {
+        const groupName = normalizeInvitationGroup(newGroupName);
+
+        if (!groupName) {
+            setGroupError("Inserisci il nome del gruppo.");
+            return;
+        }
+
+        if (guestGroups.some(group => sameGroupName(group, groupName))) {
+            setGroupError("Questo gruppo esiste gia.");
+            return;
+        }
+
+        setGuestGroups(prev => mergeGroupNames(prev, groupName));
+        setNewGroupName("");
+        setGroupError("");
+    };
+
+    const handleRemoveGuestGroup = async groupName => {
+        const normalizedGroupName = normalizeInvitationGroup(groupName);
+
+        if (!normalizedGroupName || removingGroup) {
+            return;
+        }
+
+        const participantsToUpdate = partecipanti.filter(participant =>
+            sameGroupName(getParticipantGroup(participant), normalizedGroupName)
+        );
+
+        setGroupError("");
+        setError("");
+        setRemovingGroup(normalizedGroupName);
+
+        try {
+            const updatedParticipants = await Promise.all(
+                participantsToUpdate.map(async participant => {
+                    const res = await fetch("/api/rsvps", {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+                        body: JSON.stringify({ ...participant, group: "" }),
+                    });
+                    const result = await res.json();
+
+                    if (!res.ok) {
+                        throw new Error(result.error || result.details || "Errore durante l'aggiornamento del gruppo.");
+                    }
+
+                    return result.data;
+                })
+            );
+            const updatedById = new Map(updatedParticipants.map(participant => [participant.id, participant]));
+
+            setPartecipanti(prev => prev.map(participant => updatedById.get(participant.id) || participant));
+            setGuestGroups(prev => prev.filter(group => !sameGroupName(group, normalizedGroupName)));
+            notifyRsvpDataChanged({ action: "remove-group", group: normalizedGroupName });
+            setNotice(participantsToUpdate.length
+                ? `Gruppo ${normalizedGroupName} eliminato e rimosso dagli invitati associati.`
+                : `Gruppo ${normalizedGroupName} eliminato.`
+            );
+        } catch (err) {
+            setGroupError(err.message || "Non sono riuscito a eliminare il gruppo.");
+        } finally {
+            setRemovingGroup("");
+        }
     };
 
     const handleSaveEdit = async () => {
@@ -534,6 +650,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
         const normalizedEditing = {
             ...editing,
             name: String(editing.name || "").trim(),
+            group: editing.partecipate ? normalizeInvitationGroup(editing.group) : "",
             guests: guestCount,
             guest_names: editing.partecipate
                 ? getParticipantGuestNameValues({ ...editing, name: String(editing.name || "").trim() }, guestCount)
@@ -554,6 +671,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
             return;
         }
 
+        setGuestGroups(prev => mergeGroupNames(prev, getParticipantGroup(result.data)));
         setPartecipanti(prev =>
             prev.map(p => (p.id === normalizedEditing.id ? result.data : p))
         );
@@ -597,6 +715,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
             const normalizedParticipant = {
                 ...newParticipant,
                 name: String(newParticipant.name || "").trim(),
+                group: newParticipant.partecipate ? normalizeInvitationGroup(newParticipant.group) : "",
                 guests: guestCount,
                 guest_names: newParticipant.partecipate
                     ? getParticipantGuestNameValues({ ...newParticipant, name: String(newParticipant.name || "").trim() }, guestCount)
@@ -620,6 +739,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                 return;
             }
 
+            setGuestGroups(prev => mergeGroupNames(prev, getParticipantGroup(result.data)));
             setPartecipanti(prev => [result.data, ...prev]);
             notifyRsvpDataChanged({ action: "create", participant: result.data });
             setNewParticipant(emptyParticipant);
@@ -650,6 +770,22 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
         .filter(p => p.partecipate)
         .reduce((tot, p) => tot + (p.guests ?? 0), 0);
     const risposteNo = partecipanti.filter(p => !p.partecipate).length;
+    const groupOptions = mergeGroupNames(
+        guestGroups,
+        partecipanti.map(getParticipantGroup),
+        editing ? getParticipantGroup(editing) : "",
+        getParticipantGroup(newParticipant)
+    );
+    const getGroupTagStyle = groupName => {
+        const groupIndex = Math.max(0, groupOptions.findIndex(group => sameGroupName(group, groupName)));
+        const color = groupTagColors[groupIndex % groupTagColors.length];
+
+        return {
+            "--admin-group-bg": color.background,
+            "--admin-group-border": color.border,
+            "--admin-group-text": color.text,
+        };
+    };
     const searchTerm = search.trim().toLowerCase();
     const statusFilter =
         ["partecipa", "si", "sì", "presente"].includes(searchTerm)
@@ -667,6 +803,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
             return [
                 p.name,
                 ...getParticipantPeople(p).map(person => person.name),
+                getParticipantGroup(p),
                 stato,
                 String(p.guests ?? 0),
                 formatParticipantFoodPreferences(p),
@@ -753,6 +890,59 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                     <div>
                         <span>Assenti</span>
                         <strong>{risposteNo}</strong>
+                    </div>
+                    <div>
+                        <span>Gruppi</span>
+                        <strong>{groupOptions.length}</strong>
+                    </div>
+                </section>
+
+                <section className="admin-groups-card" aria-label="Gruppi invitati">
+                    <div className="admin-groups-header">
+                        <div>
+                            <p>Gruppi invitati</p>
+                            <h2>Organizza per gruppo</h2>
+                        </div>
+                        <div className="admin-group-create">
+                            <input
+                                type="text"
+                                value={newGroupName}
+                                onChange={event => {
+                                    setNewGroupName(event.target.value);
+                                    setGroupError("");
+                                }}
+                                onKeyDown={event => {
+                                    if (event.key === "Enter") {
+                                        event.preventDefault();
+                                        handleAddGuestGroup();
+                                    }
+                                }}
+                                placeholder="Famiglia, amici, colleghi..."
+                                aria-label="Nome nuovo gruppo"
+                            />
+                            <button type="button" className="admin-primary-action" onClick={handleAddGuestGroup}>
+                                <Plus size={17} aria-hidden="true" />
+                                Aggiungi gruppo
+                            </button>
+                        </div>
+                    </div>
+                    {groupError && <p className="admin-group-error">{groupError}</p>}
+                    <div className="admin-group-chips" aria-label="Gruppi creati">
+                        {groupOptions.map(group => (
+                            <span key={group} className="admin-group-chip" style={getGroupTagStyle(group)}>
+                                <Tag size={15} aria-hidden="true" />
+                                {group}
+                                <button
+                                    type="button"
+                                    onClick={() => handleRemoveGuestGroup(group)}
+                                    disabled={Boolean(removingGroup)}
+                                    aria-label={`Elimina gruppo ${group}`}
+                                >
+                                    {sameGroupName(removingGroup, group) ? "..." : "X"}
+                                </button>
+                            </span>
+                        ))}
+                        {groupOptions.length === 0 && <p>Nessun gruppo creato.</p>}
                     </div>
                 </section>
 
@@ -843,6 +1033,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                 <tr>
                                     <th>Nome</th>
                                     <th>Partecipa</th>
+                                    <th>Gruppo</th>
                                     <th>Ospiti</th>
                                     <th>Intolleranze / Preferenze Alimentari</th>
                                     <th>Messaggio</th>
@@ -856,6 +1047,14 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                         <td>
                                             <span className={`admin-status-badge ${p.partecipate ? "is-yes" : "is-no"}`}>
                                                 {p.partecipate ? "Sì" : "No"}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span
+                                                className={`admin-group-badge ${p.partecipate && getParticipantGroup(p) ? "" : "is-empty"}`}
+                                                style={p.partecipate && getParticipantGroup(p) ? getGroupTagStyle(getParticipantGroup(p)) : undefined}
+                                            >
+                                                {p.partecipate ? getParticipantGroup(p) || "Nessun gruppo" : "-"}
                                             </span>
                                         </td>
                                         <td className="admin-text-cell">
@@ -874,7 +1073,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                             onClick={() => {
                                                 setEditFormError("");
                                                 setEditGuestNameErrors({});
-                                                setEditing(p);
+                                                setEditing({ ...p, group: getParticipantGroup(p) });
                                                 setEditFoodMenuOpen(null);
                                             }}
                                                 className="admin-table-action"
@@ -896,7 +1095,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                 ))}
                                 {partecipantiFiltrati.length === 0 && (
                                     <tr>
-                                        <td colSpan="6" className="admin-empty-row">
+                                        <td colSpan="7" className="admin-empty-row">
                                             Nessun invitato trovato.
                                         </td>
                                     </tr>
@@ -986,11 +1185,27 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                             partecipate: e.target.value === "true",
                                             guests: e.target.value === "true" ? normalizeGuestCount(editing.guests) : 0,
                                             food_preferences: e.target.value === "true" ? editing.food_preferences || "" : "",
+                                            group: e.target.value === "true" ? editing.group || "" : "",
                                         });
                                     }}
                                 >
                                     <option value="true">Partecipa</option>
                                     <option value="false">Non partecipa</option>
+                                </select>
+                            </label>
+
+                            <label className="admin-form-field">
+                                <span>Gruppo</span>
+                                <select
+                                    className="admin-select"
+                                    disabled={!editing.partecipate}
+                                    value={getParticipantGroup(editing)}
+                                    onChange={event => setEditing({ ...editing, group: event.target.value })}
+                                >
+                                    <option value="">Nessun gruppo</option>
+                                    {groupOptions.map(group => (
+                                        <option key={group} value={group}>{group}</option>
+                                    ))}
                                 </select>
                             </label>
 
@@ -1183,6 +1398,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                             partecipate: e.target.value === "true",
                                             guests: e.target.value === "true" ? normalizeGuestCount(newParticipant.guests) : 0,
                                             food_preferences: e.target.value === "true" ? newParticipant.food_preferences : "",
+                                            group: e.target.value === "true" ? newParticipant.group || "" : "",
                                         });
                                     }
                                 }
@@ -1190,6 +1406,21 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                 <option value="true">Partecipa</option>
                                 <option value="false">Non partecipa</option>
                             </select>
+
+                            <label className="admin-form-field">
+                                <span>Gruppo</span>
+                                <select
+                                    className="admin-select"
+                                    disabled={!newParticipant.partecipate}
+                                    value={getParticipantGroup(newParticipant)}
+                                    onChange={event => setNewParticipant({ ...newParticipant, group: event.target.value })}
+                                >
+                                    <option value="">Nessun gruppo</option>
+                                    {groupOptions.map(group => (
+                                        <option key={group} value={group}>{group}</option>
+                                    ))}
+                                </select>
+                            </label>
 
                             <input
                                 type="text"
