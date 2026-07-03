@@ -3,7 +3,8 @@ import EventInfo from "./components/EventInfo";
 import RSVP from "./components/RSVP";
 import EnvelopeIntro from "./components/EnvelopeIntro";
 import { event } from "./data/event";
-import { HashRouter, Routes, Route } from "react-router-dom";
+import GiftPage from "./pages/GiftPage.jsx";
+import { HashRouter, Link, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 
 function Home() {
@@ -27,6 +28,12 @@ function Home() {
 
         <div className="invitation-body p-8 pt-6 font-body text-center space-y-8">
           <EventInfo event={event.content} />
+          <section className="section gift-invite-section" aria-label="Prezent dla pary mlodej">
+            <p className="text-body">{event.gift.inviteText}</p>
+            <Link to="/regalo" className="btn gift-invite-link">
+              {event.gift.inviteLinkLabel}
+            </Link>
+          </section>
           <RSVP config={event.rsvp} />
         </div>
       </div>
@@ -39,6 +46,7 @@ export default function App() {
     <HashRouter>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/regalo" element={<GiftPage config={event.gift} />} />
         <Route path="*" element={<Home />} />
       </Routes>
     </HashRouter>

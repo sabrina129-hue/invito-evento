@@ -103,4 +103,19 @@ export const event = {
     successButton: "OK",
   },
 
+  gift: {
+    title: "Prezent dla pary młodej",
+    subtitle: "Najpiękniejszym prezentem będzie Wasza obecność.",
+    message: "Jeśli chcecie podarować nam upominek, możecie skorzystać z tych danych.",
+    inviteText: "Dla tych, którzy chcą podarować nam prezent",
+    inviteLinkLabel: "Przejdź do strony z prezentem",
+    holderLabel: "Odbiorca",
+    holder: "Angelo e Luigia",
+    ibanLabel: "IBAN",
+    iban: "IT 000000000000000000000000",
+    copyLabel: "Kopiuj IBAN",
+    copiedLabel: "IBAN skopiowany",
+    backLabel: "Wróć do zaproszenia",
+  },
+
 };
