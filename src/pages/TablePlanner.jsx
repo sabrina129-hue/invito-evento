@@ -377,15 +377,20 @@ const distributeAttendees = (attendees, tableSeats) => {
   };
 
   const findTableForWholeFamily = (familySize, startIndex) => {
+    let bestIndex = -1;
+    let bestRemainingSeats = Number.POSITIVE_INFINITY;
+
     for (let offset = 0; offset < remainingSeats.length; offset += 1) {
       const index = (startIndex + offset) % remainingSeats.length;
+      const remainingAfterPlacement = remainingSeats[index] - familySize;
 
-      if (remainingSeats[index] >= familySize) {
-        return index;
+      if (remainingAfterPlacement >= 0 && remainingAfterPlacement < bestRemainingSeats) {
+        bestIndex = index;
+        bestRemainingSeats = remainingAfterPlacement;
       }
     }
 
-    return -1;
+    return bestIndex;
   };
 
   const assignPeopleToTable = (people, tableIndex) => {
@@ -414,6 +419,11 @@ const distributeAttendees = (attendees, tableSeats) => {
     .sort((left, right) => {
       if (left === "__ungrouped__") return 1;
       if (right === "__ungrouped__") return -1;
+      const leftLargestFamily = Math.max(...familiesByGroup[left].map(({ family }) => family.length));
+      const rightLargestFamily = Math.max(...familiesByGroup[right].map(({ family }) => family.length));
+
+      if (leftLargestFamily !== rightLargestFamily) return rightLargestFamily - leftLargestFamily;
+
       return familiesByGroup[left][0].groupName.localeCompare(
         familiesByGroup[right][0].groupName,
         "it",

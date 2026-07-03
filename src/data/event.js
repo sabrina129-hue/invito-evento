@@ -47,7 +47,6 @@ export const event = {
     images: [
       "/images/sposi-carabiniere-hero.jpg",
       "/images/img2.jpeg",
-      //"/images/img3.jpeg",
       "/images/sposi-carabiniere-acquerello.jpeg",
       "/images/img5.jpeg",
       "/images/img6.jpeg",
