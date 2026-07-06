@@ -118,6 +118,7 @@ export const buildTableAttendees = participants =>
 export const distributeAttendees = (attendees, tableSeats) => {
   const assignments = {};
   const remainingSeats = [...tableSeats];
+  const tableGroupKeys = Array.from({ length: tableSeats.length }, () => "");
   let tableCursor = 0;
   const findNextOpenTable = startIndex => {
     for (let offset = 0; offset < remainingSeats.length; offset += 1) {
@@ -128,27 +129,58 @@ export const distributeAttendees = (attendees, tableSeats) => {
 
     return -1;
   };
-  const findTableForWholeFamily = (familySize, startIndex) => {
+  const getTableGroupPriority = (index, groupKey) => {
+    if (tableGroupKeys[index] === groupKey) return 0;
+    if (!tableGroupKeys[index]) return 1;
+    return 2;
+  };
+  const findBestTable = (size, groupKey, startIndex, allowMixedTable = false, preferRoomForGroup = false) => {
     let bestIndex = -1;
-    let bestRemainingSeats = Number.POSITIVE_INFINITY;
+    let bestPriority = Number.POSITIVE_INFINITY;
+    let bestRemainingSeats = preferRoomForGroup ? -1 : Number.POSITIVE_INFINITY;
 
     for (let offset = 0; offset < remainingSeats.length; offset += 1) {
       const index = (startIndex + offset) % remainingSeats.length;
-      const remainingAfterPlacement = remainingSeats[index] - familySize;
+      const remainingAfterPlacement = remainingSeats[index] - size;
 
-      if (remainingAfterPlacement >= 0 && remainingAfterPlacement < bestRemainingSeats) {
+      if (remainingAfterPlacement < 0) continue;
+
+      const priority = getTableGroupPriority(index, groupKey);
+
+      if (!allowMixedTable && priority === 2) continue;
+
+      if (
+        priority < bestPriority ||
+        (
+          priority === bestPriority &&
+          (
+            preferRoomForGroup
+              ? remainingAfterPlacement > bestRemainingSeats
+              : remainingAfterPlacement < bestRemainingSeats
+          )
+        )
+      ) {
         bestIndex = index;
+        bestPriority = priority;
         bestRemainingSeats = remainingAfterPlacement;
       }
     }
 
     return bestIndex;
   };
-  const assignPeopleToTable = (people, tableIndex) => {
+  const findTableForWholeFamily = (familySize, groupKey, startIndex, preferRoomForGroup = false) => {
+    const sameGroupOrEmptyTable = findBestTable(familySize, groupKey, startIndex, false, preferRoomForGroup);
+
+    return sameGroupOrEmptyTable >= 0
+      ? sameGroupOrEmptyTable
+      : findBestTable(familySize, groupKey, startIndex, true, preferRoomForGroup);
+  };
+  const assignPeopleToTable = (people, tableIndex, groupKey) => {
     people.forEach(attendee => {
       assignments[attendee.id] = String(tableIndex + 1);
     });
 
+    if (!tableGroupKeys[tableIndex]) tableGroupKeys[tableIndex] = groupKey;
     remainingSeats[tableIndex] -= people.length;
     tableCursor = remainingSeats[tableIndex] > 0
       ? tableIndex
@@ -178,21 +210,31 @@ export const distributeAttendees = (attendees, tableSeats) => {
       );
     })
     .forEach(groupKey => {
-      familiesByGroup[groupKey]
-        .sort((left, right) => right.family.length - left.family.length || left.familyIndex - right.familyIndex)
-        .forEach(({ family }) => {
-          const wholeFamilyTableIndex = findTableForWholeFamily(family.length, Math.max(tableCursor, 0));
+      const sortedFamilies = familiesByGroup[groupKey]
+        .sort((left, right) => right.family.length - left.family.length || left.familyIndex - right.familyIndex);
+
+      sortedFamilies
+        .forEach(({ family }, familyOrderIndex) => {
+          const remainingGroupPeople = sortedFamilies
+            .slice(familyOrderIndex + 1)
+            .reduce((count, nextFamily) => count + nextFamily.family.length, 0);
+          const wholeFamilyTableIndex = findTableForWholeFamily(
+            family.length,
+            groupKey,
+            Math.max(tableCursor, 0),
+            remainingGroupPeople > 0
+          );
 
           if (wholeFamilyTableIndex >= 0) {
-            assignPeopleToTable(family, wholeFamilyTableIndex);
+            assignPeopleToTable(family, wholeFamilyTableIndex, groupKey);
             return;
           }
 
           family.forEach(attendee => {
-            const tableIndex = findNextOpenTable(Math.max(tableCursor, 0));
+            const tableIndex = findTableForWholeFamily(1, groupKey, Math.max(tableCursor, 0), true);
 
             if (tableIndex >= 0) {
-              assignPeopleToTable([attendee], tableIndex);
+              assignPeopleToTable([attendee], tableIndex, groupKey);
             }
           });
         });

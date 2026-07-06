@@ -87,6 +87,53 @@ test("distributeAttendees groups families first, respects capacity and leaves ov
   assert.equal(Object.keys(smallPlanAssignments).length, 4);
 });
 
+test("distributeAttendees fills tables by same group before mixing with another group", () => {
+  const groupedAttendees = buildTableAttendees([
+    {
+      id: "famiglia-1",
+      name: "Famiglia Bianchi",
+      partecipate: true,
+      guests: 3,
+      guest_names: ["Anna Bianchi", "Luca Bianchi", "Sara Bianchi"],
+      food_preferences: "",
+      group: "Famiglia",
+    },
+    {
+      id: "famiglia-2",
+      name: "Famiglia Neri",
+      partecipate: true,
+      guests: 1,
+      guest_names: ["Carlo Neri"],
+      food_preferences: "",
+      group: "Famiglia",
+    },
+    {
+      id: "amici-1",
+      name: "Amici Rossi",
+      partecipate: true,
+      guests: 3,
+      guest_names: ["Giulia Rossi", "Marco Rossi", "Elena Rossi"],
+      food_preferences: "",
+      group: "Amici",
+    },
+  ]);
+  const assignments = distributeAttendees(groupedAttendees, [4, 3]);
+  const familyTables = new Set(
+    groupedAttendees
+      .filter(attendee => attendee.group === "Famiglia")
+      .map(attendee => assignments[attendee.id])
+  );
+  const friendTables = new Set(
+    groupedAttendees
+      .filter(attendee => attendee.group === "Amici")
+      .map(attendee => assignments[attendee.id])
+  );
+
+  assert.deepEqual([...familyTables], ["1"]);
+  assert.deepEqual([...friendTables], ["2"]);
+  assert.deepEqual(tableOccupancy(assignments), { 1: 4, 2: 3 });
+});
+
 test("buildTablePlan exposes slots, unassigned people and intolerance totals per table", () => {
   const assignments = {
     [person("Paolo Romano").id]: "1",
