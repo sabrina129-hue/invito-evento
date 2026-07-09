@@ -147,10 +147,8 @@ export default function PhotosGalleryPage({ config }) {
               </div>
 
               <div className="gallery-meta">
-                <strong>{selectedIndex + 1} / {photos.length}</strong>
                 {selectedPhoto.guestName && <span>{selectedPhoto.guestName}</span>}
                 {selectedPhoto.createdTime && <span>{formatPhotoDate(selectedPhoto.createdTime, language)}</span>}
-                {selectedPhoto.name && <span>{selectedPhoto.name}</span>}
               </div>
             </div>
           </div>,

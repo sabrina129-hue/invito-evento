@@ -92,7 +92,7 @@ const drawWeddingFrame = ({ context, width, height, title, date, time }) => {
   context.restore();
 };
 
-const captureFrame = (video, frameConfig) => new Promise((resolve, reject) => {
+const captureFrame = (video, frameConfig, { mirrorSource = false } = {}) => new Promise((resolve, reject) => {
   if (!video?.videoWidth || !video?.videoHeight) {
     reject(new Error("Fotocamera non pronta."));
     return;
@@ -103,7 +103,14 @@ const captureFrame = (video, frameConfig) => new Promise((resolve, reject) => {
   canvas.height = video.videoHeight;
   const context = canvas.getContext("2d");
 
+  context.save();
+  if (mirrorSource) {
+    context.translate(canvas.width, 0);
+    context.scale(-1, 1);
+  }
   context.drawImage(video, 0, 0, canvas.width, canvas.height);
+  context.restore();
+
   drawWeddingFrame({
     context,
     width: canvas.width,
@@ -199,6 +206,8 @@ export default function PhotosPage({ config }) {
         title: labels.frameTitle,
         date: labels.frameDate,
         time: formatShotTime(shotTime),
+      }, {
+        mirrorSource: facingMode === "user",
       });
       const previewUrl = URL.createObjectURL(blob);
       const base64 = await readBlobAsBase64(blob);
