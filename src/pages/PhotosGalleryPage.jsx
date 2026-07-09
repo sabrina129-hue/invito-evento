@@ -1,5 +1,6 @@
 import { Camera, Images, Loader2, RefreshCw, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, useSearchParams } from "react-router-dom";
 import { getPhotoLabels, getPhotoLanguage, getPhotoPath, PHOTO_LANGUAGES } from "./photoTranslations";
 import "./PhotosGalleryPage.css";
@@ -134,7 +135,7 @@ export default function PhotosGalleryPage({ config }) {
           </div>
         )}
 
-        {status === "ready" && selectedPhoto && isDetailOpen && (
+        {status === "ready" && selectedPhoto && isDetailOpen && createPortal(
           <div className="gallery-detail-overlay" role="dialog" aria-modal="true" aria-label={selectedPhoto.name || labels.galleryImageAlt}>
             <div className="gallery-detail">
               <button type="button" className="gallery-detail-close" onClick={() => setIsDetailOpen(false)} aria-label="Chiudi">
@@ -152,7 +153,8 @@ export default function PhotosGalleryPage({ config }) {
                 {selectedPhoto.name && <span>{selectedPhoto.name}</span>}
               </div>
             </div>
-          </div>
+          </div>,
+          document.body,
         )}
 
         <div className="gallery-actions">
