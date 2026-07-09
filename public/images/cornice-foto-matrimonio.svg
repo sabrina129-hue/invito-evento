@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1440" viewBox="0 0 1080 1440" role="img" aria-labelledby="title desc">
+  <title id="title">Cornice semplice foto matrimonio Angelo e Luigia</title>
+  <desc id="desc">Cornice semplice con bordo spesso, titolo degli sposi, data del matrimonio e orario dello scatto.</desc>
+  <rect width="1080" height="1440" fill="none"/>
+
+  <rect x="0" y="0" width="1080" height="146" fill="#fff8f1" opacity="0.94"/>
+  <rect x="0" y="1294" width="1080" height="146" fill="#fff8f1" opacity="0.94"/>
+  <rect x="0" y="146" width="54" height="1148" fill="#fff8f1" opacity="0.94"/>
+  <rect x="1026" y="146" width="54" height="1148" fill="#fff8f1" opacity="0.94"/>
+
+  <rect x="9" y="9" width="1062" height="1422" fill="none" stroke="#7f171f" stroke-width="18"/>
+  <rect x="54" y="146" width="972" height="1148" fill="none" stroke="#c79a3b" stroke-width="7"/>
+
+  <text x="540" y="74" text-anchor="middle" dominant-baseline="middle" font-family="Georgia, 'Times New Roman', serif" font-size="42" font-weight="700" fill="#7f171f">
+    Angelo &amp; Luigia oggi sposi
+  </text>
+  <text x="540" y="1367" text-anchor="middle" dominant-baseline="middle" font-family="Georgia, 'Times New Roman', serif" font-size="36" font-weight="700" fill="#97681f">
+    20 Dicembre 2026 - 14:32
+  </text>
+</svg>

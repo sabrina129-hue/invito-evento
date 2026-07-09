@@ -136,7 +136,7 @@ export const event = {
     errorMessage: "Non siamo riusciti a caricare la foto. Riprova tra poco.",
     cameraErrorMessage: "Non siamo riusciti ad aprire la fotocamera. Controlla i permessi del browser e riprova.",
     preparingLabel: "Preparazione foto...",
-    frameTitle: "Angelo & Luigia",
+    frameTitle: "Angelo & Luigia oggi sposi",
     frameDate: "20 Dicembre 2026",
     backLabel: "Torna all'invito",
   },

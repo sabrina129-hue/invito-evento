@@ -29,56 +29,63 @@ const fitText = ({ context, text, maxWidth, startSize, minSize, family }) => {
   return minSize;
 };
 
-const drawWeddingFrame = ({ context, width, height, title, date }) => {
+const formatShotTime = value => new Intl.DateTimeFormat("it-IT", {
+  hour: "2-digit",
+  minute: "2-digit",
+}).format(value);
+
+const drawWeddingFrame = ({ context, width, height, title, date, time }) => {
   const shortSide = Math.min(width, height);
-  const border = Math.max(18, Math.round(shortSide * 0.035));
-  const innerBorder = Math.max(5, Math.round(border * 0.28));
-  const bandHeight = Math.max(88, Math.round(height * 0.13));
-  const padding = Math.max(24, Math.round(shortSide * 0.04));
+  const horizontalBand = Math.max(78, Math.round(shortSide * 0.14));
+  const verticalBand = Math.max(28, Math.round(shortSide * 0.05));
+  const innerLine = Math.max(4, Math.round(shortSide * 0.008));
+  const padding = Math.max(28, Math.round(shortSide * 0.05));
+  const topText = title;
+  const bottomText = `${date} - ${time}`;
 
   context.save();
 
-  const bottomGradient = context.createLinearGradient(0, height - bandHeight, 0, height);
-  bottomGradient.addColorStop(0, "rgba(255, 248, 241, 0)");
-  bottomGradient.addColorStop(0.24, "rgba(255, 248, 241, 0.72)");
-  bottomGradient.addColorStop(1, "rgba(255, 241, 223, 0.94)");
-  context.fillStyle = bottomGradient;
-  context.fillRect(0, height - bandHeight, width, bandHeight);
+  context.fillStyle = "rgba(255, 248, 241, 0.94)";
+  context.fillRect(0, 0, width, horizontalBand);
+  context.fillRect(0, height - horizontalBand, width, horizontalBand);
+  context.fillRect(0, horizontalBand, verticalBand, height - horizontalBand * 2);
+  context.fillRect(width - verticalBand, horizontalBand, verticalBand, height - horizontalBand * 2);
 
   context.lineJoin = "round";
-  context.strokeStyle = "rgba(127, 23, 31, 0.92)";
-  context.lineWidth = border;
-  context.strokeRect(border / 2, border / 2, width - border, height - border);
+  context.strokeStyle = "rgba(127, 23, 31, 0.94)";
+  context.lineWidth = Math.max(8, Math.round(shortSide * 0.012));
+  context.strokeRect(context.lineWidth / 2, context.lineWidth / 2, width - context.lineWidth, height - context.lineWidth);
 
-  context.strokeStyle = "rgba(245, 216, 137, 0.9)";
-  context.lineWidth = innerBorder;
-  context.strokeRect(border + innerBorder, border + innerBorder, width - 2 * (border + innerBorder), height - 2 * (border + innerBorder));
+  context.lineWidth = innerLine;
+  context.strokeStyle = "rgba(199, 154, 59, 0.92)";
+  context.strokeRect(verticalBand, horizontalBand, width - verticalBand * 2, height - horizontalBand * 2);
 
-  context.fillStyle = "rgba(127, 23, 31, 0.92)";
   context.textAlign = "center";
   context.textBaseline = "middle";
+
+  context.fillStyle = "rgba(127, 23, 31, 0.94)";
   const titleSize = fitText({
     context,
-    text: title,
+    text: topText,
     maxWidth: width - padding * 2,
-    startSize: Math.max(34, Math.round(bandHeight * 0.34)),
-    minSize: 24,
+    startSize: Math.max(28, Math.round(horizontalBand * 0.34)),
+    minSize: 20,
     family: "Georgia, serif",
   });
   context.font = `700 ${titleSize}px Georgia, serif`;
-  context.fillText(title, width / 2, height - bandHeight * 0.54);
+  context.fillText(topText, width / 2, horizontalBand * 0.5);
 
   context.fillStyle = "rgba(151, 104, 31, 0.95)";
-  const dateSize = fitText({
+  const bottomSize = fitText({
     context,
-    text: date,
+    text: bottomText,
     maxWidth: width - padding * 2,
-    startSize: Math.max(24, Math.round(bandHeight * 0.24)),
+    startSize: Math.max(24, Math.round(horizontalBand * 0.28)),
     minSize: 18,
     family: "Georgia, serif",
   });
-  context.font = `700 ${dateSize}px Georgia, serif`;
-  context.fillText(date, width / 2, height - bandHeight * 0.2);
+  context.font = `700 ${bottomSize}px Georgia, serif`;
+  context.fillText(bottomText, width / 2, height - horizontalBand * 0.5);
 
   context.restore();
 };
@@ -101,6 +108,7 @@ const captureFrame = (video, frameConfig) => new Promise((resolve, reject) => {
     height: canvas.height,
     title: frameConfig.title,
     date: frameConfig.date,
+    time: frameConfig.time,
   });
 
   canvas.toBlob(blob => {
@@ -180,9 +188,11 @@ export default function PhotosPage({ config }) {
     setMessage("");
 
     try {
+      const shotTime = new Date();
       const blob = await captureFrame(videoRef.current, {
         title: config.frameTitle,
         date: config.frameDate,
+        time: formatShotTime(shotTime),
       });
       const previewUrl = URL.createObjectURL(blob);
       const base64 = await readBlobAsBase64(blob);
