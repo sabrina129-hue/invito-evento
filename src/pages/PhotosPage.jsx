@@ -5,6 +5,7 @@ import { getPhotoLabels, getPhotoLanguage, getPhotoPath, PHOTO_LANGUAGES } from 
 import "./PhotosPage.css";
 
 const PHOTO_QUALITY = 0.9;
+const DEFAULT_PHOTO_ENDPOINT = "/api/photos";
 
 const readBlobAsBase64 = blob => new Promise((resolve, reject) => {
   const reader = new FileReader();
@@ -140,6 +141,7 @@ export default function PhotosPage({ config }) {
   const [message, setMessage] = useState("");
   const [guestName, setGuestName] = useState("");
   const [facingMode, setFacingMode] = useState("environment");
+  const uploadEndpoint = config.uploadEndpoint || DEFAULT_PHOTO_ENDPOINT;
 
   const stopCamera = () => {
     streamRef.current?.getTracks().forEach(track => track.stop());
@@ -238,7 +240,7 @@ export default function PhotosPage({ config }) {
 
     try {
       const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-      const response = await fetch(config.uploadEndpoint, {
+      const response = await fetch(uploadEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -301,13 +303,6 @@ export default function PhotosPage({ config }) {
         <div className="photos-copy">
           {labels.subtitle && <p>{labels.subtitle}</p>}
           {labels.message && <p>{labels.message}</p>}
-        </div>
-
-        <div className="photos-top-actions">
-          <Link to={getPhotoPath("/foto/galleria", language)} className="photos-secondary-button photos-link-button">
-            <Images size={18} aria-hidden="true" />
-            {labels.galleryButtonLabel}
-          </Link>
         </div>
 
         {showNameField && (
@@ -412,6 +407,13 @@ export default function PhotosPage({ config }) {
             )}
           </div>
         )}
+
+        <div className="photos-bottom-actions">
+          <Link to={getPhotoPath("/foto/galleria", language)} className="photos-secondary-button photos-link-button">
+            <Images size={18} aria-hidden="true" />
+            {labels.galleryButtonLabel}
+          </Link>
+        </div>
 
       </section>
     </main>

@@ -4,6 +4,8 @@ import { Link, useSearchParams } from "react-router-dom";
 import { getPhotoLabels, getPhotoLanguage, getPhotoPath, PHOTO_LANGUAGES } from "./photoTranslations";
 import "./PhotosGalleryPage.css";
 
+const DEFAULT_PHOTO_ENDPOINT = "/api/photos";
+
 const formatPhotoDate = (value, language) => {
   if (!value) return "";
 
@@ -27,13 +29,14 @@ export default function PhotosGalleryPage({ config }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [status, setStatus] = useState("loading");
   const [message, setMessage] = useState("");
+  const galleryEndpoint = config.galleryEndpoint || DEFAULT_PHOTO_ENDPOINT;
 
   const loadGallery = useCallback(async () => {
     setStatus("loading");
     setMessage("");
 
     try {
-      const response = await fetch(config.galleryEndpoint);
+      const response = await fetch(galleryEndpoint);
       const payload = await response.json().catch(() => ({}));
 
       if (!response.ok) {
@@ -48,7 +51,7 @@ export default function PhotosGalleryPage({ config }) {
       setStatus("error");
       setMessage(language === "pl" ? labels.galleryErrorMessage : error.message || labels.galleryErrorMessage);
     }
-  }, [config.galleryEndpoint, labels.galleryErrorMessage, language]);
+  }, [galleryEndpoint, labels.galleryErrorMessage, language]);
 
   useEffect(() => {
     loadGallery();

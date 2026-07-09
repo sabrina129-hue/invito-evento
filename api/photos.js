@@ -149,9 +149,13 @@ export default async function handler(req, res) {
 
       return res.status(200).json({ success: true, photos });
     } catch (error) {
+      const details = error.message === "Foto mancante"
+        ? "Lo script Google non gestisce ancora la galleria. Aggiorna Apps Script con le azioni list e get documentate in CONFIGURAZIONE_INVITI.md."
+        : error.message;
+
       return res.status(500).json({
         error: "Non siamo riusciti a caricare la galleria",
-        details: error.message,
+        details,
       });
     }
   }

@@ -10,6 +10,7 @@
 }
 
 .photos-card {
+  position: relative;
   width: min(100%, 37rem);
   padding: clamp(1.8rem, 6vw, 3rem);
   border-radius: var(--radius-card);
@@ -33,30 +34,34 @@
   margin-bottom: 1rem;
 }
 
-.photos-language-switch {
+.photos-card > .photos-language-switch {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  z-index: 2;
   display: inline-flex;
-  gap: 0.25rem;
-  margin: 0 auto 1rem;
-  padding: 0.25rem;
+  gap: 0.18rem;
+  padding: 0.18rem;
   border: 1px solid rgba(199, 154, 59, 0.34);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.62);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 0.45rem 1rem rgba(75, 13, 20, 0.08);
 }
 
-.photos-language-switch button {
-  min-width: 4.3rem;
-  min-height: 2.1rem;
+.photos-card > .photos-language-switch button {
+  min-width: 2.35rem;
+  min-height: 1.75rem;
   border: 0;
   border-radius: 999px;
   background: transparent;
   color: var(--color-primary);
   font-family: var(--font-body);
-  font-size: 0.88rem;
+  font-size: 0.76rem;
   font-weight: 700;
-  padding: 0.35rem 0.75rem;
+  padding: 0.26rem 0.45rem;
 }
 
-.photos-language-switch button.is-active {
+.photos-card > .photos-language-switch button.is-active {
   background: var(--color-primary);
   color: white;
 }
@@ -85,10 +90,10 @@
   font-weight: 700;
 }
 
-.photos-top-actions {
+.photos-bottom-actions {
   display: flex;
   justify-content: center;
-  margin-top: 1.1rem;
+  margin-top: 1.45rem;
 }
 
 .photos-name-field {

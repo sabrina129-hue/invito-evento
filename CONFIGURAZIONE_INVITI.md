@@ -285,7 +285,7 @@ PHOTO_UPLOAD_SECRET="stessa-password-usata-nello-script"
 Per l'invito attuale il webhook Apps Script e:
 
 ```text
-https://script.google.com/macros/s/AKfycbybN2BSRKf-_b7tj1mg9hWNU20CdVP41aOBPxEg_Xt3RcBtrRymZQW6ftu2XzF41X77Vg/exec
+https://script.google.com/macros/s/AKfycbyt73vWK3Gxq4ovr5U5LjV8uAt7zt0f2gNMyUTkTuHg3_P6JbvuXRW6BuvxyRqb3ITVFw/exec
 ```
 
 `PHOTO_UPLOAD_SECRET` deve essere uguale al valore della costante `SECRET` nello script Google.
