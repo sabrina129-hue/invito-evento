@@ -7,6 +7,10 @@ export default function handler(req, res) {
     hasSupabaseKey: Boolean(getServerEnv("SUPABASE_KEY")),
     hasAdminPassword: Boolean(getServerEnv("ADMIN_PASSWORD")),
     hasAdminToken: Boolean(getServerEnv("ADMIN_TOKEN")),
+    hasGoogleDrivePhotosFolderId: Boolean(getServerEnv("GOOGLE_DRIVE_PHOTOS_FOLDER_ID")),
+    hasGoogleServiceAccount: Boolean(getServerEnv("GOOGLE_SERVICE_ACCOUNT_JSON") || (
+      getServerEnv("GOOGLE_SERVICE_ACCOUNT_EMAIL") && getServerEnv("GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY")
+    )),
     inviteTable,
   });
 }

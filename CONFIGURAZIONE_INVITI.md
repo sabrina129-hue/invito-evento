@@ -270,3 +270,22 @@ Per vedere il dettaglio dell'errore:
 3. vai in `Logs`;
 4. riprova a inviare il form;
 5. controlla il log della funzione `/api/rsvp`.
+
+## 8. Upload foto su Google Drive
+
+La pagina `/#/foto` permette agli invitati di autorizzare la fotocamera, scattare una foto e inviarla agli sposi. Quando premono `Invia`, il sito carica la foto nella cartella Drive configurata lato server.
+
+Per abilitarla su Vercel servono queste Environment Variables:
+
+```env
+GOOGLE_DRIVE_PHOTOS_FOLDER_ID="id-cartella-drive"
+GOOGLE_SERVICE_ACCOUNT_JSON='{"type":"service_account", "...": "..."}'
+```
+
+Per l'invito attuale l'ID cartella e:
+
+```text
+1iwEca-_0xMFBoGpyDOEetDWwdOyXURpW
+```
+
+La cartella Drive deve essere condivisa con l'email del service account Google come `Editor`. Senza questa condivisione l'upload fallira anche se le variabili sono corrette.

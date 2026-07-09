@@ -6,9 +6,11 @@ import { event } from "./data/event";
 import Admin from "./pages/Admin.jsx";
 import TablePlanner from "./pages/TablePlanner.jsx";
 import GiftPage from "./pages/GiftPage.jsx";
+import PhotosPage from "./pages/PhotosPage.jsx";
 import { HashRouter, Link, Routes, Route } from "react-router-dom";
 import AdminLogin from "./pages/AdminLogin.jsx";
 import { useEffect, useState } from "react";
+import { Camera, Gift } from "lucide-react";
 
 function Home() {
   useEffect(() => {
@@ -31,10 +33,14 @@ function Home() {
 
         <div className="invitation-body p-8 pt-6 font-body text-center space-y-8">
           <EventInfo event={event.content} />
-          <section className="section gift-invite-section" aria-label="Regalo agli sposi">
-            <p className="text-body">{event.gift.inviteText}</p>
-            <Link to="/regalo" className="btn gift-invite-link">
-              {event.gift.inviteLinkLabel}
+          <section className="section invitation-action-strip" aria-label="Foto e regalo">
+            <Link to="/foto" className="invitation-action-link">
+              <Camera size={18} aria-hidden="true" />
+              <span>{event.photos.inviteLinkLabel}</span>
+            </Link>
+            <Link to="/regalo" className="invitation-action-link">
+              <Gift size={18} aria-hidden="true" />
+              <span>{event.gift.inviteLinkLabel}</span>
             </Link>
           </section>
           <RSVP config={event.rsvp} />
@@ -69,6 +75,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/regalo" element={<GiftPage config={event.gift} />} />
+        <Route path="/foto" element={<PhotosPage config={event.photos} />} />
         <Route path="/admin" element={<AdminProtected />} />
         <Route path="/admin/tavoli" element={<AdminProtected page="tables" />} />
       </Routes>
