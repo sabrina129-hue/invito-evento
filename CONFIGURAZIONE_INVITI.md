@@ -275,17 +275,17 @@ Per vedere il dettaglio dell'errore:
 
 La pagina `/#/foto` permette agli invitati di autorizzare la fotocamera, scattare una foto e inviarla agli sposi. Quando premono `Invia`, il sito carica la foto nella cartella Drive configurata lato server.
 
-Per abilitarla su Vercel servono queste Environment Variables:
+Il caricamento passa da una Web App Google Apps Script. Per abilitarla su Vercel servono queste Environment Variables:
 
 ```env
-GOOGLE_DRIVE_PHOTOS_FOLDER_ID="id-cartella-drive"
-GOOGLE_SERVICE_ACCOUNT_JSON='{"type":"service_account", "...": "..."}'
+PHOTO_UPLOAD_WEBHOOK_URL="https://script.google.com/macros/s/.../exec"
+PHOTO_UPLOAD_SECRET="stessa-password-usata-nello-script"
 ```
 
-Per l'invito attuale l'ID cartella e:
+Per l'invito attuale il webhook Apps Script e:
 
 ```text
-1iwEca-_0xMFBoGpyDOEetDWwdOyXURpW
+https://script.google.com/macros/s/AKfycbybN2BSRKf-_b7tj1mg9hWNU20CdVP41aOBPxEg_Xt3RcBtrRymZQW6ftu2XzF41X77Vg/exec
 ```
 
-La cartella Drive deve essere condivisa con l'email del service account Google come `Editor`. Senza questa condivisione l'upload fallira anche se le variabili sono corrette.
+`PHOTO_UPLOAD_SECRET` deve essere uguale al valore della costante `SECRET` nello script Google.
