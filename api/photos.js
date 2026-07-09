@@ -11,6 +11,14 @@ export const config = {
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const SUPPORTED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
+const cleanName = value => String(value || "")
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .replace(/[^a-zA-Z0-9-_ ]/g, "")
+  .trim()
+  .replace(/\s+/g, "-")
+  .slice(0, 52);
+
 const parseImagePayload = body => {
   const mimeType = String(body?.mimeType || "").trim().toLowerCase();
   const base64 = String(body?.base64 || "").trim();
@@ -40,6 +48,7 @@ const uploadViaWebhook = async ({ webhookUrl, secret, body }) => {
       base64: body.base64,
       mimeType: body.mimeType,
       fileName: body.fileName,
+      guestName: body.guestName,
     }),
   });
 
@@ -79,13 +88,21 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: parsedImage.error });
   }
 
+  const guestName = String(req.body?.guestName || "").trim();
+  const safeGuestName = cleanName(guestName);
+  if (!safeGuestName) {
+    return res.status(400).json({ error: "Inserisci il tuo nome prima di inviare la foto." });
+  }
+
   try {
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
     const file = await uploadViaWebhook({
       webhookUrl,
       secret,
       body: {
         ...parsedImage,
-        fileName: req.body?.fileName || `foto-matrimonio-${new Date().toISOString()}.jpg`,
+        guestName,
+        fileName: `${safeGuestName}-${stamp}.jpg`,
       },
     });
 
