@@ -1,4 +1,4 @@
-import { Camera, ChevronLeft, ChevronRight, Images, Loader2, RefreshCw } from "lucide-react";
+import { Camera, Images, Loader2, RefreshCw, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { getPhotoLabels, getPhotoLanguage, getPhotoPath, PHOTO_LANGUAGES } from "./photoTranslations";
@@ -26,7 +26,8 @@ export default function PhotosGalleryPage({ config }) {
   const language = getPhotoLanguage(searchParams);
   const labels = getPhotoLabels(config, language);
   const [photos, setPhotos] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [status, setStatus] = useState("loading");
   const [message, setMessage] = useState("");
   const galleryEndpoint = config.galleryEndpoint || DEFAULT_PHOTO_ENDPOINT;
@@ -45,7 +46,8 @@ export default function PhotosGalleryPage({ config }) {
 
       const nextPhotos = Array.isArray(payload.photos) ? payload.photos : [];
       setPhotos(nextPhotos);
-      setCurrentIndex(0);
+      setSelectedIndex(0);
+      setIsDetailOpen(false);
       setStatus(nextPhotos.length ? "ready" : "empty");
     } catch (error) {
       setStatus("error");
@@ -57,10 +59,11 @@ export default function PhotosGalleryPage({ config }) {
     loadGallery();
   }, [loadGallery]);
 
-  const currentPhoto = photos[currentIndex];
-  const canBrowse = photos.length > 1;
-  const goPrevious = () => setCurrentIndex(index => (index === 0 ? photos.length - 1 : index - 1));
-  const goNext = () => setCurrentIndex(index => (index + 1) % photos.length);
+  const selectedPhoto = photos[selectedIndex];
+  const openPhoto = index => {
+    setSelectedIndex(index);
+    setIsDetailOpen(true);
+  };
   const switchLanguage = nextLanguage => {
     setSearchParams(nextLanguage === "pl" ? { lang: "pl" } : {});
   };
@@ -113,26 +116,41 @@ export default function PhotosGalleryPage({ config }) {
           </div>
         )}
 
-        {status === "ready" && currentPhoto && (
+        {status === "ready" && selectedPhoto && (
           <div className="gallery-viewer">
-            <div className="gallery-photo-wrap">
-              <img src={currentPhoto.imageUrl} alt={currentPhoto.name || labels.galleryImageAlt} className="gallery-photo" />
-              {canBrowse && (
-                <>
-                  <button type="button" className="gallery-nav is-prev" onClick={goPrevious} aria-label={labels.galleryPreviousLabel}>
-                    <ChevronLeft size={24} aria-hidden="true" />
-                  </button>
-                  <button type="button" className="gallery-nav is-next" onClick={goNext} aria-label={labels.galleryNextLabel}>
-                    <ChevronRight size={24} aria-hidden="true" />
-                  </button>
-                </>
-              )}
+            <div className="gallery-grid" aria-label={labels.galleryTitle}>
+              {photos.map((photo, index) => (
+                <button
+                  type="button"
+                  key={photo.id || photo.imageUrl || index}
+                  className={`gallery-thumb ${selectedIndex === index ? "is-selected" : ""}`}
+                  onClick={() => openPhoto(index)}
+                  aria-pressed={selectedIndex === index}
+                >
+                  <img src={photo.imageUrl} alt={photo.name || labels.galleryImageAlt} />
+                </button>
+              ))}
             </div>
+          </div>
+        )}
 
-            <div className="gallery-meta">
-              <strong>{currentIndex + 1} / {photos.length}</strong>
-              {currentPhoto.guestName && <span>{currentPhoto.guestName}</span>}
-              {currentPhoto.createdTime && <span>{formatPhotoDate(currentPhoto.createdTime, language)}</span>}
+        {status === "ready" && selectedPhoto && isDetailOpen && (
+          <div className="gallery-detail-overlay" role="dialog" aria-modal="true" aria-label={selectedPhoto.name || labels.galleryImageAlt}>
+            <div className="gallery-detail">
+              <button type="button" className="gallery-detail-close" onClick={() => setIsDetailOpen(false)} aria-label="Chiudi">
+                <X size={18} aria-hidden="true" />
+              </button>
+
+              <div className="gallery-photo-wrap">
+                <img src={selectedPhoto.imageUrl} alt={selectedPhoto.name || labels.galleryImageAlt} className="gallery-photo" />
+              </div>
+
+              <div className="gallery-meta">
+                <strong>{selectedIndex + 1} / {photos.length}</strong>
+                {selectedPhoto.guestName && <span>{selectedPhoto.guestName}</span>}
+                {selectedPhoto.createdTime && <span>{formatPhotoDate(selectedPhoto.createdTime, language)}</span>}
+                {selectedPhoto.name && <span>{selectedPhoto.name}</span>}
+              </div>
             </div>
           </div>
         )}
