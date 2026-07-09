@@ -222,8 +222,7 @@
 }
 
 .photos-photo-actions,
-.photos-camera-actions,
-.photos-actions {
+.photos-camera-actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -236,8 +235,7 @@
 
 .photos-permission-panel button,
 .photos-primary-button,
-.photos-secondary-button,
-.photos-actions a {
+.photos-secondary-button {
   min-height: 2.85rem;
   display: inline-flex;
   align-items: center;
@@ -259,9 +257,7 @@
   color: white;
 }
 
-.photos-secondary-button,
-.photos-secondary-action,
-.photos-secondary-action:visited {
+.photos-secondary-button {
   background: rgba(255, 255, 255, 0.64);
   color: var(--color-primary);
 }
@@ -278,9 +274,7 @@
 .photos-primary-button:not(:disabled):hover,
 .photos-primary-button:not(:disabled):focus-visible,
 .photos-secondary-button:not(:disabled):hover,
-.photos-secondary-button:not(:disabled):focus-visible,
-.photos-actions a:hover,
-.photos-actions a:focus-visible {
+.photos-secondary-button:not(:disabled):focus-visible {
   transform: translateY(-1px);
 }
 
@@ -347,10 +341,6 @@
   text-align: center;
 }
 
-.photos-actions {
-  margin-top: 1.25rem;
-}
-
 @keyframes photos-spin {
   to {
     transform: rotate(360deg);
@@ -389,8 +379,7 @@
   }
 
   .photos-photo-actions,
-  .photos-camera-actions,
-  .photos-actions {
+  .photos-camera-actions {
     display: grid;
     width: min(100%, 20rem);
   }

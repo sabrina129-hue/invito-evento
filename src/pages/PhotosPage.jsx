@@ -1,6 +1,5 @@
-import { ArrowLeft, Camera, CheckCircle, Loader2, RefreshCw, RotateCcw, Send, Trash2, Video } from "lucide-react";
+import { Camera, CheckCircle, Loader2, RefreshCw, RotateCcw, Send, Trash2, Video } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import "./PhotosPage.css";
 
 const PHOTO_QUALITY = 0.9;
@@ -384,12 +383,6 @@ export default function PhotosPage({ config }) {
           </div>
         )}
 
-        <div className="photos-actions">
-          <Link to="/" className="photos-secondary-action">
-            <ArrowLeft size={18} aria-hidden="true" />
-            {config.backLabel}
-          </Link>
-        </div>
       </section>
     </main>
   );

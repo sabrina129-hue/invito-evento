@@ -116,7 +116,7 @@ export const event = {
     subtitle: "Aiutateci a raccogliere i ricordi piu belli.",
     message: "Autorizzate la fotocamera, scattate una foto e inviatela agli sposi.",
     inviteText: "Condividete con noi le foto della giornata",
-    inviteLinkLabel: "Scatta una foto",
+    inviteLinkLabel: "Condividi una foto con gli sposi il giorno del matrimonio!",
     uploadEndpoint: "/api/photos",
     permissionTitle: "Usiamo la fotocamera?",
     permissionMessage: "Serve solo per scattare e inviare una foto agli sposi.",
