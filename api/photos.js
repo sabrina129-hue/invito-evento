@@ -61,8 +61,42 @@ const uploadViaWebhook = async ({ webhookUrl, secret, body }) => {
   return payload;
 };
 
+const postToWebhook = async ({ webhookUrl, secret, body }) => {
+  const response = await fetch(webhookUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ secret, ...body }),
+  });
+
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok || payload.success === false) {
+    throw new Error(payload.error || payload.details || "Operazione foto non riuscita");
+  }
+
+  return payload;
+};
+
+const normalizePhotoList = photos => photos
+  .filter(Boolean)
+  .map((photo, index) => {
+    const id = String(photo.id || photo.fileId || "").trim();
+    const imageUrl = id
+      ? `/api/photos?id=${encodeURIComponent(id)}`
+      : String(photo.url || photo.imageUrl || photo.thumbnailUrl || "").trim();
+
+    return {
+      id: id || `photo-${index}`,
+      imageUrl,
+      name: String(photo.name || photo.fileName || `Foto ${index + 1}`),
+      guestName: String(photo.guestName || photo.author || ""),
+      createdTime: String(photo.createdTime || photo.createdAt || photo.date || ""),
+    };
+  })
+  .filter(photo => photo.imageUrl);
+
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
+  if (req.method !== "GET" && req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
@@ -71,16 +105,55 @@ export default async function handler(req, res) {
 
   if (!webhookUrl) {
     return res.status(500).json({
-      error: "Configurazione upload foto mancante",
+      error: "Configurazione foto mancante",
       details: "Imposta PHOTO_UPLOAD_WEBHOOK_URL nelle Environment Variables.",
     });
   }
 
   if (!secret) {
     return res.status(500).json({
-      error: "Configurazione upload foto mancante",
+      error: "Configurazione foto mancante",
       details: "Imposta PHOTO_UPLOAD_SECRET con lo stesso valore della costante SECRET nello script Google.",
     });
+  }
+
+  if (req.method === "GET") {
+    try {
+      const fileId = String(req.query?.id || "").trim();
+
+      if (fileId) {
+        const payload = await postToWebhook({
+          webhookUrl,
+          secret,
+          body: { action: "get", fileId },
+        });
+        const mimeType = String(payload.mimeType || "image/jpeg");
+        const base64 = String(payload.base64 || "");
+
+        if (!base64) {
+          return res.status(404).json({ error: "Foto non trovata" });
+        }
+
+        const buffer = Buffer.from(base64, "base64");
+        res.setHeader("Content-Type", mimeType);
+        res.setHeader("Cache-Control", "public, max-age=300");
+        return res.status(200).send(buffer);
+      }
+
+      const payload = await postToWebhook({
+        webhookUrl,
+        secret,
+        body: { action: "list" },
+      });
+      const photos = normalizePhotoList(payload.photos || payload.files || []);
+
+      return res.status(200).json({ success: true, photos });
+    } catch (error) {
+      return res.status(500).json({
+        error: "Non siamo riusciti a caricare la galleria",
+        details: error.message,
+      });
+    }
   }
 
   const parsedImage = parseImagePayload(req.body);

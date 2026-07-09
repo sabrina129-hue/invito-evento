@@ -1,0 +1,215 @@
+.gallery-page {
+  width: 100vw;
+  box-sizing: border-box;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: clamp(1rem, 5vw, 3rem);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(127, 23, 31, 0.1), transparent 24rem),
+    var(--color-background);
+  color: var(--color-text);
+}
+
+.gallery-card {
+  width: min(100%, 42rem);
+  padding: clamp(1.8rem, 6vw, 3rem);
+  border-radius: var(--radius-card);
+  box-shadow: 0 1.5rem 4rem rgba(75, 13, 20, 0.14);
+  text-align: center;
+}
+
+.gallery-icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  display: inline-grid;
+  place-items: center;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(199, 154, 59, 0.32);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.58);
+  color: var(--color-primary);
+}
+
+.gallery-language-switch {
+  display: inline-flex;
+  gap: 0.25rem;
+  margin: 0 auto 1rem;
+  padding: 0.25rem;
+  border: 1px solid rgba(199, 154, 59, 0.34);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.gallery-language-switch button {
+  min-width: 4.3rem;
+  min-height: 2.1rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-primary);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 700;
+  padding: 0.35rem 0.75rem;
+}
+
+.gallery-language-switch button.is-active {
+  background: var(--color-primary);
+  color: white;
+}
+
+.gallery-title {
+  margin: 0 0 0.85rem;
+  color: var(--color-primary);
+  font-family: var(--font-title);
+  font-size: clamp(2.45rem, 9vw, 3.8rem);
+  font-weight: 400;
+  line-height: 0.95;
+}
+
+.gallery-copy {
+  max-width: 30rem;
+  margin: 0 auto;
+  color: #4b0d14;
+  font-family: var(--font-body);
+  font-size: 1.02rem;
+  font-weight: 700;
+}
+
+.gallery-state {
+  width: min(100%, 28rem);
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  margin: 1.5rem auto 0;
+  padding: 1.4rem;
+  border: 1px solid rgba(199, 154, 59, 0.3);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.72);
+  color: #4b0d14;
+  font-family: var(--font-body);
+  font-weight: 700;
+}
+
+.gallery-state svg {
+  color: var(--color-primary);
+}
+
+.gallery-state.is-loading svg {
+  animation: gallery-spin 0.9s linear infinite;
+}
+
+.gallery-state.is-error {
+  border-color: rgba(138, 31, 40, 0.42);
+  background: rgba(255, 232, 226, 0.94);
+  color: #8a1f28;
+}
+
+.gallery-viewer {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1.5rem;
+}
+
+.gallery-photo-wrap {
+  position: relative;
+  width: min(100%, 31rem);
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid rgba(199, 154, 59, 0.34);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 0.9rem 2rem rgba(75, 13, 20, 0.08);
+}
+
+.gallery-photo {
+  width: 100%;
+  max-height: min(62dvh, 40rem);
+  display: block;
+  object-fit: contain;
+}
+
+.gallery-nav {
+  position: absolute;
+  top: 50%;
+  width: 2.75rem;
+  height: 2.75rem;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid rgba(127, 23, 31, 0.2);
+  border-radius: 999px;
+  background: rgba(255, 248, 241, 0.86);
+  color: var(--color-primary);
+  transform: translateY(-50%);
+  box-shadow: 0 0.5rem 1.1rem rgba(75, 13, 20, 0.12);
+}
+
+.gallery-nav.is-prev {
+  left: 0.8rem;
+}
+
+.gallery-nav.is-next {
+  right: 0.8rem;
+}
+
+.gallery-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.45rem 0.75rem;
+  color: #4b0d14;
+  font-family: var(--font-body);
+  font-size: 0.96rem;
+  font-weight: 700;
+}
+
+.gallery-meta strong {
+  color: var(--color-primary);
+}
+
+.gallery-actions {
+  margin-top: 1.2rem;
+}
+
+.gallery-actions a,
+.gallery-state button {
+  min-height: 2.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.75rem 1.2rem;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-button);
+  background: var(--color-primary);
+  color: white;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+@keyframes gallery-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 520px) {
+  .gallery-page {
+    padding: 0.75rem;
+  }
+
+  .gallery-card {
+    padding: 1.35rem 1rem;
+  }
+
+  .gallery-title {
+    font-size: clamp(2.1rem, 12vw, 2.9rem);
+  }
+
+  .gallery-copy {
+    font-size: 0.92rem;
+  }
+}

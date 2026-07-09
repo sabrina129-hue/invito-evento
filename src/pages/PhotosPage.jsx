@@ -1,5 +1,7 @@
-import { Camera, CheckCircle, Loader2, RefreshCw, RotateCcw, Send, Trash2, Video } from "lucide-react";
+import { Camera, CheckCircle, Images, Loader2, RefreshCw, RotateCcw, Send, Trash2, Video } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { getPhotoLabels, getPhotoLanguage, getPhotoPath, PHOTO_LANGUAGES } from "./photoTranslations";
 import "./PhotosPage.css";
 
 const PHOTO_QUALITY = 0.9;
@@ -128,6 +130,9 @@ const cleanName = value => String(value || "")
   .slice(0, 52);
 
 export default function PhotosPage({ config }) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const language = getPhotoLanguage(searchParams);
+  const labels = getPhotoLabels(config, language);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const [photo, setPhoto] = useState(null);
@@ -171,7 +176,7 @@ export default function PhotosPage({ config }) {
       setStatus("camera");
     } catch {
       setStatus("camera-error");
-      setMessage(config.cameraErrorMessage);
+      setMessage(labels.cameraErrorMessage);
     }
   };
 
@@ -189,8 +194,8 @@ export default function PhotosPage({ config }) {
     try {
       const shotTime = new Date();
       const blob = await captureFrame(videoRef.current, {
-        title: config.frameTitle,
-        date: config.frameDate,
+        title: labels.frameTitle,
+        date: labels.frameDate,
         time: formatShotTime(shotTime),
       });
       const previewUrl = URL.createObjectURL(blob);
@@ -205,7 +210,7 @@ export default function PhotosPage({ config }) {
       setStatus("ready");
     } catch (error) {
       setStatus("camera");
-      setMessage(error.message || config.cameraErrorMessage);
+      setMessage(language === "pl" ? labels.cameraErrorMessage : error.message || labels.cameraErrorMessage);
     }
   };
 
@@ -224,7 +229,7 @@ export default function PhotosPage({ config }) {
     const safeGuestName = cleanName(guestName);
     if (!safeGuestName) {
       setStatus("ready");
-      setMessage(config.nameRequiredMessage);
+      setMessage(labels.nameRequiredMessage);
       return;
     }
 
@@ -246,19 +251,23 @@ export default function PhotosPage({ config }) {
       const payload = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(payload.error || config.errorMessage);
+        throw new Error(language === "pl" ? labels.errorMessage : payload.error || labels.errorMessage);
       }
 
       if (photo.previewUrl) {
         URL.revokeObjectURL(photo.previewUrl);
       }
       setPhoto(null);
-      setMessage(config.successMessage);
+      setMessage(labels.successMessage);
       await startCamera({ keepMessage: true });
     } catch (error) {
       setStatus("error");
-      setMessage(error.message || config.errorMessage);
+      setMessage(language === "pl" ? labels.errorMessage : error.message || labels.errorMessage);
     }
+  };
+
+  const switchLanguage = nextLanguage => {
+    setSearchParams(nextLanguage === "pl" ? { lang: "pl" } : {});
   };
 
   const hasPhoto = Boolean(photo);
@@ -269,25 +278,46 @@ export default function PhotosPage({ config }) {
   return (
     <main className="photos-page">
       <section className="photos-card invitation-card" aria-label="Foto del matrimonio">
+        <div className="photos-language-switch" aria-label="Lingua">
+          {Object.entries(PHOTO_LANGUAGES).map(([code, label]) => (
+            <button
+              type="button"
+              key={code}
+              className={language === code ? "is-active" : ""}
+              onClick={() => switchLanguage(code)}
+              aria-pressed={language === code}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         <div className="photos-icon" aria-hidden="true">
           <Camera size={26} />
         </div>
 
-        <h1 className="photos-title">{config.title}</h1>
+        <h1 className="photos-title">{labels.title}</h1>
 
         <div className="photos-copy">
-          {config.subtitle && <p>{config.subtitle}</p>}
-          {config.message && <p>{config.message}</p>}
+          {labels.subtitle && <p>{labels.subtitle}</p>}
+          {labels.message && <p>{labels.message}</p>}
+        </div>
+
+        <div className="photos-top-actions">
+          <Link to={getPhotoPath("/foto/galleria", language)} className="photos-secondary-button photos-link-button">
+            <Images size={18} aria-hidden="true" />
+            {labels.galleryButtonLabel}
+          </Link>
         </div>
 
         {showNameField && (
           <label className="photos-name-field">
-            <span>{config.nameLabel}</span>
+            <span>{labels.nameLabel}</span>
             <input
               type="text"
               value={guestName}
               onChange={event => setGuestName(event.target.value)}
-              placeholder={config.namePlaceholder}
+              placeholder={labels.namePlaceholder}
               autoComplete="name"
             />
           </label>
@@ -298,11 +328,11 @@ export default function PhotosPage({ config }) {
             <div className="photos-permission-icon" aria-hidden="true">
               <Video size={28} />
             </div>
-            <h2 id="photos-permission-title">{config.permissionTitle}</h2>
-            <p>{config.permissionMessage}</p>
+            <h2 id="photos-permission-title">{labels.permissionTitle}</h2>
+            <p>{labels.permissionMessage}</p>
             <button type="button" onClick={() => startCamera()}>
               <Camera size={18} aria-hidden="true" />
-              {config.permissionLabel}
+              {labels.permissionLabel}
             </button>
           </div>
         )}
@@ -312,13 +342,13 @@ export default function PhotosPage({ config }) {
             <div className="photos-camera-frame">
               <video ref={videoRef} className="photos-video" playsInline muted autoPlay />
               <div className="photos-live-frame" aria-hidden="true">
-                <span>{config.frameTitle}</span>
-                <strong>{config.frameDate}</strong>
+                <span>{labels.frameTitle}</span>
+                <strong>{labels.frameDate}</strong>
               </div>
               {status === "opening" && (
                 <div className="photos-camera-overlay">
                   <Loader2 size={22} aria-hidden="true" />
-                  {config.permissionLabel}
+                  {labels.permissionLabel}
                 </div>
               )}
             </div>
@@ -331,7 +361,7 @@ export default function PhotosPage({ config }) {
             <div className="photos-camera-actions">
               <button type="button" onClick={switchCamera} disabled={isBusy} className="photos-secondary-button">
                 <RefreshCw size={18} aria-hidden="true" />
-                {config.switchCameraLabel}
+                {labels.switchCameraLabel}
               </button>
               <button
                 type="button"
@@ -340,7 +370,7 @@ export default function PhotosPage({ config }) {
                 className={`photos-primary-button ${status === "preparing" ? "is-loading" : ""}`}
               >
                 {status === "preparing" ? <Loader2 size={18} aria-hidden="true" /> : <Camera size={18} aria-hidden="true" />}
-                {status === "preparing" ? config.preparingLabel : config.cameraLabel}
+                {status === "preparing" ? labels.preparingLabel : labels.cameraLabel}
               </button>
             </div>
           </div>
@@ -352,7 +382,7 @@ export default function PhotosPage({ config }) {
             <div className="photos-photo-actions">
               <button type="button" onClick={clearPhoto} disabled={isBusy} className="photos-secondary-button">
                 <Trash2 size={18} aria-hidden="true" />
-                {config.deleteLabel}
+                {labels.deleteLabel}
               </button>
               <button
                 type="button"
@@ -361,12 +391,12 @@ export default function PhotosPage({ config }) {
                 className={`photos-primary-button ${status === "sending" ? "is-loading" : ""}`}
               >
                 {status === "sending" ? <Loader2 size={18} aria-hidden="true" /> : <Send size={18} aria-hidden="true" />}
-                {status === "sending" ? config.sendingLabel : config.sendLabel}
+                {status === "sending" ? labels.sendingLabel : labels.sendLabel}
               </button>
             </div>
             <button type="button" onClick={clearPhoto} disabled={isBusy} className="photos-text-button">
               <RotateCcw size={16} aria-hidden="true" />
-              {config.retakeLabel}
+              {labels.retakeLabel}
             </button>
           </div>
         )}
@@ -377,7 +407,7 @@ export default function PhotosPage({ config }) {
             {status === "camera-error" && (
               <button type="button" onClick={() => startCamera()} className="photos-secondary-button">
                 <RotateCcw size={18} aria-hidden="true" />
-                {config.retryCameraLabel}
+                {labels.retryCameraLabel}
               </button>
             )}
           </div>

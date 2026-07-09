@@ -33,6 +33,34 @@
   margin-bottom: 1rem;
 }
 
+.photos-language-switch {
+  display: inline-flex;
+  gap: 0.25rem;
+  margin: 0 auto 1rem;
+  padding: 0.25rem;
+  border: 1px solid rgba(199, 154, 59, 0.34);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.photos-language-switch button {
+  min-width: 4.3rem;
+  min-height: 2.1rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-primary);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 700;
+  padding: 0.35rem 0.75rem;
+}
+
+.photos-language-switch button.is-active {
+  background: var(--color-primary);
+  color: white;
+}
+
 .photos-title {
   margin: 0 0 1rem;
   color: var(--color-primary);
@@ -55,6 +83,12 @@
   font-family: var(--font-body);
   font-size: 1.02rem;
   font-weight: 700;
+}
+
+.photos-top-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.1rem;
 }
 
 .photos-name-field {
@@ -235,7 +269,8 @@
 
 .photos-permission-panel button,
 .photos-primary-button,
-.photos-secondary-button {
+.photos-secondary-button,
+.photos-link-button {
   min-height: 2.85rem;
   display: inline-flex;
   align-items: center;
@@ -262,6 +297,12 @@
   color: var(--color-primary);
 }
 
+.photos-link-button,
+.photos-link-button:visited {
+  background: rgba(255, 255, 255, 0.64);
+  color: var(--color-primary);
+}
+
 .photos-permission-panel button:disabled,
 .photos-primary-button:disabled,
 .photos-secondary-button:disabled {
@@ -274,7 +315,9 @@
 .photos-primary-button:not(:disabled):hover,
 .photos-primary-button:not(:disabled):focus-visible,
 .photos-secondary-button:not(:disabled):hover,
-.photos-secondary-button:not(:disabled):focus-visible {
+.photos-secondary-button:not(:disabled):focus-visible,
+.photos-link-button:hover,
+.photos-link-button:focus-visible {
   transform: translateY(-1px);
 }
 

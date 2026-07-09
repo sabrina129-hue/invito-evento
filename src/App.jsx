@@ -7,6 +7,7 @@ import Admin from "./pages/Admin.jsx";
 import TablePlanner from "./pages/TablePlanner.jsx";
 import GiftPage from "./pages/GiftPage.jsx";
 import PhotosPage from "./pages/PhotosPage.jsx";
+import PhotosGalleryPage from "./pages/PhotosGalleryPage.jsx";
 import { HashRouter, Link, Routes, Route } from "react-router-dom";
 import AdminLogin from "./pages/AdminLogin.jsx";
 import { useEffect, useState } from "react";
@@ -76,6 +77,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/regalo" element={<GiftPage config={event.gift} />} />
         <Route path="/foto" element={<PhotosPage config={event.photos} />} />
+        <Route path="/foto/galleria" element={<PhotosGalleryPage config={event.photos} />} />
         <Route path="/admin" element={<AdminProtected />} />
         <Route path="/admin/tavoli" element={<AdminProtected page="tables" />} />
       </Routes>
