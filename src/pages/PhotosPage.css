@@ -160,12 +160,11 @@
   justify-content: flex-end;
   gap: 0.08rem;
   box-sizing: border-box;
-  padding: 0.7rem 1rem;
-  border: 0.55rem solid rgba(127, 23, 31, 0.94);
-  border-block-width: 3.35rem;
+  padding: 0;
+  border: 0;
   box-shadow:
-    inset 0 0 0 0.18rem rgba(199, 154, 59, 0.92),
-    inset 0 0 0 3rem rgba(255, 248, 241, 0.12);
+    inset 0 0 0 0.55rem rgba(127, 23, 31, 0.94),
+    inset 0 0 0 0.72rem rgba(199, 154, 59, 0.9);
   color: var(--color-primary);
   font-family: Georgia, "Times New Roman", serif;
   font-size: clamp(1rem, 3.6vw, 1.45rem);
@@ -181,8 +180,10 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(to bottom, rgba(255, 248, 241, 0.94) 0 3.35rem, transparent 3.35rem),
-    linear-gradient(to top, rgba(255, 248, 241, 0.94) 0 3.35rem, transparent 3.35rem);
+    linear-gradient(to bottom, rgba(255, 248, 241, 0.96) 0 3.65rem, transparent 3.65rem),
+    linear-gradient(to top, rgba(255, 248, 241, 0.96) 0 3.45rem, transparent 3.45rem),
+    linear-gradient(to right, rgba(127, 23, 31, 0.94) 0 0.55rem, transparent 0.55rem),
+    linear-gradient(to left, rgba(127, 23, 31, 0.94) 0 0.55rem, transparent 0.55rem);
   pointer-events: none;
 }
 
@@ -198,12 +199,12 @@
 
 .photos-live-frame span {
   position: absolute;
-  top: -2.32rem;
+  top: 1.12rem;
 }
 
 .photos-live-frame strong {
   position: absolute;
-  bottom: -2.18rem;
+  bottom: 1.08rem;
   color: #9f7626;
   font-size: 0.78em;
 }
