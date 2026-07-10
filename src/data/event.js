@@ -103,7 +103,7 @@ export const event = {
     inviteText: "Per chi desidera farci un pensiero",
     inviteLinkLabel: "Vai alla pagina regalo",
     holderLabel: "Intestatario",
-    holder: "Angelo e Luigia",
+    holder: "De Feo Angelo De Vita Luigia",
     ibanLabel: "IBAN",
     iban: "IT62U0538715100000004502727",
     copyLabel: "Copia IBAN",
