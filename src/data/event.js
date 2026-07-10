@@ -113,7 +113,7 @@ export const event = {
     holderLabel: "Odbiorca",
     holder: "Angelo e Luigia",
     ibanLabel: "IBAN",
-    iban: "IT 000000000000000000000000",
+    iban: "IT62U0538715100000004502727",
     copyLabel: "Kopiuj IBAN",
     copiedLabel: "IBAN skopiowany",
     backLabel: "Wróć do zaproszenia",
