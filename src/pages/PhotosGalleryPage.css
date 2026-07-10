@@ -15,9 +15,14 @@
   position: relative;
   width: min(100%, 42rem);
   padding: clamp(1.8rem, 6vw, 3rem);
+  overflow: hidden;
   border-radius: var(--radius-card);
   box-shadow: 0 1.5rem 4rem rgba(75, 13, 20, 0.14);
   text-align: center;
+}
+
+.gallery-card::before {
+  border-radius: inherit;
 }
 
 .gallery-icon {
