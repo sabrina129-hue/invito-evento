@@ -1,4 +1,4 @@
-import { Camera, Images, Loader2, RefreshCw, X } from "lucide-react";
+import { Camera, ChevronLeft, ChevronRight, Images, Loader2, RefreshCw, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, useSearchParams } from "react-router-dom";
@@ -65,9 +65,38 @@ export default function PhotosGalleryPage({ config }) {
     setSelectedIndex(index);
     setIsDetailOpen(true);
   };
+  const showPreviousPhoto = useCallback(() => {
+    setSelectedIndex(currentIndex => (
+      photos.length ? (currentIndex - 1 + photos.length) % photos.length : currentIndex
+    ));
+  }, [photos.length]);
+  const showNextPhoto = useCallback(() => {
+    setSelectedIndex(currentIndex => (
+      photos.length ? (currentIndex + 1) % photos.length : currentIndex
+    ));
+  }, [photos.length]);
   const switchLanguage = nextLanguage => {
     setSearchParams(nextLanguage === "pl" ? { lang: "pl" } : {});
   };
+
+  useEffect(() => {
+    if (!isDetailOpen) return undefined;
+
+    const handleKeyDown = event => {
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        showPreviousPhoto();
+      }
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        showNextPhoto();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isDetailOpen, showNextPhoto, showPreviousPhoto]);
 
   return (
     <main className="gallery-page">
@@ -143,7 +172,27 @@ export default function PhotosGalleryPage({ config }) {
               </button>
 
               <div className="gallery-photo-wrap">
+                {photos.length > 1 && (
+                  <button
+                    type="button"
+                    className="gallery-detail-nav is-prev"
+                    onClick={showPreviousPhoto}
+                    aria-label={labels.galleryPreviousLabel}
+                  >
+                    <ChevronLeft size={26} aria-hidden="true" />
+                  </button>
+                )}
                 <img src={selectedPhoto.imageUrl} alt={selectedPhoto.name || labels.galleryImageAlt} className="gallery-photo" />
+                {photos.length > 1 && (
+                  <button
+                    type="button"
+                    className="gallery-detail-nav is-next"
+                    onClick={showNextPhoto}
+                    aria-label={labels.galleryNextLabel}
+                  >
+                    <ChevronRight size={26} aria-hidden="true" />
+                  </button>
+                )}
               </div>
 
               <div className="gallery-meta">
