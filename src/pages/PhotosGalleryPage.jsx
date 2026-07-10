@@ -2,6 +2,8 @@ import { Camera, ChevronLeft, ChevronRight, Images, Loader2, RefreshCw, X } from
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, useSearchParams } from "react-router-dom";
+import PhotoAccessGate from "./PhotoAccessGate";
+import { usePhotoAccess } from "./photoAccess";
 import { getPhotoLabels, getPhotoLanguage, getPhotoPath, PHOTO_LANGUAGES } from "./photoTranslations";
 import "./PhotosGalleryPage.css";
 
@@ -26,6 +28,7 @@ export default function PhotosGalleryPage({ config }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const language = getPhotoLanguage(searchParams);
   const labels = getPhotoLabels(config, language);
+  const photoAccess = usePhotoAccess(config.availableFrom);
   const [photos, setPhotos] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -57,8 +60,9 @@ export default function PhotosGalleryPage({ config }) {
   }, [galleryEndpoint, labels.galleryErrorMessage, language]);
 
   useEffect(() => {
+    if (photoAccess.isLocked) return;
     loadGallery();
-  }, [loadGallery]);
+  }, [loadGallery, photoAccess.isLocked]);
 
   const selectedPhoto = photos[selectedIndex];
   const openPhoto = index => {
@@ -97,6 +101,20 @@ export default function PhotosGalleryPage({ config }) {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isDetailOpen, showNextPhoto, showPreviousPhoto]);
+
+  if (photoAccess.isLocked) {
+    return (
+      <PhotoAccessGate
+        availableAt={photoAccess.availableAt}
+        cardClassName="gallery-card invitation-card"
+        labels={labels}
+        language={language}
+        languageSwitchClassName="gallery-language-switch"
+        onSwitchLanguage={switchLanguage}
+        pageClassName="gallery-page"
+      />
+    );
+  }
 
   return (
     <main className="gallery-page">

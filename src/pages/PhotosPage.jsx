@@ -1,6 +1,8 @@
 import { Camera, CheckCircle, Images, Loader2, RefreshCw, RotateCcw, Send, Trash2, Video } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import PhotoAccessGate from "./PhotoAccessGate";
+import { usePhotoAccess } from "./photoAccess";
 import { getPhotoLabels, getPhotoLanguage, getPhotoPath, PHOTO_LANGUAGES } from "./photoTranslations";
 import "./PhotosPage.css";
 
@@ -143,6 +145,7 @@ export default function PhotosPage({ config }) {
   const labels = getPhotoLabels(config, language);
   const frameTitle = config.frameTitle || labels.frameTitle;
   const frameDate = config.frameDate || labels.frameDate;
+  const photoAccess = usePhotoAccess(config.availableFrom);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const nameInputRef = useRef(null);
@@ -298,10 +301,25 @@ export default function PhotosPage({ config }) {
     setSearchParams(nextLanguage === "pl" ? { lang: "pl" } : {});
   };
 
+  if (photoAccess.isLocked) {
+    return (
+      <PhotoAccessGate
+        availableAt={photoAccess.availableAt}
+        cardClassName="photos-card invitation-card"
+        labels={labels}
+        language={language}
+        languageSwitchClassName="photos-language-switch"
+        onSwitchLanguage={switchLanguage}
+        pageClassName="photos-page"
+      />
+    );
+  }
+
   const hasPhoto = Boolean(photo);
   const isBusy = status === "opening" || status === "preparing" || status === "sending";
   const showCamera = status === "opening" || status === "camera" || status === "preparing";
   const showNameField = status !== "success";
+  const errorPanelMessage = status === "camera-error" ? labels.cameraErrorMessage : message;
 
   return (
     <main className="photos-page">
@@ -435,9 +453,9 @@ export default function PhotosPage({ config }) {
           </div>
         )}
 
-        {(status === "camera-error" || status === "error" || (status === "ready" && message)) && message && (
+        {(status === "camera-error" || status === "error" || (status === "ready" && message)) && errorPanelMessage && (
           <div className="photos-error-panel">
-            <p className="photos-status is-error">{message}</p>
+            <p className="photos-status is-error">{errorPanelMessage}</p>
             {status === "camera-error" && (
               <button type="button" onClick={() => startCamera()} className="photos-secondary-button">
                 <RotateCcw size={18} aria-hidden="true" />

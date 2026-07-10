@@ -1,0 +1,74 @@
+.photo-access-card {
+  overflow: hidden;
+}
+
+.photo-access-card::before {
+  border-radius: inherit;
+}
+
+.photo-access-icon {
+  width: 3.7rem;
+  height: 3.7rem;
+  display: inline-grid;
+  place-items: center;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(199, 154, 59, 0.32);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.58);
+  color: var(--color-primary);
+}
+
+.photo-access-title {
+  margin: 0 0 0.9rem;
+  color: var(--color-primary);
+  font-family: var(--font-title);
+  font-size: clamp(2.3rem, 9vw, 3.6rem);
+  font-weight: 400;
+  line-height: 0.95;
+}
+
+.photo-access-message {
+  max-width: 28rem;
+  margin: 0 auto;
+  color: #4b0d14;
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.photo-access-date {
+  width: min(100%, 24rem);
+  display: grid;
+  gap: 0.35rem;
+  margin: 1.3rem auto 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(199, 154, 59, 0.34);
+  border-radius: 0.95rem;
+  background: rgba(255, 255, 255, 0.7);
+  color: #4b0d14;
+  font-family: var(--font-body);
+  box-shadow: 0 0.8rem 1.7rem rgba(75, 13, 20, 0.08);
+}
+
+.photo-access-date span {
+  color: rgba(75, 13, 20, 0.72);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.photo-access-date strong {
+  color: var(--color-primary);
+  font-size: 1.18rem;
+  line-height: 1.25;
+}
+
+@media (max-width: 520px) {
+  .photo-access-title {
+    font-size: clamp(2.05rem, 12vw, 2.8rem);
+  }
+
+  .photo-access-message {
+    font-size: 0.96rem;
+  }
+}
