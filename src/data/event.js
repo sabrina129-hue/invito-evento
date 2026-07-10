@@ -111,7 +111,7 @@ export const event = {
     inviteText: "Dla tych, którzy chcą podarować nam prezent",
     inviteLinkLabel: "Przejdź do strony z prezentem",
     holderLabel: "Odbiorca",
-    holder: "Angelo e Luigia",
+    holder: "De Feo Angelo De Vita Luigia",
     ibanLabel: "IBAN",
     iban: "IT62U0538715100000004502727",
     copyLabel: "Kopiuj IBAN",
