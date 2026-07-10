@@ -143,10 +143,12 @@ export default function PhotosPage({ config }) {
   const labels = getPhotoLabels(config, language);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+  const nameInputRef = useRef(null);
   const [photo, setPhoto] = useState(null);
   const [status, setStatus] = useState("permission");
   const [message, setMessage] = useState("");
   const [guestName, setGuestName] = useState("");
+  const [nameError, setNameError] = useState("");
   const [facingMode, setFacingMode] = useState("environment");
   const uploadEndpoint = config.uploadEndpoint || DEFAULT_PHOTO_ENDPOINT;
 
@@ -158,6 +160,12 @@ export default function PhotosPage({ config }) {
   useEffect(() => () => {
     stopCamera();
   }, []);
+
+  useEffect(() => {
+    if (nameError && nameError !== labels.nameRequiredMessage) {
+      setNameError(labels.nameRequiredMessage);
+    }
+  }, [labels.nameRequiredMessage, nameError]);
 
   const startCamera = async ({ nextFacingMode = facingMode, keepMessage = false } = {}) => {
     setStatus("opening");
@@ -231,6 +239,7 @@ export default function PhotosPage({ config }) {
     }
     setPhoto(null);
     setMessage("");
+    setNameError("");
     startCamera();
   };
 
@@ -240,12 +249,18 @@ export default function PhotosPage({ config }) {
     const safeGuestName = cleanName(guestName);
     if (!safeGuestName) {
       setStatus("ready");
-      setMessage(labels.nameRequiredMessage);
+      setMessage("");
+      setNameError(labels.nameRequiredMessage);
+      window.requestAnimationFrame(() => {
+        nameInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        nameInputRef.current?.focus({ preventScroll: true });
+      });
       return;
     }
 
     setStatus("sending");
     setMessage("");
+    setNameError("");
 
     try {
       const stamp = new Date().toISOString().replace(/[:.]/g, "-");
@@ -315,15 +330,28 @@ export default function PhotosPage({ config }) {
         </div>
 
         {showNameField && (
-          <label className="photos-name-field">
+          <label className={`photos-name-field ${nameError ? "is-invalid" : ""}`}>
             <span>{labels.nameLabel}</span>
             <input
+              ref={nameInputRef}
               type="text"
               value={guestName}
-              onChange={event => setGuestName(event.target.value)}
+              onChange={event => {
+                setGuestName(event.target.value);
+                if (nameError) {
+                  setNameError("");
+                }
+              }}
               placeholder={labels.namePlaceholder}
               autoComplete="name"
+              aria-invalid={Boolean(nameError)}
+              aria-describedby={nameError ? "photos-name-error" : undefined}
             />
+            {nameError && (
+              <strong id="photos-name-error" className="photos-name-error">
+                {nameError}
+              </strong>
+            )}
           </label>
         )}
 
