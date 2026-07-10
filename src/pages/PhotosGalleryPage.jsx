@@ -22,10 +22,24 @@ const formatPhotoDate = (value, language) => {
   }).format(date);
 };
 
+const formatPhotoTime = value => {
+  if (!value) return "";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return new Intl.DateTimeFormat("it-IT", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+};
+
 export default function PhotosGalleryPage({ config }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const language = getPhotoLanguage(searchParams);
   const labels = getPhotoLabels(config, language);
+  const frameTitle = config.frameTitle || labels.frameTitle;
+  const frameDate = config.frameDate || labels.frameDate;
   const [photos, setPhotos] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -97,6 +111,9 @@ export default function PhotosGalleryPage({ config }) {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isDetailOpen, showNextPhoto, showPreviousPhoto]);
+
+  const selectedPhotoFrameTime = formatPhotoTime(selectedPhoto?.createdTime);
+  const selectedPhotoFrameDate = [frameDate, selectedPhotoFrameTime].filter(Boolean).join(" - ");
 
   return (
     <main className="gallery-page">
@@ -183,6 +200,10 @@ export default function PhotosGalleryPage({ config }) {
                   </button>
                 )}
                 <img src={selectedPhoto.imageUrl} alt={selectedPhoto.name || labels.galleryImageAlt} className="gallery-photo" />
+                <div className="gallery-display-frame" aria-hidden="true">
+                  <span>{frameTitle}</span>
+                  <strong>{selectedPhotoFrameDate}</strong>
+                </div>
                 {photos.length > 1 && (
                   <button
                     type="button"

@@ -141,6 +141,8 @@ export default function PhotosPage({ config }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const language = getPhotoLanguage(searchParams);
   const labels = getPhotoLabels(config, language);
+  const frameTitle = config.frameTitle || labels.frameTitle;
+  const frameDate = config.frameDate || labels.frameDate;
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const nameInputRef = useRef(null);
@@ -211,8 +213,8 @@ export default function PhotosPage({ config }) {
     try {
       const shotTime = new Date();
       const blob = await captureFrame(videoRef.current, {
-        title: labels.frameTitle,
-        date: labels.frameDate,
+        title: frameTitle,
+        date: frameDate,
         time: formatShotTime(shotTime),
       }, {
         mirrorSource: facingMode === "user",
@@ -374,8 +376,8 @@ export default function PhotosPage({ config }) {
             <div className="photos-camera-frame">
               <video ref={videoRef} className="photos-video" playsInline muted autoPlay />
               <div className="photos-live-frame" aria-hidden="true">
-                <span>{labels.frameTitle}</span>
-                <strong>{labels.frameDate}</strong>
+                <span>{frameTitle}</span>
+                <strong>{frameDate}</strong>
               </div>
               {status === "opening" && (
                 <div className="photos-camera-overlay">
