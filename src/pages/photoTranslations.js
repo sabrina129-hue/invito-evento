@@ -35,8 +35,6 @@ const polishLabels = {
   errorMessage: "Nie udało się przesłać zdjęcia. Spróbuj ponownie za chwilę.",
   cameraErrorMessage: "Nie udało się uruchomić aparatu. Sprawdź uprawnienia przeglądarki i spróbuj ponownie.",
   preparingLabel: "Przygotowywanie zdjęcia...",
-  frameTitle: "Angelo & Luigia dziś nowożeńcy",
-  frameDate: "20 grudnia 2026",
 };
 
 export const getPhotoLabels = (config, language) => ({
