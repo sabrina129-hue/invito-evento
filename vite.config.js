@@ -4,7 +4,11 @@ import react from '@vitejs/plugin-react'
 import { event } from './src/data/event.js'
 
 const apiRoutes = {
+  '/api/admin-login': () => import('./api/admin-login.js'),
+  '/api/rsvps': () => import('./api/rsvps.js'),
   '/api/rsvp': () => import('./api/rsvp.js'),
+  '/api/photos': () => import('./api/photos.js'),
+  '/api/env-check': () => import('./api/env-check.js'),
 }
 
 function htmlMetaPlugin() {

@@ -3,11 +3,23 @@ import EventInfo from "./components/EventInfo";
 import RSVP from "./components/RSVP";
 import EnvelopeIntro from "./components/EnvelopeIntro";
 import { event } from "./data/event";
+import Admin from "./pages/Admin.jsx";
+import TablePlanner from "./pages/TablePlanner.jsx";
 import GiftPage from "./pages/GiftPage.jsx";
+import PhotosPage from "./pages/PhotosPage.jsx";
+import PhotosGalleryPage from "./pages/PhotosGalleryPage.jsx";
+import { getPhotoLabels, normalizePhotoLanguage } from "./pages/photoTranslations.js";
 import { HashRouter, Link, Routes, Route } from "react-router-dom";
-import { useEffect } from "react";
+import AdminLogin from "./pages/AdminLogin.jsx";
+import { useEffect, useState } from "react";
+import { Camera, Gift } from "lucide-react";
 
 function Home() {
+  const photoLabels = getPhotoLabels(
+    event.photos,
+    normalizePhotoLanguage(event.photos.defaultLanguage),
+  );
+
   useEffect(() => {
     [
       "/images/sfondo-stelle-natale-beige-sfoltito.png",
@@ -28,10 +40,14 @@ function Home() {
 
         <div className="invitation-body p-8 pt-6 font-body text-center space-y-8">
           <EventInfo event={event.content} />
-          <section className="section gift-invite-section" aria-label="Prezent dla pary mlodej">
-            <p className="text-body">{event.gift.inviteText}</p>
-            <Link to="/regalo" className="btn gift-invite-link">
-              {event.gift.inviteLinkLabel}
+          <section className="section invitation-action-strip" aria-label={event.content.actionStripLabel || "Foto e regalo"}>
+            <Link to="/foto" className="invitation-action-link">
+              <Camera size={18} aria-hidden="true" />
+              <span>{photoLabels.inviteLinkLabel}</span>
+            </Link>
+            <Link to="/regalo" className="invitation-action-link">
+              <Gift size={18} aria-hidden="true" />
+              <span>{event.gift.inviteLinkLabel}</span>
             </Link>
           </section>
           <RSVP config={event.rsvp} />
@@ -41,13 +57,35 @@ function Home() {
   );
 }
 
+function AdminProtected({ page = "list" }) {
+  const [ok, setOk] = useState(() => !!localStorage.getItem("adminToken"));
+
+  if (!ok) {
+    return <AdminLogin labels={event.admin} onLogin={() => setOk(true)} />;
+  }
+
+  return page === "tables" ? (
+    <TablePlanner />
+  ) : (
+    <Admin
+      labels={event.admin}
+      foodPreferenceOptions={event.rsvp.foodPreferencesOptions}
+      onLogout={() => setOk(false)}
+    />
+  );
+}
+
+// Pagina web per mostrare all'organizzatore le risposte all'invito
 export default function App() {
   return (
     <HashRouter>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/regalo" element={<GiftPage config={event.gift} />} />
-        <Route path="*" element={<Home />} />
+        <Route path="/foto" element={<PhotosPage config={event.photos} />} />
+        <Route path="/foto/galleria" element={<PhotosGalleryPage config={event.photos} />} />
+        <Route path="/admin" element={<AdminProtected />} />
+        <Route path="/admin/tavoli" element={<AdminProtected page="tables" />} />
       </Routes>
     </HashRouter>
   );

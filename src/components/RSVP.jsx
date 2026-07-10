@@ -3,9 +3,28 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, X } from "lucide-react";
 
+import { notifyRsvpDataChanged } from "../lib/rsvpSync.js";
+
 const MotionDiv = motion.div;
+const foodPreferenceMenuOptions = ["Menu bambino", "Menu vegetariano", "Menu vegano"];
+const noFoodPreferenceOption = "Nessuna intolleranza/preferenza alimentare";
+const requiredFieldMessage = "Compila questo campo";
 
 const normalizeGuests = guests => Math.max(1, Number(guests) || 1);
+
+const isNoFoodPreferenceOption = option =>
+  String(option || "").trim().toLowerCase() === noFoodPreferenceOption.toLowerCase();
+
+const normalizeFoodPreferenceItems = items => {
+  const normalized = (Array.isArray(items) ? items : [])
+    .map(item => String(item || "").trim())
+    .filter(Boolean)
+    .map(item => (isNoFoodPreferenceOption(item) ? noFoodPreferenceOption : item));
+
+  return normalized.some(isNoFoodPreferenceOption)
+    ? [noFoodPreferenceOption]
+    : normalized;
+};
 
 const emptyFoodPreferences = guests =>
   Array.from({ length: normalizeGuests(guests) }, () => []);
@@ -32,23 +51,19 @@ const resizeFoodPreferences = (preferences, guests) => {
 
 const formatFoodPreferences = (preferences, personLabel = "Persona") => {
   if (preferences.length <= 1) {
-    return (preferences[0] || []).join(", ");
+    return normalizeFoodPreferenceItems(preferences[0] || []).join(", ");
   }
 
   return preferences
-    .map((items, index) => `${personLabel} ${index + 1}: ${items.length ? items.join(", ") : "-"}`)
+    .map((items, index) => {
+      const normalizedItems = normalizeFoodPreferenceItems(items);
+
+      return `${personLabel} ${index + 1}: ${normalizedItems.length ? normalizedItems.join(", ") : "-"}`;
+    })
     .join(" | ");
 };
 
 export default function RSVP({ config }) {
-  const requiredFieldMessage = config.requiredMessage || "Compila questo campo";
-  const personLabel = config.personLabel || "Persona";
-  const foodPreferenceMenuOptionCount = config.foodPreferenceMenuOptionCount ?? 3;
-  const foodPreferenceMenuGroupLabel = config.foodPreferenceMenuGroupLabel || "Preferenze alimentari";
-  const foodPreferenceAllergyGroupLabel = config.foodPreferenceAllergyGroupLabel || "Intolleranze";
-  const noPreferenceLabel = config.noPreferenceLabel || "Nessuna preferenza";
-  const removeGuestLabel = config.removeGuestLabel || "Rimuovi";
-  const primaryGuestInfoMessage = config.primaryGuestInfoMessage || "Questo campo si compila automaticamente con il Nome e Cognome inserito nella casella in alto.";
   const [form, setForm] = useState({ name: "", guests: 1, attending: true, foodPreferences: emptyFoodPreferences(1), guestNames: resizeGuestNames([], 1), notes: "" });
   const [foodMenuOpen, setFoodMenuOpen] = useState(null);
   const [primaryGuestInfoVisible, setPrimaryGuestInfoVisible] = useState(false);
@@ -56,6 +71,16 @@ export default function RSVP({ config }) {
   const [showSuccess, setShowSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const requiredMessage = config.requiredMessage || requiredFieldMessage;
+  const foodMenuOptions = Array.isArray(config.foodPreferenceMenuOptions) && config.foodPreferenceMenuOptions.length
+    ? config.foodPreferenceMenuOptions
+    : config.foodPreferencesOptions.slice(0, foodPreferenceMenuOptions.length);
+  const foodMenuGroupLabel = config.foodPreferenceMenuGroupLabel || "Preferenze alimentari";
+  const foodAllergyGroupLabel = config.foodPreferenceAllergyGroupLabel || "Intolleranze";
+  const noPreferenceLabel = config.noPreferenceLabel || "Nessuna preferenza";
+  const personLabel = config.personLabel || "Persona";
+  const removeGuestLabel = config.removeGuestLabel || "Rimuovi";
+  const primaryGuestInfoMessage = config.primaryGuestInfoMessage || "Questo campo si compila automaticamente con il Nome e Cognome inserito nella casella in alto.";
 
   useEffect(() => {
     if (foodMenuOpen === null) return undefined;
@@ -184,12 +209,19 @@ export default function RSVP({ config }) {
   const toggleFoodPreference = (guestIndex, option) => {
     setForm(prev => {
       const foodPreferences = resizeFoodPreferences(prev.foodPreferences, prev.guests);
-      const guestPreferences = foodPreferences[guestIndex] || [];
+      const guestPreferences = normalizeFoodPreferenceItems(foodPreferences[guestIndex] || []);
       const selected = guestPreferences.includes(option);
 
-      foodPreferences[guestIndex] = selected
-        ? guestPreferences.filter(item => item !== option)
-        : [...guestPreferences, option];
+      if (selected) {
+        foodPreferences[guestIndex] = guestPreferences.filter(item => item !== option);
+      } else if (isNoFoodPreferenceOption(option)) {
+        foodPreferences[guestIndex] = [noFoodPreferenceOption];
+      } else {
+        foodPreferences[guestIndex] = [
+          ...guestPreferences.filter(item => !isNoFoodPreferenceOption(item)),
+          option,
+        ];
+      }
 
       return { ...prev, foodPreferences };
     });
@@ -198,13 +230,15 @@ export default function RSVP({ config }) {
   const renderFoodPreferenceOptions = (guestPreferences, guestIndex) => {
     let currentGroup = "";
 
-    return config.foodPreferencesOptions.flatMap((option, optionIndex) => {
-      const group = optionIndex < foodPreferenceMenuOptionCount
-        ? foodPreferenceMenuGroupLabel
-        : foodPreferenceAllergyGroupLabel;
+    return config.foodPreferencesOptions.flatMap(option => {
+      const group = isNoFoodPreferenceOption(option)
+        ? ""
+        : foodMenuOptions.includes(option)
+        ? foodMenuGroupLabel
+        : foodAllergyGroupLabel;
       const items = [];
 
-      if (group !== currentGroup) {
+      if (group && group !== currentGroup) {
         currentGroup = group;
         items.push(
           <div
@@ -245,7 +279,7 @@ export default function RSVP({ config }) {
 
       if (form.attending && !form.name.trim()) {
         setPrimaryGuestInfoVisible(false);
-        setFieldError({ field: "name", message: requiredFieldMessage });
+        setFieldError({ field: "name", message: requiredMessage });
         setSubmitting(false);
         return;
       }
@@ -253,7 +287,7 @@ export default function RSVP({ config }) {
       if (form.attending && completeGuestNames.some(name => !name)) {
         const emptyGuestIndex = completeGuestNames.findIndex(name => !name);
         setPrimaryGuestInfoVisible(false);
-        setFieldError({ field: `guest-${emptyGuestIndex}`, message: requiredFieldMessage });
+        setFieldError({ field: `guest-${emptyGuestIndex}`, message: requiredMessage });
         setSubmitting(false);
         return;
       }
@@ -276,6 +310,7 @@ export default function RSVP({ config }) {
       }
 
       setShowSuccess(true);
+      notifyRsvpDataChanged({ action: "submit" });
       setForm({ name: "", guests: 1, attending: true, foodPreferences: emptyFoodPreferences(1), guestNames: resizeGuestNames([], 1), notes: "" });
       setFoodMenuOpen(null);
     } catch {
@@ -401,7 +436,7 @@ export default function RSVP({ config }) {
                   const displayName = getGuestDisplayName(form, guestIndex, personLabel);
                   const guestLabel = config.guestNameLabel
                     ? `${config.guestNameLabel} ${guestIndex + 1}`
-                    : `Nome ospite ${guestIndex + 1}`;
+                    : `${personLabel} ${guestIndex + 1}`;
                   const preferencesLabel = guestPreferences.length
                     ? guestPreferences.join(", ")
                     : noPreferenceLabel;
@@ -431,7 +466,7 @@ export default function RSVP({ config }) {
                             onChange={event => handleGuestNameChange(guestIndex, event.target.value)}
                             onFocus={isPrimaryGuest ? showPrimaryGuestInfo : undefined}
                             onClick={isPrimaryGuest ? showPrimaryGuestInfo : undefined}
-                            placeholder={config.guestNamePlaceholder || "Nome e cognome"}
+                            placeholder={config.guestNamePlaceholder || config.namePlaceholder || "Nome e cognome"}
                             readOnly={isPrimaryGuest}
                             aria-readonly={isPrimaryGuest}
                             aria-label={guestLabel}

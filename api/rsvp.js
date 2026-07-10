@@ -3,76 +3,6 @@ import { inviteTable } from "../lib/inviteConfig.js";
 import { getServerEnv } from "../lib/serverEnv.js";
 import { mergeMessageWithGuestNames, serializeGuestNames } from "../src/lib/guestNames.js";
 
-const normalizeTranslationKey = value =>
-  String(value || "")
-    .trim()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
-
-const foodPreferenceTranslations = new Map([
-  ["menu dzieciece", "Menu bambino"],
-  ["menu wegetarianskie", "Menu vegetariano"],
-  ["menu weganskie", "Menu vegano"],
-  ["wegetarianskie", "Menu vegetariano"],
-  ["weganskie", "Menu vegano"],
-  ["gluten (celiakia)", "Glutine (celiachia)"],
-  ["mleko i produkty mleczne (laktoza)", "Latte e derivati (lattosio)"],
-  ["jaja", "Uova"],
-  ["orzechy (wloskie, migdaly, laskowe, pistacje itd.)", "Frutta a guscio (noci, mandorle, nocciole, pistacchi, ecc.)"],
-  ["orzeszki ziemne", "Arachidi"],
-  ["soja", "Soia"],
-  ["ryby", "Pesce"],
-  ["skorupiaki", "Crostacei"],
-  ["mieczaki", "Molluschi"],
-  ["sezam", "Sesamo"],
-  ["gorczyca", "Senape"],
-  ["seler", "Sedano"],
-  ["lubin", "Lupini"],
-  ["siarczyny", "Solfiti"],
-]);
-
-const translateFoodPreferenceItem = item => {
-  const trimmed = item.trim();
-  return foodPreferenceTranslations.get(normalizeTranslationKey(trimmed)) || trimmed;
-};
-
-const translateFoodPreferenceList = value => {
-  const trimmed = value.trim();
-
-  if (!trimmed || trimmed === "-") {
-    return trimmed || "-";
-  }
-
-  return trimmed
-    .split(",")
-    .map(translateFoodPreferenceItem)
-    .filter(Boolean)
-    .join(", ");
-};
-
-const translateFoodPreferencesToItalian = value => {
-  const textValue = String(value || "").trim();
-
-  if (!textValue) {
-    return "";
-  }
-
-  return textValue
-    .split("|")
-    .map(part => {
-      const trimmedPart = part.trim();
-      const match = trimmedPart.match(/^(?:Osoba|Persona)\s+(\d+):\s*(.*)$/i);
-
-      if (!match) {
-        return translateFoodPreferenceList(trimmedPart);
-      }
-
-      return `Persona ${match[1]}: ${translateFoodPreferenceList(match[2])}`;
-    })
-    .join(" | ");
-};
-
 const participantPayloadVariants = ({
   cleanName,
   cleanPartecipate,
@@ -142,7 +72,7 @@ export default async function handler(req, res) {
     const { name, guests, message } = req.body;
     const cleanName = String(name || "").trim();
     const cleanMessage = String(message || "").trim();
-    const cleanFoodPreferences = translateFoodPreferencesToItalian(req.body.food_preferences || req.body.foodPreferences);
+    const cleanFoodPreferences = String(req.body.food_preferences || req.body.foodPreferences || "").trim();
     const cleanPartecipate = Boolean(req.body.partecipa ?? req.body.partecipate);
     const cleanGuests = cleanPartecipate ? Math.max(1, Number(guests) || 1) : 0;
     const rawGuestNames = req.body.guest_names || req.body.guestNames || [];
@@ -152,7 +82,7 @@ export default async function handler(req, res) {
       : [];
 
     if (!cleanName) {
-      return res.status(400).json({ error: "Il nome e obbligatorio" });
+      return res.status(400).json({ error: "Il nome è obbligatorio" });
     }
 
     if (cleanPartecipate && cleanGuestNames.length < cleanGuests) {
