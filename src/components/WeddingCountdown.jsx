@@ -59,7 +59,8 @@ const getSegments = (remaining, labels) => [
 export default function WeddingCountdown({ event }) {
   const [now, setNow] = useState(() => Date.now());
   const labels = event.countdown || {};
-  const remaining = getRemainingTime(event.calendar?.start, now);
+  const target = event.countdown?.target || event.calendar?.start;
+  const remaining = getRemainingTime(target, now);
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 1000);

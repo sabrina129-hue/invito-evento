@@ -37,6 +37,7 @@ export const event = {
     },
     countdown: {
       label: "Zostało",
+      target: "2026-12-20T00:00:00+01:00",
       daySingular: "dzień",
       dayPlural: "dni",
       hourSingular: "godz.",
