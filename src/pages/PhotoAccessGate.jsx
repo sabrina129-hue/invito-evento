@@ -1,27 +1,16 @@
 import { CalendarClock } from "lucide-react";
+import WeddingCountdown from "../components/WeddingCountdown";
 import { PHOTO_LANGUAGES } from "./photoTranslations";
 import "./PhotoAccessGate.css";
 
-const formatAvailableAt = (availableAt, language) => {
-  if (!availableAt) return "";
-
-  return new Intl.DateTimeFormat(language === "pl" ? "pl-PL" : "it-IT", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(availableAt);
-};
-
 export default function PhotoAccessGate({
-  availableAt,
   cardClassName,
   labels,
   language,
   languageSwitchClassName,
   onSwitchLanguage,
   pageClassName,
+  countdownEvent,
 }) {
   return (
     <main className={pageClassName}>
@@ -47,11 +36,10 @@ export default function PhotoAccessGate({
         <h1 className="photo-access-title">{labels.lockedTitle}</h1>
         <p className="photo-access-message">{labels.lockedMessage}</p>
 
-        {availableAt && (
-          <p className="photo-access-date">
-            <span>{labels.lockedDateLabel}</span>
-            <strong>{formatAvailableAt(availableAt, language)}</strong>
-          </p>
+        {countdownEvent && (
+          <div className="photo-access-countdown">
+            <WeddingCountdown event={countdownEvent} />
+          </div>
         )}
       </section>
     </main>
