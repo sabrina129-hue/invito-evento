@@ -5,8 +5,6 @@ const MotionImage = motion.img;
 
 export default function Hero({ images, children }) {
   const [index, setIndex] = useState(0);
-  const currentImage = images[index] || "";
-  const isFramedImage = currentImage.includes("sposi-carabiniere-acquerello");
 
   useEffect(() => {
     const interval = setInterval(() => setIndex(prev => (prev + 1) % images.length), 5000);
@@ -14,17 +12,17 @@ export default function Hero({ images, children }) {
   }, [images.length]);
 
   return (
-    <div className={`invitation-hero relative h-80 w-full overflow-hidden rounded-t-card${isFramedImage ? " invitation-hero--framed" : ""}`}>
+    <div className="invitation-hero relative h-80 w-full overflow-hidden rounded-t-card">
       <AnimatePresence mode="wait">
         <MotionImage
           key={index}
-          src={currentImage}
+          src={images[index]}
           alt="Hero"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 1 }}
-          className={`hero-image absolute inset-0 w-full h-full ${isFramedImage ? "hero-image--framed object-contain" : "object-cover"}`}
+          className="hero-image absolute inset-0 w-full h-full object-cover"
         />
       </AnimatePresence>
       <div className="hero-fade" />

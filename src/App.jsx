@@ -23,7 +23,6 @@ function Home() {
   useEffect(() => {
     [
       "/images/sfondo-stelle-natale-beige-sfoltito.png",
-      "/images/sposi-carabiniere-paper-texture.jpeg",
       ...event.content.images,
     ].forEach(src => {
       const image = new Image();
