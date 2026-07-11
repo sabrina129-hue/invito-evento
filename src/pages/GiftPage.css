@@ -11,6 +11,8 @@
 
 .gift-card {
   width: min(100%, 34rem);
+  overflow: hidden;
+  isolation: isolate;
   padding: clamp(2rem, 7vw, 3rem);
   border-radius: var(--radius-card);
   box-shadow: 0 1.5rem 4rem rgba(75, 13, 20, 0.14);

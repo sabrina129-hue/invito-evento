@@ -34,6 +34,12 @@ export const event = {
       end: "2026-12-20T22:00:00",
       fileName: "matrimonio-angelo-gina.ics",
     },
+    countdown: {
+      label: "Mancano",
+      daySingular: "giorno",
+      dayPlural: "giorni",
+      ariaLabel: "Giorni mancanti al matrimonio",
+    },
     locations: {
       ceremony: {
         label: "Cerimonia",
@@ -45,11 +51,10 @@ export const event = {
       },
     },
     images: [
-      "/images/sposi-carabiniere-hero.jpg",
+      "/images/sposi-panorama-mare.jpeg",
       "/images/img2.jpeg",
       "/images/sposi-carabiniere-acquerello.jpeg",
       "/images/img5.jpeg",
-      "/images/img6.jpeg",
     ],
   },
 
