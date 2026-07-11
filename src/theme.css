@@ -46,9 +46,27 @@
   background: transparent;
 }
 
+.invitation-hero--framed {
+  background:
+    url("/images/sposi-carabiniere-paper-texture.jpeg") center / cover no-repeat,
+    var(--color-surface);
+}
+
 .hero-image {
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 16%, rgba(0, 0, 0, 0.86) 42%, rgba(0, 0, 0, 0.44) 72%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 0%, #000 16%, rgba(0, 0, 0, 0.86) 42%, rgba(0, 0, 0, 0.44) 72%, transparent 100%);
+}
+
+.hero-image--framed {
+  box-sizing: border-box;
+  padding: clamp(1.1rem, 4.8vw, 2rem) clamp(1.35rem, 8vw, 3.8rem);
+  object-fit: contain;
+  object-position: center;
+  background:
+    url("/images/sposi-carabiniere-paper-texture.jpeg") center / cover no-repeat,
+    var(--color-surface);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 72%, rgba(0, 0, 0, 0.72) 91%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 72%, rgba(0, 0, 0, 0.72) 91%, transparent 100%);
 }
 
 .hero-fade {
