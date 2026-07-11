@@ -39,6 +39,12 @@ export const event = {
       label: "Zostało",
       daySingular: "dzień",
       dayPlural: "dni",
+      hourSingular: "godz.",
+      hourPlural: "godz.",
+      minuteSingular: "min",
+      minutePlural: "min",
+      secondSingular: "sek",
+      secondPlural: "sek",
       ariaLabel: "Dni do ślubu",
     },
     locations: {
