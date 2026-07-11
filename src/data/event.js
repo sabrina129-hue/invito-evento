@@ -119,7 +119,7 @@ export const event = {
   gift: {
     title: "Prezent dla pary młodej",
     subtitle: "Najcenniejszym prezentem będzie mieć Was u naszego boku w dniu naszego tak. Jeśli chcecie wesprzeć nasze marzenia i projekty, które na nas czekają, możecie to zrobić, korzystając z poniższego numeru IBAN",
-    message: "Jeśli chcecie podarować nam upominek, możecie skorzystać z tych danych.",
+    message: "",
     inviteText: "Dla tych, którzy chcą podarować nam prezent",
     inviteLinkLabel: "Przejdź do strony z prezentem",
     holderLabel: "Odbiorca",
