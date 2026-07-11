@@ -8,6 +8,43 @@ import "./PhotosPage.css";
 
 const PHOTO_QUALITY = 0.9;
 const DEFAULT_PHOTO_ENDPOINT = "/api/photos";
+const ITALIAN_COUNTDOWN_LABELS = {
+  label: "Apre tra",
+  daySingular: "giorno",
+  dayPlural: "giorni",
+  hourSingular: "ora",
+  hourPlural: "ore",
+  minuteSingular: "minuto",
+  minutePlural: "minuti",
+  secondSingular: "secondo",
+  secondPlural: "secondi",
+  ariaLabel: "Tempo all'apertura della pagina foto",
+};
+const POLISH_COUNTDOWN_LABELS = {
+  label: "Otwiera sie za",
+  daySingular: "dzien",
+  dayPlural: "dni",
+  hourSingular: "godz.",
+  hourPlural: "godz.",
+  minuteSingular: "min",
+  minutePlural: "min",
+  secondSingular: "sek",
+  secondPlural: "sek",
+  ariaLabel: "Czas do otwarcia strony zdjec",
+};
+
+const getCountdownEvent = (availableFrom, language) => {
+  if (!availableFrom) {
+    return null;
+  }
+
+  return {
+    calendar: {
+      start: availableFrom,
+    },
+    countdown: language === "pl" ? POLISH_COUNTDOWN_LABELS : ITALIAN_COUNTDOWN_LABELS,
+  };
+};
 
 const readBlobAsBase64 = blob => new Promise((resolve, reject) => {
   const reader = new FileReader();
@@ -144,6 +181,7 @@ export default function PhotosPage({ config }) {
   const defaultLanguage = normalizePhotoLanguage(config.defaultLanguage);
   const language = getPhotoLanguage(searchParams, defaultLanguage);
   const labels = getPhotoLabels(config, language);
+  const countdownEvent = getCountdownEvent(config.availableFrom, language);
   const frameTitle = config.frameTitle || labels.frameTitle;
   const frameDate = config.frameDate || labels.frameDate;
   const photoAccess = usePhotoAccess(config.availableFrom);
@@ -305,13 +343,13 @@ export default function PhotosPage({ config }) {
   if (photoAccess.isLocked) {
     return (
       <PhotoAccessGate
-        availableAt={photoAccess.availableAt}
         cardClassName="photos-card invitation-card"
         labels={labels}
         language={language}
         languageSwitchClassName="photos-language-switch"
         onSwitchLanguage={switchLanguage}
         pageClassName="photos-page"
+        countdownEvent={countdownEvent}
       />
     );
   }

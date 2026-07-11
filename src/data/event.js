@@ -137,7 +137,7 @@ export const event = {
     message: "Autorizzate la fotocamera, scattate una foto e inviatela agli sposi.",
     inviteText: "Condividete con noi le foto della giornata",
     inviteLinkLabel: "Condividi una foto!",
-    availableFrom: "2026-12-20T17:00:00+01:00",
+    availableFrom: "2026-12-20T00:00:00+01:00",
     lockedTitle: "Ci siamo quasi",
     lockedMessage: "La pagina per condividere le foto sara disponibile il giorno del matrimonio.",
     lockedDateLabel: "Apre il",
