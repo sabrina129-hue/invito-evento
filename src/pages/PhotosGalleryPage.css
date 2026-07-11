@@ -87,6 +87,35 @@
   font-weight: 700;
 }
 
+.gallery-type-switch {
+  width: fit-content;
+  display: inline-flex;
+  gap: 0.25rem;
+  margin: 1.1rem auto 0;
+  padding: 0.22rem;
+  border: 1px solid rgba(199, 154, 59, 0.34);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 0.45rem 1rem rgba(75, 13, 20, 0.08);
+}
+
+.gallery-type-switch button {
+  min-height: 2.05rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-primary);
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+  font-weight: 700;
+  padding: 0.42rem 0.78rem;
+}
+
+.gallery-type-switch button.is-active {
+  background: var(--color-primary);
+  color: white;
+}
+
 .gallery-state {
   width: min(100%, 28rem);
   display: grid;

@@ -101,6 +101,15 @@
   margin-top: 1.45rem;
 }
 
+.photos-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 .photos-name-field {
   width: min(100%, 24rem);
   display: grid;
@@ -344,6 +353,11 @@
   color: var(--color-primary);
 }
 
+.photos-permission-panel .photos-upload-option {
+  background: rgba(255, 255, 255, 0.64);
+  color: var(--color-primary);
+}
+
 .photos-link-button,
 .photos-link-button:visited {
   background: rgba(255, 255, 255, 0.64);
@@ -378,6 +392,15 @@
   object-fit: contain;
   background: rgba(255, 255, 255, 0.72);
   box-shadow: 0 0.9rem 2rem rgba(75, 13, 20, 0.08);
+}
+
+.photos-upload-note {
+  width: min(100%, 24rem);
+  margin: 0;
+  color: #4b0d14;
+  font-family: var(--font-body);
+  font-size: 0.94rem;
+  font-weight: 700;
 }
 
 .photos-text-button {

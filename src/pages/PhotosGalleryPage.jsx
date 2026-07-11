@@ -1,5 +1,5 @@
 import { Camera, ChevronLeft, ChevronRight, Images, Loader2, RefreshCw, X } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, useSearchParams } from "react-router-dom";
 import PhotoAccessGate from "./PhotoAccessGate";
@@ -32,6 +32,7 @@ export default function PhotosGalleryPage({ config }) {
   const [photos, setPhotos] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [galleryType, setGalleryType] = useState("instant");
   const [status, setStatus] = useState("loading");
   const [message, setMessage] = useState("");
   const galleryEndpoint = config.galleryEndpoint || DEFAULT_PHOTO_ENDPOINT;
@@ -64,21 +65,33 @@ export default function PhotosGalleryPage({ config }) {
     loadGallery();
   }, [loadGallery, photoAccess.isLocked]);
 
-  const selectedPhoto = photos[selectedIndex];
+  const filteredPhotos = useMemo(() => photos.filter(photo => (
+    (photo.photoType === "upload" ? "upload" : "instant") === galleryType
+  )), [galleryType, photos]);
+  const selectedPhoto = filteredPhotos[selectedIndex];
+  const emptyGalleryMessage = galleryType === "upload"
+    ? labels.galleryEmptyUploadMessage || labels.galleryEmptyMessage
+    : labels.galleryEmptyInstantMessage || labels.galleryEmptyMessage;
+
+  useEffect(() => {
+    setSelectedIndex(0);
+    setIsDetailOpen(false);
+  }, [galleryType]);
+
   const openPhoto = index => {
     setSelectedIndex(index);
     setIsDetailOpen(true);
   };
   const showPreviousPhoto = useCallback(() => {
     setSelectedIndex(currentIndex => (
-      photos.length ? (currentIndex - 1 + photos.length) % photos.length : currentIndex
+      filteredPhotos.length ? (currentIndex - 1 + filteredPhotos.length) % filteredPhotos.length : currentIndex
     ));
-  }, [photos.length]);
+  }, [filteredPhotos.length]);
   const showNextPhoto = useCallback(() => {
     setSelectedIndex(currentIndex => (
-      photos.length ? (currentIndex + 1) % photos.length : currentIndex
+      filteredPhotos.length ? (currentIndex + 1) % filteredPhotos.length : currentIndex
     ));
-  }, [photos.length]);
+  }, [filteredPhotos.length]);
   const switchLanguage = nextLanguage => {
     setSearchParams(nextLanguage === "pl" ? { lang: "pl" } : {});
   };
@@ -140,6 +153,25 @@ export default function PhotosGalleryPage({ config }) {
         <h1 className="gallery-title">{labels.galleryTitle}</h1>
         {labels.galleryMessage && <p className="gallery-copy">{labels.galleryMessage}</p>}
 
+        <div className="gallery-type-switch" aria-label={labels.galleryTitle}>
+          <button
+            type="button"
+            className={galleryType === "instant" ? "is-active" : ""}
+            onClick={() => setGalleryType("instant")}
+            aria-pressed={galleryType === "instant"}
+          >
+            {labels.galleryInstantLabel}
+          </button>
+          <button
+            type="button"
+            className={galleryType === "upload" ? "is-active" : ""}
+            onClick={() => setGalleryType("upload")}
+            aria-pressed={galleryType === "upload"}
+          >
+            {labels.galleryUploadLabel}
+          </button>
+        </div>
+
         {status === "loading" && (
           <div className="gallery-state is-loading">
             <Loader2 size={24} aria-hidden="true" />
@@ -150,7 +182,7 @@ export default function PhotosGalleryPage({ config }) {
         {status === "empty" && (
           <div className="gallery-state">
             <Images size={24} aria-hidden="true" />
-            <span>{labels.galleryEmptyMessage}</span>
+            <span>{emptyGalleryMessage}</span>
           </div>
         )}
 
@@ -164,10 +196,17 @@ export default function PhotosGalleryPage({ config }) {
           </div>
         )}
 
+        {status === "ready" && !selectedPhoto && (
+          <div className="gallery-state">
+            <Images size={24} aria-hidden="true" />
+            <span>{emptyGalleryMessage}</span>
+          </div>
+        )}
+
         {status === "ready" && selectedPhoto && (
           <div className="gallery-viewer">
             <div className="gallery-grid" aria-label={labels.galleryTitle}>
-              {photos.map((photo, index) => (
+              {filteredPhotos.map((photo, index) => (
                 <button
                   type="button"
                   key={photo.id || photo.imageUrl || index}
@@ -190,7 +229,7 @@ export default function PhotosGalleryPage({ config }) {
               </button>
 
               <div className="gallery-photo-wrap">
-                {photos.length > 1 && (
+                {filteredPhotos.length > 1 && (
                   <button
                     type="button"
                     className="gallery-detail-nav is-prev"
@@ -201,7 +240,7 @@ export default function PhotosGalleryPage({ config }) {
                   </button>
                 )}
                 <img src={selectedPhoto.imageUrl} alt={selectedPhoto.name || labels.galleryImageAlt} className="gallery-photo" />
-                {photos.length > 1 && (
+                {filteredPhotos.length > 1 && (
                   <button
                     type="button"
                     className="gallery-detail-nav is-next"
@@ -215,7 +254,9 @@ export default function PhotosGalleryPage({ config }) {
 
               <div className="gallery-meta">
                 {selectedPhoto.guestName && <span>{selectedPhoto.guestName}</span>}
-                {selectedPhoto.createdTime && <span>{formatPhotoDate(selectedPhoto.createdTime, language)}</span>}
+                {selectedPhoto.photoType !== "upload" && selectedPhoto.createdTime && (
+                  <span>{formatPhotoDate(selectedPhoto.createdTime, language)}</span>
+                )}
               </div>
             </div>
           </div>,

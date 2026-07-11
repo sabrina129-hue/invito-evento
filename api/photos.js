@@ -10,6 +10,12 @@ export const config = {
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const SUPPORTED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const PHOTO_TYPES = new Set(["instant", "upload"]);
+const MIME_EXTENSIONS = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
 
 const cleanName = value => String(value || "")
   .normalize("NFD")
@@ -18,6 +24,20 @@ const cleanName = value => String(value || "")
   .trim()
   .replace(/\s+/g, "-")
   .slice(0, 52);
+
+const normalizePhotoType = value => (
+  PHOTO_TYPES.has(String(value || "").trim()) ? String(value || "").trim() : "instant"
+);
+
+const inferPhotoType = photo => {
+  const explicitType = normalizePhotoType(photo.photoType || photo.source || photo.type);
+  if (explicitType === "upload") {
+    return "upload";
+  }
+
+  const name = String(photo.name || photo.fileName || "").toLowerCase();
+  return name.includes("-upload-") || name.includes("_upload_") ? "upload" : "instant";
+};
 
 const parseImagePayload = body => {
   const mimeType = String(body?.mimeType || "").trim().toLowerCase();
@@ -49,6 +69,7 @@ const uploadViaWebhook = async ({ webhookUrl, secret, body }) => {
       mimeType: body.mimeType,
       fileName: body.fileName,
       guestName: body.guestName,
+      photoType: body.photoType,
     }),
   });
 
@@ -91,6 +112,7 @@ const normalizePhotoList = photos => photos
       name: String(photo.name || photo.fileName || `Foto ${index + 1}`),
       guestName: String(photo.guestName || photo.author || ""),
       createdTime: String(photo.createdTime || photo.createdAt || photo.date || ""),
+      photoType: inferPhotoType(photo),
     };
   })
   .filter(photo => photo.imageUrl);
@@ -167,19 +189,22 @@ export default async function handler(req, res) {
 
   const guestName = String(req.body?.guestName || "").trim();
   const safeGuestName = cleanName(guestName);
+  const photoType = normalizePhotoType(req.body?.photoType);
   if (!safeGuestName) {
     return res.status(400).json({ error: "Inserisci il tuo nome prima di inviare la foto." });
   }
 
   try {
     const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const extension = MIME_EXTENSIONS[parsedImage.mimeType] || "jpg";
     const file = await uploadViaWebhook({
       webhookUrl,
       secret,
       body: {
         ...parsedImage,
         guestName,
-        fileName: `${safeGuestName}-${stamp}.jpg`,
+        photoType,
+        fileName: `${safeGuestName}-${photoType}-${stamp}.${extension}`,
       },
     });
 

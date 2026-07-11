@@ -1,4 +1,4 @@
-import { Camera, CheckCircle, Images, Loader2, RefreshCw, RotateCcw, Send, Trash2, Video } from "lucide-react";
+import { Camera, CheckCircle, Images, Loader2, RefreshCw, RotateCcw, Send, Trash2, Upload, Video } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import PhotoAccessGate from "./PhotoAccessGate";
@@ -7,7 +7,13 @@ import { getPhotoLabels, getPhotoLanguage, getPhotoPath, PHOTO_LANGUAGES } from 
 import "./PhotosPage.css";
 
 const PHOTO_QUALITY = 0.9;
+const DEVICE_UPLOAD_MAX_SIDE = 1800;
 const DEFAULT_PHOTO_ENDPOINT = "/api/photos";
+const MIME_EXTENSIONS = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
 const ITALIAN_COUNTDOWN_LABELS = {
   label: "Apre tra",
   daySingular: "giorno",
@@ -168,6 +174,40 @@ const captureFrame = (video, frameConfig, { mirrorSource = false } = {}) => new 
   }, "image/jpeg", PHOTO_QUALITY);
 });
 
+const prepareDeviceUploadBlob = file => new Promise((resolve, reject) => {
+  const image = new Image();
+  const imageUrl = URL.createObjectURL(file);
+
+  image.onload = () => {
+    URL.revokeObjectURL(imageUrl);
+    const ratio = Math.min(1, DEVICE_UPLOAD_MAX_SIDE / Math.max(image.naturalWidth, image.naturalHeight));
+    const width = Math.max(1, Math.round(image.naturalWidth * ratio));
+    const height = Math.max(1, Math.round(image.naturalHeight * ratio));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext("2d");
+    context.drawImage(image, 0, 0, width, height);
+
+    canvas.toBlob(blob => {
+      if (!blob) {
+        reject(new Error("Impossibile preparare la foto."));
+        return;
+      }
+
+      resolve(blob);
+    }, "image/jpeg", PHOTO_QUALITY);
+  };
+
+  image.onerror = () => {
+    URL.revokeObjectURL(imageUrl);
+    reject(new Error("Impossibile leggere la foto."));
+  };
+
+  image.src = imageUrl;
+});
+
 const cleanName = value => String(value || "")
   .normalize("NFD")
   .replace(/[\u0300-\u036f]/g, "")
@@ -175,6 +215,8 @@ const cleanName = value => String(value || "")
   .trim()
   .replace(/\s+/g, "-")
   .slice(0, 52);
+
+const getPhotoExtension = mimeType => MIME_EXTENSIONS[mimeType] || "jpg";
 
 export default function PhotosPage({ config }) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -187,6 +229,7 @@ export default function PhotosPage({ config }) {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const nameInputRef = useRef(null);
+  const fileInputRef = useRef(null);
   const [photo, setPhoto] = useState(null);
   const [status, setStatus] = useState("permission");
   const [message, setMessage] = useState("");
@@ -268,6 +311,7 @@ export default function PhotosPage({ config }) {
         base64,
         mimeType: "image/jpeg",
         previewUrl,
+        photoType: "instant",
       });
       setStatus("ready");
     } catch (error) {
@@ -276,14 +320,62 @@ export default function PhotosPage({ config }) {
     }
   };
 
-  const clearPhoto = () => {
+  const clearPhoto = ({ restartCamera = photo?.photoType === "instant" } = {}) => {
     if (photo?.previewUrl) {
       URL.revokeObjectURL(photo.previewUrl);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
     setPhoto(null);
     setMessage("");
     setNameError("");
-    startCamera();
+    if (restartCamera) {
+      startCamera();
+    } else {
+      stopCamera();
+      setStatus("permission");
+    }
+  };
+
+  const chooseDevicePhoto = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleDevicePhoto = async event => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setMessage("");
+    setNameError("");
+
+    try {
+      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+        throw new Error(labels.unsupportedUploadMessage);
+      }
+
+      stopCamera();
+      if (photo?.previewUrl) {
+        URL.revokeObjectURL(photo.previewUrl);
+      }
+
+      const uploadBlob = await prepareDeviceUploadBlob(file);
+      const previewUrl = URL.createObjectURL(uploadBlob);
+      const base64 = await readBlobAsBase64(uploadBlob);
+      setPhoto({
+        base64,
+        mimeType: "image/jpeg",
+        previewUrl,
+        photoType: "upload",
+      });
+      setStatus("ready");
+    } catch (error) {
+      setStatus("error");
+      setMessage(error.message || labels.errorMessage);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
   };
 
   const uploadPhoto = async () => {
@@ -307,6 +399,8 @@ export default function PhotosPage({ config }) {
 
     try {
       const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const photoType = photo.photoType || "instant";
+      const extension = getPhotoExtension(photo.mimeType);
       const response = await fetch(uploadEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -314,7 +408,8 @@ export default function PhotosPage({ config }) {
           base64: photo.base64,
           mimeType: photo.mimeType,
           guestName: guestName.trim(),
-          fileName: `${safeGuestName}-${stamp}.jpg`,
+          photoType,
+          fileName: `${safeGuestName}-${photoType}-${stamp}.${extension}`,
         }),
       });
       const payload = await response.json().catch(() => ({}));
@@ -326,9 +421,17 @@ export default function PhotosPage({ config }) {
       if (photo.previewUrl) {
         URL.revokeObjectURL(photo.previewUrl);
       }
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
       setPhoto(null);
       setMessage(labels.successMessage);
-      await startCamera({ keepMessage: true });
+      if (photo.photoType === "instant") {
+        await startCamera({ keepMessage: true });
+      } else {
+        stopCamera();
+        setStatus("permission");
+      }
     } catch (error) {
       setStatus("error");
       setMessage(language === "pl" ? labels.errorMessage : error.message || labels.errorMessage);
@@ -358,6 +461,7 @@ export default function PhotosPage({ config }) {
   const showCamera = status === "opening" || status === "camera" || status === "preparing";
   const showNameField = status !== "success";
   const errorPanelMessage = status === "camera-error" ? labels.cameraErrorMessage : message;
+  const isDeviceUpload = photo?.photoType === "upload";
 
   return (
     <main className="photos-page">
@@ -413,6 +517,14 @@ export default function PhotosPage({ config }) {
           </label>
         )}
 
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="photos-file-input"
+          onChange={handleDevicePhoto}
+        />
+
         {status === "permission" && (
           <div className="photos-permission-panel" role="dialog" aria-labelledby="photos-permission-title">
             <div className="photos-permission-icon" aria-hidden="true">
@@ -420,9 +532,19 @@ export default function PhotosPage({ config }) {
             </div>
             <h2 id="photos-permission-title">{labels.permissionTitle}</h2>
             <p>{labels.permissionMessage}</p>
+            {message && (
+              <p className="photos-status is-success">
+                <CheckCircle size={18} aria-hidden="true" />
+                {message}
+              </p>
+            )}
             <button type="button" onClick={() => startCamera()}>
               <Camera size={18} aria-hidden="true" />
               {labels.permissionLabel}
+            </button>
+            <button type="button" onClick={chooseDevicePhoto} className="photos-upload-option">
+              <Upload size={18} aria-hidden="true" />
+              {labels.deviceUploadLabel}
             </button>
           </div>
         )}
@@ -453,6 +575,10 @@ export default function PhotosPage({ config }) {
                 <RefreshCw size={18} aria-hidden="true" />
                 {labels.switchCameraLabel}
               </button>
+              <button type="button" onClick={chooseDevicePhoto} disabled={isBusy} className="photos-secondary-button">
+                <Upload size={18} aria-hidden="true" />
+                {labels.deviceUploadShortLabel || labels.deviceUploadLabel}
+              </button>
               <button
                 type="button"
                 onClick={takePhoto}
@@ -469,6 +595,7 @@ export default function PhotosPage({ config }) {
         {hasPhoto && (
           <div className="photos-preview-panel">
             <img src={photo.previewUrl} alt="Anteprima foto da inviare" className="photos-preview" />
+            {isDeviceUpload && <p className="photos-upload-note">{labels.deviceUploadPreviewLabel}</p>}
             <div className="photos-photo-actions">
               <button type="button" onClick={clearPhoto} disabled={isBusy} className="photos-secondary-button">
                 <Trash2 size={18} aria-hidden="true" />
@@ -486,7 +613,7 @@ export default function PhotosPage({ config }) {
             </div>
             <button type="button" onClick={clearPhoto} disabled={isBusy} className="photos-text-button">
               <RotateCcw size={16} aria-hidden="true" />
-              {labels.retakeLabel}
+              {isDeviceUpload ? labels.chooseAnotherUploadLabel : labels.retakeLabel}
             </button>
           </div>
         )}
