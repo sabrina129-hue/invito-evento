@@ -131,7 +131,7 @@
 .wedding-countdown-label {
   display: block;
   margin-bottom: 0.55rem;
-  font-size: clamp(0.98rem, 2.8vw, 1.1rem);
+  font-size: clamp(0.9rem, 2.4vw, 1rem);
   line-height: 1.1;
 }
 
@@ -155,14 +155,14 @@
 .wedding-countdown-part strong {
   color: var(--color-primary);
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(1.35rem, 6vw, 2.35rem);
+  font-size: clamp(1.16rem, 5.2vw, 2rem);
   font-variant-numeric: tabular-nums;
   line-height: 0.9;
 }
 
 .wedding-countdown-part span {
   min-width: 0;
-  font-size: clamp(0.62rem, 2.35vw, 0.8rem);
+  font-size: clamp(0.56rem, 2vw, 0.72rem);
   line-height: 1;
   overflow-wrap: anywhere;
 }
