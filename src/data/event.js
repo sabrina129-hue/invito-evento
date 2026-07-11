@@ -35,6 +35,12 @@ export const event = {
       end: "2026-12-20T22:00:00",
       fileName: "slub-angelo-luigia.ics",
     },
+    countdown: {
+      label: "Zostało",
+      daySingular: "dzień",
+      dayPlural: "dni",
+      ariaLabel: "Dni do ślubu",
+    },
     locations: {
       ceremony: {
         label: "Ceremonia",
@@ -46,11 +52,10 @@ export const event = {
       },
     },
     images: [
-      "/images/sposi-carabiniere-hero.jpg",
+      "/images/sposi-panorama-mare.jpeg",
       "/images/img2.jpeg",
       "/images/sposi-carabiniere-acquerello.jpeg",
       "/images/img5.jpeg",
-      "/images/img6.jpeg",
     ],
   },
 
