@@ -114,31 +114,57 @@
 }
 
 .wedding-countdown {
-  width: min(100%, 18rem);
-  min-height: 4.7rem;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 0.7rem;
+  width: min(100%, 24rem);
+  display: block;
   margin: 0 auto;
-  padding: 0.75rem 1rem;
+  padding: 0.85rem;
   border: 1px solid rgba(199, 154, 59, 0.42);
   border-radius: var(--radius-card);
   background: rgba(255, 248, 241, 0.68);
   box-shadow: 0 0.75rem 1.7rem rgba(75, 13, 20, 0.08);
   color: #4b0d14;
   font-family: var(--font-body);
-  font-size: clamp(0.95rem, 2.8vw, 1.08rem);
   font-weight: 700;
+  text-align: center;
+}
+
+.wedding-countdown-label {
+  display: block;
+  margin-bottom: 0.55rem;
+  font-size: clamp(0.9rem, 2.4vw, 1rem);
   line-height: 1.1;
 }
 
-.wedding-countdown strong {
-  min-width: 3.2ch;
+.wedding-countdown-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.wedding-countdown-part {
+  min-width: 0;
+  display: grid;
+  gap: 0.24rem;
+  align-items: center;
+  padding: 0.55rem 0.32rem;
+  border: 1px solid rgba(199, 154, 59, 0.26);
+  border-radius: calc(var(--radius-card) - 0.65rem);
+  background: rgba(255, 255, 255, 0.48);
+}
+
+.wedding-countdown-part strong {
   color: var(--color-primary);
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(2.1rem, 8vw, 3rem);
+  font-size: clamp(1.16rem, 5.2vw, 2rem);
+  font-variant-numeric: tabular-nums;
   line-height: 0.9;
+}
+
+.wedding-countdown-part span {
+  min-width: 0;
+  font-size: clamp(0.56rem, 2vw, 0.72rem);
+  line-height: 1;
+  overflow-wrap: anywhere;
 }
 
 .invitation-body .h2,

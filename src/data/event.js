@@ -38,6 +38,12 @@ export const event = {
       label: "Mancano",
       daySingular: "giorno",
       dayPlural: "giorni",
+      hourSingular: "ora",
+      hourPlural: "ore",
+      minuteSingular: "minuto",
+      minutePlural: "minuti",
+      secondSingular: "secondo",
+      secondPlural: "secondi",
       ariaLabel: "Giorni mancanti al matrimonio",
     },
     locations: {
