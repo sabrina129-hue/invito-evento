@@ -60,6 +60,7 @@ export const event = {
     },
     images: [
       "/images/sposi-panorama-mare.jpeg",
+      "/images/proposta-matrimonio-roma.jpeg",
       "/images/img2.jpeg",
       "/images/sposi-carabiniere-acquerello.jpeg",
       "/images/img5.jpeg",
