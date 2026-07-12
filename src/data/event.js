@@ -3,7 +3,7 @@ export const event = {
     pageTitle: "Zaproszenie ślubne Angelo i Luigia",
     shareTitle: "Angelo & Luigia",
     shareDescription: "Będzie nam bardzo miło dzielić z Wami dzień naszego ślubu.",
-    shareImage: "https://invitoginapl.vercel.app/images/link-preview-polacco-whatsapp-large.jpg?v=20260710",
+    shareImage: "https://invitoginapl.vercel.app/images/link-preview-polacco-whatsapp-large.jpg?v=20260712",
     shareImageWidth: "1200",
     shareImageHeight: "630",
     shareImageType: "image/jpeg",
