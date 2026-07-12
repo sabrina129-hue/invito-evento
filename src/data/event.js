@@ -118,7 +118,7 @@ export const event = {
 
   gift: {
     title: "Prezent dla pary młodej",
-    subtitle: "Najcenniejszym prezentem będzie mieć Was u naszego boku w dniu naszego tak. Jeśli chcecie wesprzeć nasze marzenia i projekty, które na nas czekają, możecie to zrobić, korzystając z poniższego numeru IBAN",
+    subtitle: "Wasza obecność jest najcenniejszym prezentem. Dla tych, którzy chcieliby wesprzeć nasze przyszłe projekty, przygotowaliśmy to małe miejsce.",
     message: "",
     inviteText: "Dla tych, którzy chcą podarować nam prezent",
     inviteLinkLabel: "Przejdź do strony z prezentem",
@@ -138,7 +138,7 @@ export const event = {
     message: "Autorizzate la fotocamera, scattate una foto e inviatela agli sposi.",
     inviteText: "Condividete con noi le foto della giornata",
     inviteLinkLabel: "Condividi una foto!",
-    availableFrom: "2026-12-20T00:00:00+01:00",
+    availableFrom: "",
     lockedTitle: "Ci siamo quasi",
     lockedMessage: "La pagina per condividere le foto sara disponibile il giorno del matrimonio.",
     lockedDateLabel: "Apre il",
