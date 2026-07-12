@@ -110,7 +110,7 @@ export const event = {
 
   gift: {
     title: "Un pensiero per gli sposi",
-    subtitle: "Il dono più prezioso sarà avervi accanto nel giorno del nostro sì. Se desiderate contribuire ai nostri sogni e ai progetti che ci attendono, potete farlo tramite il seguente IBAN",
+    subtitle: "La vostra presenza è il dono più prezioso. Per chi desiderasse contribuire ai nostri progetti futuri, abbiamo riservato questo piccolo spazio.",
     message: "",
     inviteText: "Per chi desidera farci un pensiero",
     inviteLinkLabel: "Vai alla pagina regalo",
