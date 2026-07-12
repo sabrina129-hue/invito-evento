@@ -59,7 +59,7 @@ export const event = {
     },
     images: [
       "/images/sposi-panorama-mare.jpeg",
-      "/images/proposta-matrimonio-roma.jpeg",
+      "/images/proposta-matrimonio-roma.jpeg?v=20260712",
       "/images/img2.jpeg",
       "/images/sposi-carabiniere-acquerello.jpeg",
       "/images/img5.jpeg",
