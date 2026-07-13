@@ -8,11 +8,15 @@ create table if not exists public.partecipanti_sabrina_2026 (
   partecipa boolean not null default true,
   guests integer not null default 1,
   food_preferences text not null default '',
+  organizer_group text not null default '',
   message text not null default ''
 );
 
 alter table public.partecipanti_sabrina_2026
   add column if not exists food_preferences text not null default '';
+
+alter table public.partecipanti_sabrina_2026
+  add column if not exists organizer_group text not null default '';
 
 alter table public.partecipanti_sabrina_2026 enable row level security;
 

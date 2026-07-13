@@ -12,7 +12,7 @@ export default function Hero({ images, children }) {
   }, [images.length]);
 
   return (
-    <div className="relative h-80 w-full overflow-hidden rounded-t-card bg-surface">
+    <div className="invitation-hero relative h-80 w-full overflow-hidden rounded-t-card">
       <AnimatePresence mode="wait">
         <MotionImage
           key={index}
@@ -25,8 +25,9 @@ export default function Hero({ images, children }) {
           className="hero-image absolute inset-0 w-full h-full object-cover"
         />
       </AnimatePresence>
+      <div className="hero-fade" />
 
-      <div className="absolute inset-0 flex items-end justify-center pb-8 text-center text-white drop-shadow">
+      <div className="absolute inset-0 flex items-end justify-center pb-5 text-center text-white drop-shadow">
         {children}
       </div>
     </div>

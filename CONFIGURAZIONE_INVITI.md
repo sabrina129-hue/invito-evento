@@ -270,3 +270,104 @@ Per vedere il dettaglio dell'errore:
 3. vai in `Logs`;
 4. riprova a inviare il form;
 5. controlla il log della funzione `/api/rsvp`.
+
+## 8. Upload foto su Google Drive
+
+La pagina `/#/foto` permette agli invitati di autorizzare la fotocamera, scattare una foto e inviarla agli sposi. Quando premono `Invia`, il sito carica la foto nella cartella Drive configurata lato server.
+
+Il caricamento passa da una Web App Google Apps Script. Per abilitarla su Vercel servono queste Environment Variables:
+
+```env
+PHOTO_UPLOAD_WEBHOOK_URL="https://script.google.com/macros/s/.../exec"
+PHOTO_UPLOAD_SECRET="stessa-password-usata-nello-script"
+```
+
+Per l'invito attuale il webhook Apps Script e:
+
+```text
+https://script.google.com/macros/s/AKfycbyt73vWK3Gxq4ovr5U5LjV8uAt7zt0f2gNMyUTkTuHg3_P6JbvuXRW6BuvxyRqb3ITVFw/exec
+```
+
+`PHOTO_UPLOAD_SECRET` deve essere uguale al valore della costante `SECRET` nello script Google.
+
+Per abilitare anche la galleria `/#/foto/galleria`, lo script Google deve supportare tre azioni: upload, lista e lettura foto. Puoi usare questo schema come Web App Apps Script, sostituendo `FOLDER_ID` e `SECRET`:
+
+```js
+const FOLDER_ID = "ID_CARTELLA_DRIVE";
+const SECRET = "stessa-password-usata-su-vercel";
+
+function jsonResponse(payload) {
+  return ContentService
+    .createTextOutput(JSON.stringify(payload))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  const body = JSON.parse(e.postData.contents || "{}");
+
+  if (body.secret !== SECRET) {
+    return jsonResponse({ success: false, error: "Secret non valido" });
+  }
+
+  if (body.action === "list") {
+    return listPhotos();
+  }
+
+  if (body.action === "get") {
+    return getPhoto(body.fileId);
+  }
+
+  return uploadPhoto(body);
+}
+
+function uploadPhoto(body) {
+  const folder = DriveApp.getFolderById(FOLDER_ID);
+  const bytes = Utilities.base64Decode(body.base64);
+  const blob = Utilities.newBlob(bytes, body.mimeType, body.fileName);
+  const file = folder.createFile(blob);
+  file.setDescription(body.guestName || "");
+
+  return jsonResponse({
+    success: true,
+    id: file.getId(),
+    name: file.getName(),
+  });
+}
+
+function listPhotos() {
+  const folder = DriveApp.getFolderById(FOLDER_ID);
+  const files = folder.getFiles();
+  const photos = [];
+
+  while (files.hasNext()) {
+    const file = files.next();
+    const mimeType = file.getMimeType();
+
+    if (!mimeType.startsWith("image/")) {
+      continue;
+    }
+
+    photos.push({
+      id: file.getId(),
+      name: file.getName(),
+      guestName: file.getDescription(),
+      createdTime: file.getDateCreated().toISOString(),
+    });
+  }
+
+  photos.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
+
+  return jsonResponse({ success: true, photos });
+}
+
+function getPhoto(fileId) {
+  const file = DriveApp.getFileById(fileId);
+  const blob = file.getBlob();
+
+  return jsonResponse({
+    success: true,
+    mimeType: blob.getContentType(),
+    base64: Utilities.base64Encode(blob.getBytes()),
+  });
+}
+```

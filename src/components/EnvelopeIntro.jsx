@@ -1,26 +1,43 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import WeddingSparkles from "./WeddingSparkles";
+
+const MotionButton = motion.button;
+const MotionDiv = motion.div;
 
 export default function EnvelopeIntro({ config, children }) {
   const [isOpening, setIsOpening] = useState(false);
   const [showInvitation, setShowInvitation] = useState(false);
   const [hideEnvelope, setHideEnvelope] = useState(false);
+  const [showSparkles, setShowSparkles] = useState(false);
+  const timersRef = useRef([]);
+
+  useEffect(() => () => {
+    timersRef.current.forEach(window.clearTimeout);
+  }, []);
+
+  const schedule = (callback, delay) => {
+    const timer = window.setTimeout(callback, delay);
+    timersRef.current.push(timer);
+  };
 
   const openEnvelope = () => {
     if (isOpening || showInvitation) return;
 
     setIsOpening(true);
-    window.setTimeout(() => setShowInvitation(true), 520);
-    window.setTimeout(() => setHideEnvelope(true), 2200);
+    schedule(() => setHideEnvelope(true), 640);
+    schedule(() => {
+      setShowInvitation(true);
+      setShowSparkles(true);
+    }, 860);
   };
 
   return (
     <main className={`envelope-stage ${showInvitation ? "is-open" : ""}`}>
-      {showInvitation ? <WeddingSparkles /> : null}
+      {showSparkles ? <WeddingSparkles /> : null}
       <AnimatePresence>
         {!hideEnvelope && (
-          <motion.button
+          <MotionButton
             type="button"
             className={`envelope-button ${isOpening ? "is-opening" : ""}`}
             onClick={openEnvelope}
@@ -28,8 +45,8 @@ export default function EnvelopeIntro({ config, children }) {
             aria-label={config?.buttonLabel || "Apri invito"}
             initial={{ y: 18, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 86, opacity: 0, scale: 0.88 }}
-            transition={{ duration: 1.15, ease: [0.16, 0.84, 0.22, 1] }}
+            exit={{ y: 24, opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.36, ease: [0.24, 0.72, 0.3, 1] }}
           >
             <span className="envelope-card">
               <span className="envelope-card-title">{config?.title}</span>
@@ -43,43 +60,38 @@ export default function EnvelopeIntro({ config, children }) {
               <span className="envelope-front" />
               <span className="envelope-seal">{config?.seal}</span>
             </span>
-          </motion.button>
+          </MotionButton>
         )}
 
         {showInvitation && (
-          <motion.div
+          <MotionDiv
             className="parchment-scroll"
             key="invitation-paper"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.55, ease: "easeOut" }}
+            transition={{ duration: 0.28, ease: "easeOut" }}
           >
-            <motion.div
+            <MotionDiv
               className="parchment-scroll-inner"
               initial={{
-                y: 280,
-                scaleY: 0.06,
-                scaleX: 0.68,
-                opacity: 0.28,
-                rotateX: -38,
-                transformOrigin: "50% 0%",
+                y: 42,
+                scale: 0.985,
+                opacity: 0,
               }}
               animate={{
                 y: 0,
-                scaleY: 1,
-                scaleX: 1,
+                scale: 1,
                 opacity: 1,
-                rotateX: 0,
               }}
               transition={{
-                duration: 1.95,
-                ease: [0.14, 0.82, 0.18, 1],
+                duration: 0.58,
+                ease: [0.2, 0.84, 0.24, 1],
               }}
             >
               <div className="parchment-content">{children}</div>
-            </motion.div>
-          </motion.div>
+            </MotionDiv>
+          </MotionDiv>
         )}
       </AnimatePresence>
     </main>

@@ -11,6 +11,8 @@
   --color-surface: #c1c79fc1;
   --color-text: #0f1010;
   --color-muted: #6B7280;
+  --color-gold-light: #f6e8c0;
+  --color-gold-deep: #9c7a3c;
   --font-title: "Great Vibes", cursive;
   --font-body: "Cormorant Garamond", Georgia, serif;
   --radius-card: 1.5rem;
@@ -39,6 +41,203 @@
 .hero-image {
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 28%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 0%, #000 28%, transparent 100%);
+}
+
+.invitation-hero {
+  background: transparent;
+}
+
+.hero-fade {
+  position: absolute;
+  inset: auto 0 0;
+  height: 60%;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 100%, rgba(250, 253, 242, 0.26), transparent 70%),
+    linear-gradient(180deg, rgba(250, 250, 250, 0), rgba(250, 250, 250, 0.18) 54%, rgba(250, 250, 250, 0.08));
+}
+
+.invitation-card {
+  position: relative;
+  border: 1px solid rgba(83, 91, 46, 0.24);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.56), transparent 22rem),
+    linear-gradient(180deg, rgba(245, 248, 235, 0.94), rgba(223, 229, 198, 0.9)),
+    var(--color-surface);
+}
+
+.invitation-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(255, 255, 255, 0.34), transparent 23rem),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04) 48%, rgba(83, 91, 46, 0.06));
+}
+
+.invitation-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.invitation-body {
+  position: relative;
+  isolation: isolate;
+  background: transparent;
+}
+
+.invitation-body .section {
+  max-width: min(100%, 28rem);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.wedding-countdown {
+  width: min(100%, 24rem);
+  display: block;
+  margin: 0 auto;
+  padding: 0.85rem;
+  border: 1px solid rgba(83, 91, 46, 0.26);
+  border-radius: var(--radius-card);
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: 0 0.75rem 1.7rem rgba(15, 16, 16, 0.07);
+  color: var(--color-primary);
+  font-family: var(--font-body);
+  font-weight: 700;
+  text-align: center;
+}
+
+.wedding-countdown-label {
+  display: block;
+  margin-bottom: 0.55rem;
+  font-size: clamp(0.9rem, 2.4vw, 1rem);
+  line-height: 1.1;
+}
+
+.wedding-countdown-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.wedding-countdown-part {
+  min-width: 0;
+  display: grid;
+  gap: 0.24rem;
+  align-items: center;
+  padding: 0.55rem 0.32rem;
+  border: 1px solid rgba(83, 91, 46, 0.18);
+  border-radius: calc(var(--radius-card) - 0.65rem);
+  background: rgba(255, 255, 255, 0.52);
+}
+
+.wedding-countdown-part strong {
+  color: var(--color-primary);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.16rem, 5.2vw, 2rem);
+  font-variant-numeric: tabular-nums;
+  line-height: 0.9;
+}
+
+.wedding-countdown-part span {
+  min-width: 0;
+  font-size: clamp(0.56rem, 2vw, 0.72rem);
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+
+.invitation-body .h2,
+.invitation-body .h3,
+.invitation-body .text-body,
+.invitation-body label,
+.invitation-body p {
+  font-weight: 700;
+  color: var(--color-text);
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.72),
+    0 0.12rem 0.45rem rgba(245, 248, 235, 0.72);
+}
+
+.invitation-body .h2 {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.invitation-body .h3 {
+  color: var(--color-secondary);
+  font-weight: 700;
+}
+
+.invitation-body #guests-help {
+  color: #3f4724;
+  font-weight: 700;
+}
+
+.invitation-body input,
+.invitation-body textarea,
+.invitation-body button[aria-expanded] {
+  border-color: rgba(83, 91, 46, 0.22);
+  background-color: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 0.35rem 1rem rgba(15, 16, 16, 0.04);
+}
+
+.invitation-body input::placeholder,
+.invitation-body textarea::placeholder {
+  color: rgba(15, 16, 16, 0.52);
+  opacity: 1;
+}
+
+.invitation-body .invitation-action-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 0.6rem;
+  max-width: min(100%, 24rem);
+  padding: 0;
+}
+
+.invitation-body .invitation-action-strip > * {
+  margin-top: 0 !important;
+}
+
+.invitation-action-link,
+.invitation-action-link:visited {
+  min-height: 2.55rem;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.42rem;
+  padding: 0.58rem 0.8rem;
+  border: 1px solid rgba(83, 91, 46, 0.52);
+  border-radius: var(--radius-button);
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--color-primary);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.08;
+  text-decoration: none;
+  text-align: center;
+  box-shadow: 0 0.35rem 0.9rem rgba(15, 16, 16, 0.05);
+  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.invitation-action-link span {
+  min-width: 0;
+}
+
+.invitation-action-link:hover,
+.invitation-action-link:focus-visible {
+  background: var(--color-primary);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.invitation-action-link svg {
+  flex: 0 0 auto;
 }
 
 .envelope-stage {
@@ -308,6 +507,15 @@
   animation-timing-function: cubic-bezier(0.17, 0.67, 0.29, 1);
   animation-fill-mode: forwards;
   filter: drop-shadow(0 0.25rem 0.45rem rgba(83, 91, 46, 0.12));
+}
+
+.wedding-sparkle.glitter {
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow:
+    0 0 0.34rem currentColor,
+    0 0 0.72rem rgba(246, 232, 192, 0.72),
+    0 0 1rem rgba(255, 255, 255, 0.38);
 }
 
 .wedding-sparkle.confetto {

@@ -1,0 +1,70 @@
+.photo-access-card {
+  overflow: hidden;
+}
+
+.photo-access-card::before {
+  border-radius: inherit;
+}
+
+.photo-access-icon {
+  width: 3.7rem;
+  height: 3.7rem;
+  display: inline-grid;
+  place-items: center;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(83, 91, 46, 0.32);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.58);
+  color: var(--color-primary);
+}
+
+.photo-access-title {
+  margin: 0 0 0.9rem;
+  color: var(--color-primary);
+  font-family: var(--font-title);
+  font-size: clamp(2.3rem, 9vw, 3.6rem);
+  font-weight: 400;
+  line-height: 0.95;
+}
+
+.photo-access-message {
+  max-width: 28rem;
+  margin: 0 auto;
+  color: #3f4724;
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.photo-access-countdown {
+  margin: 1.2rem auto 0;
+}
+
+.photo-access-countdown .wedding-countdown {
+  width: min(100%, 22rem);
+  padding: 0.72rem;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.photo-access-countdown .wedding-countdown-grid {
+  gap: 0.36rem;
+}
+
+.photo-access-countdown .wedding-countdown-part {
+  padding: 0.46rem 0.24rem;
+}
+
+.photo-access-countdown .wedding-countdown-part strong {
+  font-size: clamp(1.05rem, 4.8vw, 1.65rem);
+}
+
+@media (max-width: 520px) {
+  .photo-access-title {
+    font-size: clamp(2.05rem, 12vw, 2.8rem);
+  }
+
+  .photo-access-message {
+    font-size: 0.96rem;
+  }
+}

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1440" viewBox="0 0 1080 1440" role="img" aria-labelledby="title desc">
+  <title id="title">Cornice semplice foto matrimonio demo</title>
+  <desc id="desc">Cornice semplice con bordo spesso, titolo degli sposi, data del matrimonio e orario dello scatto.</desc>
+  <rect width="1080" height="1440" fill="none"/>
+
+  <rect x="0" y="0" width="1080" height="146" fill="#fafdf2" opacity="0.94"/>
+  <rect x="0" y="1294" width="1080" height="146" fill="#fafdf2" opacity="0.94"/>
+  <rect x="0" y="146" width="54" height="1148" fill="#fafdf2" opacity="0.94"/>
+  <rect x="1026" y="146" width="54" height="1148" fill="#fafdf2" opacity="0.94"/>
+
+  <rect x="9" y="9" width="1062" height="1422" fill="none" stroke="#535b2e" stroke-width="18"/>
+  <rect x="54" y="146" width="972" height="1148" fill="none" stroke="#9c7a3c" stroke-width="7"/>
+
+  <text x="540" y="74" text-anchor="middle" dominant-baseline="middle" font-family="Georgia, 'Times New Roman', serif" font-size="42" font-weight="700" fill="#535b2e">
+    Sofia &amp; Leonardo oggi sposi
+  </text>
+  <text x="540" y="1367" text-anchor="middle" dominant-baseline="middle" font-family="Georgia, 'Times New Roman', serif" font-size="36" font-weight="700" fill="#7a8754">
+    14 Giugno 2027 - 14:32
+  </text>
+</svg>
