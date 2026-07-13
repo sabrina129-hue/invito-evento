@@ -69,6 +69,11 @@ export const event = {
 
   rsvp: {
     title: "Potwierdź swoją obecność",
+    deadline: "2026-11-21T00:00:00+01:00",
+    deadlineLabel: "Termin odpowiedzi: 20 listopada 2026",
+    deadlineNotice: "Prosimy o potwierdzenie obecności do 20 listopada 2026.",
+    closedTitle: "Potwierdzenia są zamknięte",
+    closedMessage: "Termin potwierdzenia obecności upłynął 20 listopada. W razie potrzeby skontaktujcie się bezpośrednio z parą młodą.",
     nameLabel: "Imię i nazwisko",
     namePlaceholder: "Imię i nazwisko",
     requiredMessage: "Wypełnij to pole",

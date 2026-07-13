@@ -12,6 +12,14 @@ const requiredFieldMessage = "Compila questo campo";
 
 const normalizeGuests = guests => Math.max(1, Number(guests) || 1);
 
+const getDeadlineTime = deadline => {
+  if (!deadline) return null;
+
+  const parsedDeadline = new Date(deadline);
+
+  return Number.isNaN(parsedDeadline.getTime()) ? null : parsedDeadline.getTime();
+};
+
 const isNoFoodPreferenceOption = option =>
   String(option || "").trim().toLowerCase() === noFoodPreferenceOption.toLowerCase();
 
@@ -71,6 +79,9 @@ export default function RSVP({ config }) {
   const [showSuccess, setShowSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [now, setNow] = useState(() => Date.now());
+  const deadlineTime = getDeadlineTime(config.deadline);
+  const rsvpClosed = deadlineTime !== null && now >= deadlineTime;
   const requiredMessage = config.requiredMessage || requiredFieldMessage;
   const foodMenuOptions = Array.isArray(config.foodPreferenceMenuOptions) && config.foodPreferenceMenuOptions.length
     ? config.foodPreferenceMenuOptions
@@ -81,6 +92,18 @@ export default function RSVP({ config }) {
   const personLabel = config.personLabel || "Persona";
   const removeGuestLabel = config.removeGuestLabel || "Rimuovi";
   const primaryGuestInfoMessage = config.primaryGuestInfoMessage || "Questo campo si compila automaticamente con il Nome e Cognome inserito nella casella in alto.";
+
+  useEffect(() => {
+    if (deadlineTime === null) return undefined;
+
+    const timer = window.setInterval(() => {
+      setNow(Date.now());
+    }, 60000);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [deadlineTime]);
 
   useEffect(() => {
     if (foodMenuOpen === null) return undefined;
@@ -320,9 +343,32 @@ export default function RSVP({ config }) {
     }
   };
 
+  if (rsvpClosed) {
+    return (
+      <section className="section" aria-labelledby="rsvp-closed-title">
+        {config.deadlineLabel && (
+          <p className="text-sm font-body font-semibold text-accent">
+            {config.deadlineLabel}
+          </p>
+        )}
+        <h2 id="rsvp-closed-title" className="h2">
+          {config.closedTitle || config.title}
+        </h2>
+        <p className="text-body leading-relaxed text-muted">
+          {config.closedMessage}
+        </p>
+      </section>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="section" noValidate>
       <h2 className="h2">{config.title}</h2>
+      {config.deadlineNotice && (
+        <p className="text-sm font-body font-semibold text-accent">
+          {config.deadlineNotice}
+        </p>
+      )}
 
       <label className="relative block text-left text-sm font-body text-text">
         {config.nameLabel}

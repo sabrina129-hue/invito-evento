@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { inviteTable } from "../lib/inviteConfig.js";
 import { getServerEnv } from "../lib/serverEnv.js";
+import { event } from "../src/data/event.js";
 import { mergeMessageWithGuestNames, serializeGuestNames } from "../src/lib/guestNames.js";
 
 const participantPayloadVariants = ({
@@ -56,8 +57,30 @@ const tryInsertParticipant = async (supabase, payloads) => {
   return { data: null, error: lastError };
 };
 
+const getRsvpDeadlineTime = () => {
+  const deadline = event?.rsvp?.deadline;
+
+  if (!deadline) return null;
+
+  const parsedDeadline = new Date(deadline);
+
+  return Number.isNaN(parsedDeadline.getTime()) ? null : parsedDeadline.getTime();
+};
+
+const isRsvpClosed = () => {
+  const deadlineTime = getRsvpDeadlineTime();
+
+  return deadlineTime !== null && Date.now() >= deadlineTime;
+};
+
 export default async function handler(req, res) {
   if (req.method === "POST") {
+    if (isRsvpClosed()) {
+      return res.status(403).json({
+        error: event.rsvp.closedMessage || "Il termine per confermare la partecipazione è scaduto.",
+      });
+    }
+
     const supabaseUrl = getServerEnv("SUPABASE_URL");
     const supabaseKey = getServerEnv("SUPABASE_KEY");
 
