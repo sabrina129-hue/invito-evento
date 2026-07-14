@@ -87,12 +87,13 @@ const drawWeddingFrame = ({ context, width, height, title, date, time }) => {
   const verticalBand = Math.max(28, Math.round(shortSide * 0.05));
   const innerLine = Math.max(4, Math.round(shortSide * 0.008));
   const padding = Math.max(28, Math.round(shortSide * 0.05));
+  const outerLine = Math.max(8, Math.round(shortSide * 0.012));
   const topText = title;
   const bottomText = `${date} - ${time}`;
 
   context.save();
 
-  context.fillStyle = "rgba(255, 248, 241, 0.94)";
+  context.fillStyle = "rgba(250, 253, 242, 0.95)";
   context.fillRect(0, 0, width, horizontalBand);
   context.fillRect(0, height - horizontalBand, width, horizontalBand);
   context.fillRect(0, horizontalBand, verticalBand, height - horizontalBand * 2);
@@ -100,11 +101,11 @@ const drawWeddingFrame = ({ context, width, height, title, date, time }) => {
 
   context.lineJoin = "round";
   context.strokeStyle = "rgba(83, 91, 46, 0.94)";
-  context.lineWidth = Math.max(8, Math.round(shortSide * 0.012));
+  context.lineWidth = outerLine;
   context.strokeRect(context.lineWidth / 2, context.lineWidth / 2, width - context.lineWidth, height - context.lineWidth);
 
   context.lineWidth = innerLine;
-  context.strokeStyle = "rgba(83, 91, 46, 0.92)";
+  context.strokeStyle = "rgba(156, 122, 60, 0.88)";
   context.strokeRect(verticalBand, horizontalBand, width - verticalBand * 2, height - horizontalBand * 2);
 
   context.textAlign = "center";
@@ -122,7 +123,7 @@ const drawWeddingFrame = ({ context, width, height, title, date, time }) => {
   context.font = `700 ${titleSize}px Georgia, serif`;
   context.fillText(topText, width / 2, horizontalBand * 0.5);
 
-  context.fillStyle = "rgba(151, 104, 31, 0.95)";
+  context.fillStyle = "rgba(122, 135, 84, 0.96)";
   const bottomSize = fitText({
     context,
     text: bottomText,

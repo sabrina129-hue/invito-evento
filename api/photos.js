@@ -59,6 +59,27 @@ const parseImagePayload = body => {
   return { base64, mimeType };
 };
 
+const extractWebhookError = text => {
+  const compactText = String(text || "").replace(/\s+/g, " ").trim();
+  const message = compactText.match(/<div style="text-align:center[^>]*>(.*?)<\/div>/)?.[1] || compactText;
+
+  return message
+    .replaceAll("&#39;", "'")
+    .replaceAll("&quot;", '"')
+    .replaceAll("&amp;", "&")
+    .slice(0, 600) || "Risposta non valida dal webhook Google";
+};
+
+const readWebhookPayload = async response => {
+  const text = await response.text();
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(extractWebhookError(text));
+  }
+};
+
 const uploadViaWebhook = async ({ webhookUrl, secret, body }) => {
   const response = await fetch(webhookUrl, {
     method: "POST",
@@ -73,7 +94,7 @@ const uploadViaWebhook = async ({ webhookUrl, secret, body }) => {
     }),
   });
 
-  const payload = await response.json().catch(() => ({}));
+  const payload = await readWebhookPayload(response);
 
   if (!response.ok || payload.success === false) {
     throw new Error(payload.error || payload.details || "Upload su Google Drive non riuscito");
@@ -89,7 +110,7 @@ const postToWebhook = async ({ webhookUrl, secret, body }) => {
     body: JSON.stringify({ secret, ...body }),
   });
 
-  const payload = await response.json().catch(() => ({}));
+  const payload = await readWebhookPayload(response);
 
   if (!response.ok || payload.success === false) {
     throw new Error(payload.error || payload.details || "Operazione foto non riuscita");
