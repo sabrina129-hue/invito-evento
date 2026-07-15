@@ -78,6 +78,7 @@ export const event = {
     namePlaceholder: "Imię i nazwisko",
     requiredMessage: "Wypełnij to pole",
     attendingLabel: "Będę obecny/a",
+    notAttendingLabel: "Nie będę obecny/a",
     guestsLabel: "Liczba osób",
     guestsHelpText: "Wpisz łączną liczbę osób, łącznie z Tobą. Jeśli przychodzisz sam/a, zostaw 1; jeśli z osobą towarzyszącą, wpisz 2.",
     guestNamesLabel: "Szczegóły gości",

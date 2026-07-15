@@ -148,19 +148,7 @@ export default function RSVP({ config }) {
   const handleChange = e => {
     const { name, value, type, checked } = e.target;
 
-    if (name === "attending" && !checked) {
-      setFoodMenuOpen(null);
-    }
-
     setForm(prev => {
-      if (name === "attending" && !checked) {
-        return { ...prev, attending: false, guests: 0, foodPreferences: emptyFoodPreferences(1), guestNames: resizeGuestNames([], 1) };
-      }
-
-      if (name === "attending" && checked) {
-        return { ...prev, attending: true, guests: 1, foodPreferences: resizeFoodPreferences(prev.foodPreferences, 1), guestNames: resizeGuestNames(prev.guestNames, 1) };
-      }
-
       if (name === "guests") {
         setFoodMenuOpen(null);
         setFieldError(null);
@@ -176,6 +164,33 @@ export default function RSVP({ config }) {
     if (name === "name") {
       setFieldError(null);
     }
+  };
+
+  const handleAttendanceChange = nextAttending => {
+    setFoodMenuOpen(null);
+    setFieldError(null);
+
+    setForm(prev => {
+      if (!nextAttending) {
+        return {
+          ...prev,
+          attending: false,
+          guests: 0,
+          foodPreferences: emptyFoodPreferences(1),
+          guestNames: resizeGuestNames([], 1),
+        };
+      }
+
+      const guests = normalizeGuests(prev.guests);
+
+      return {
+        ...prev,
+        attending: true,
+        guests,
+        foodPreferences: resizeFoodPreferences(prev.foodPreferences, guests),
+        guestNames: resizeGuestNames(prev.guestNames, guests),
+      };
+    });
   };
 
   const handleGuestsBlur = () => {
@@ -300,7 +315,7 @@ export default function RSVP({ config }) {
       const guestNames = resizeGuestNames(form.guestNames, guests || 1);
       const completeGuestNames = [form.name.trim(), ...guestNames.slice(1).map(name => name.trim())];
 
-      if (form.attending && !form.name.trim()) {
+      if (!form.name.trim()) {
         setPrimaryGuestInfoVisible(false);
         setFieldError({ field: "name", message: requiredMessage });
         setSubmitting(false);
@@ -393,9 +408,29 @@ export default function RSVP({ config }) {
         )}
       </label>
 
-      <label className="flex items-center justify-center gap-2 text-body">
-        <input type="checkbox" name="attending" checked={form.attending} onChange={handleChange} /> {config.attendingLabel}
-      </label>
+      <fieldset className="flex flex-wrap items-center justify-center gap-3 text-body">
+        <legend className="sr-only">{config.attendanceLegend || "Potwierdzenie obecnosci"}</legend>
+        <label className="flex items-center justify-center gap-2">
+          <input
+            type="radio"
+            name="attending"
+            value="true"
+            checked={form.attending}
+            onChange={() => handleAttendanceChange(true)}
+          />
+          {config.attendingLabel}
+        </label>
+        <label className="flex items-center justify-center gap-2">
+          <input
+            type="radio"
+            name="attending"
+            value="false"
+            checked={!form.attending}
+            onChange={() => handleAttendanceChange(false)}
+          />
+          {config.notAttendingLabel || "Nie bede obecny/a"}
+        </label>
+      </fieldset>
 
       <AnimatePresence initial={false}>
         {form.attending && (
