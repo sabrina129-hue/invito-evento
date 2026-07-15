@@ -75,6 +75,7 @@ export const event = {
     nameLabel: "Nome e Cognome",
     namePlaceholder: "Nome e Cognome",
     attendingLabel: "Saro presente",
+    notAttendingLabel: "Non saro presente",
     guestsLabel: "Ospiti",
     guestsHelpText: "Indica il numero totale di persone, compreso te. Se vieni da solo lascia 1; se vieni con un accompagnatore inserisci 2.",
     guestNamesLabel: "Dettagli ospiti",
