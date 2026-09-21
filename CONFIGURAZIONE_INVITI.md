@@ -67,6 +67,7 @@ Variabili:
 ```env
 ADMIN_PASSWORD="password-admin-del-singolo-invito"
 ADMIN_TOKEN="token-lungo-random-del-singolo-invito"
+CRON_SECRET="token-lungo-random-per-cron-vercel"
 ```
 
 Online devi impostare gli stessi valori nelle Environment Variables del progetto Vercel.
@@ -201,9 +202,33 @@ SUPABASE_KEY="..."
 INVITE_TABLE="partecipanti_lucia_2026"
 ADMIN_PASSWORD="password-solo-lucia"
 ADMIN_TOKEN="token-random-solo-lucia"
+CRON_SECRET="token-random-cron-solo-lucia"
 ```
 
 `INVITE_TABLE`, `ADMIN_PASSWORD` e `ADMIN_TOKEN` devono essere diversi per ogni invito.
+Anche `CRON_SECRET` dovrebbe essere diverso per ogni progetto Vercel.
+
+### Tenere attivo Supabase sul piano Free
+
+Il file `vercel.json` configura un Cron Job Vercel settimanale:
+
+```json
+{
+  "path": "/api/supabase-keep-awake",
+  "schedule": "0 8 * * 1"
+}
+```
+
+Il cron viene eseguito il lunedi alle 08:00 UTC e chiama l'endpoint `/api/supabase-keep-awake`.
+L'endpoint esegue una sola query di lettura su Supabase (`select id limit 1`) sulla tabella configurata in `INVITE_TABLE`, senza modificare dati.
+
+Per abilitarlo online:
+
+1. aggiungi `CRON_SECRET` nelle Environment Variables del progetto Vercel;
+2. fai un nuovo deploy di produzione;
+3. in Vercel vai in `Settings` -> `Cron Jobs` e verifica che il job sia attivo.
+
+Vercel invia automaticamente `Authorization: Bearer <CRON_SECRET>` quando esegue il cron.
 
 ### Deploy del singolo invito
 
