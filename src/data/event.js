@@ -92,6 +92,7 @@ export const event = {
       "Latte e derivati (lattosio)",
       "Uova",
       "Frutta a guscio (noci, mandorle, nocciole, pistacchi, ecc.)",
+      "Frutta",
       "Arachidi",
       "Soia",
       "Pesce",
