@@ -51,11 +51,11 @@ export const parseGuestFoodPreferences = (value, guests) => {
     return resizeGuestFoodPreferences([], guestCount);
   }
 
-  if (textValue.includes("Persona ")) {
+  if (/^(?:Persona|Osoba)\s+\d+:/i.test(textValue)) {
     const groups = [];
 
     textValue.split("|").forEach(part => {
-      const match = part.trim().match(/^Persona\s+(\d+):\s*(.*)$/i);
+      const match = part.trim().match(/^(?:Persona|Osoba)\s+(\d+):\s*(.*)$/i);
 
       if (!match) return;
 
