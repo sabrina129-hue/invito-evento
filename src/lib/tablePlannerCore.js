@@ -1,4 +1,5 @@
 import { getParticipantGroup, getParticipantGuestNames } from "./guestNames.js";
+import { splitFoodPreferenceItems } from "./foodPreferences.js";
 
 export const tableCapacityErrorMessage = "Non ci sono posti liberi a sufficienza su questo tavolo per completare l'operazione. Libera dei posti o aumenta la capienza del tavolo";
 
@@ -34,10 +35,7 @@ export const normalizeFoodPreferenceItems = items => {
 };
 
 const foodPreferencesToList = value =>
-  String(value || "")
-    .split(",")
-    .map(item => item.trim())
-    .filter(Boolean)
+  splitFoodPreferenceItems(value)
     .map(item => (isNoFoodPreferenceOption(item) ? noFoodPreferenceOption : item));
 
 const resizeGuestFoodPreferences = (groups, guests) =>
@@ -65,7 +63,7 @@ export const parseGuestFoodPreferences = (value, guests) => {
       const values = match[2].trim();
 
       groups[index] = values && values !== "-"
-        ? normalizeFoodPreferenceItems(values.split(","))
+        ? normalizeFoodPreferenceItems(splitFoodPreferenceItems(values))
         : [];
     });
 

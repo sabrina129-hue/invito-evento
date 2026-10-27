@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Download, LogOut, Pencil, Plus, Tag, Trash2, Utensils } from "lucide-react";
 import { Link } from "react-router-dom";
 
+import { splitFoodPreferenceItems } from "../lib/foodPreferences.js";
 import { getParticipantGroup, getParticipantGuestNames, normalizeInvitationGroup } from "../lib/guestNames.js";
 import { notifyRsvpDataChanged } from "../lib/rsvpSync.js";
 import "./Admin.css";
@@ -75,10 +76,7 @@ const normalizeFoodPreferenceItems = items => {
 };
 
 const foodPreferencesToList = value =>
-    String(value || "")
-        .split(",")
-        .map(item => item.trim())
-        .filter(Boolean)
+    splitFoodPreferenceItems(value)
         .map(item => (isNoFoodPreferenceOption(item) ? noFoodPreferenceOption : item));
 
 const normalizeGuestCount = guests => Math.max(1, Number(guests) || 1);
@@ -108,7 +106,7 @@ const parseGuestFoodPreferences = (value, guests) => {
             const values = match[2].trim();
 
             groups[index] = values && values !== "-"
-                ? normalizeFoodPreferenceItems(values.split(","))
+                ? normalizeFoodPreferenceItems(splitFoodPreferenceItems(values))
                 : [];
         });
 
