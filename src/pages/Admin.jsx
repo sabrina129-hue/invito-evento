@@ -469,6 +469,7 @@ const buildPdf = ({ title, participants, totals, isFiltered }) => {
 };
 
 export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) {
+    const adminFoodPreferenceOptions = [...new Set([...foodPreferenceOptions, "Frutta"])];
     const [partecipanti, setPartecipanti] = useState([]);
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(null);
@@ -969,7 +970,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                 onChange={e => setFoodPreferenceFilter(e.target.value)}
                             >
                                 <option value="">Tutte le preferenze</option>
-                                {foodPreferenceOptions.map(option => (
+                                {adminFoodPreferenceOptions.map(option => (
                                     <option key={option} value={option}>{option}</option>
                                 ))}
                             </select>
@@ -1313,7 +1314,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                             {editFoodMenuOpen === guestIndex && editing.partecipate && (
                                                 <div className="admin-food-menu">
                                                     <div>
-                                                        {foodPreferenceOptions.map(option => (
+                                                        {adminFoodPreferenceOptions.map(option => (
                                                             <label key={option} className="admin-food-option">
                                                                 <input
                                                                     type="checkbox"
@@ -1527,7 +1528,7 @@ export default function Admin({ labels, foodPreferenceOptions = [], onLogout }) 
                                         {addFoodMenuOpen === guestIndex && newParticipant.partecipate && (
                                             <div className="admin-food-menu">
                                                 <div>
-                                                    {foodPreferenceOptions.map(option => (
+                                                    {adminFoodPreferenceOptions.map(option => (
                                                         <label key={option} className="admin-food-option">
                                                             <input
                                                                 type="checkbox"
