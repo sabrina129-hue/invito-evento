@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Circle, Download, Plus, RefreshCw, Square, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
+import { splitFoodPreferenceItems } from "../lib/foodPreferences.js";
 import { getParticipantGroup, getParticipantGuestNames } from "../lib/guestNames.js";
 import { rsvpDataChangedEventName, rsvpDataVersionStorageKey } from "../lib/rsvpSync.js";
 import "./TablePlanner.css";
@@ -47,10 +48,7 @@ const normalizeFoodPreferenceItems = items => {
 };
 
 const foodPreferencesToList = value =>
-  String(value || "")
-    .split(",")
-    .map(item => item.trim())
-    .filter(Boolean)
+  splitFoodPreferenceItems(value)
     .map(item => (isNoFoodPreferenceOption(item) ? noFoodPreferenceOption : item));
 
 const normalizeGuestCount = guests => Math.max(1, Number(guests) || 1);
@@ -68,11 +66,11 @@ const parseGuestFoodPreferences = (value, guests) => {
     return resizeGuestFoodPreferences([], guestCount);
   }
 
-  if (textValue.includes("Persona ")) {
+  if (/^(?:Persona|Osoba)\s+\d+:/i.test(textValue)) {
     const groups = [];
 
     textValue.split("|").forEach(part => {
-      const match = part.trim().match(/^Persona\s+(\d+):\s*(.*)$/i);
+      const match = part.trim().match(/^(?:Persona|Osoba)\s+(\d+):\s*(.*)$/i);
 
       if (!match) return;
 
@@ -80,7 +78,7 @@ const parseGuestFoodPreferences = (value, guests) => {
       const values = match[2].trim();
 
       groups[index] = values && values !== "-"
-        ? normalizeFoodPreferenceItems(values.split(","))
+        ? normalizeFoodPreferenceItems(splitFoodPreferenceItems(values))
         : [];
     });
 
