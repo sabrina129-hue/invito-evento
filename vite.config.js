@@ -42,13 +42,16 @@ function localApiPlugin() {
     name: 'local-api',
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
-        const pathname = req.url?.split('?')[0]
+        const requestUrl = new URL(req.url || '/', 'http://localhost')
+        const pathname = requestUrl.pathname
         const loadRoute = apiRoutes[pathname]
 
         if (!loadRoute) {
           next()
           return
         }
+
+        req.query = Object.fromEntries(requestUrl.searchParams.entries())
 
         const chunks = []
 
@@ -78,6 +81,10 @@ function localApiPlugin() {
         res.json = payload => {
           res.setHeader('Content-Type', 'application/json')
           res.end(JSON.stringify(payload))
+          return res
+        }
+        res.send = payload => {
+          res.end(payload)
           return res
         }
 

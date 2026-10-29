@@ -1,9 +1,8 @@
 import { Camera, CheckCircle, Images, Loader2, RefreshCw, RotateCcw, Send, Trash2, Upload, Video } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import PhotoAccessGate from "./PhotoAccessGate";
 import { usePhotoAccess } from "./photoAccess";
-import { getPhotoLabels, getPhotoLanguage, getPhotoPath, PHOTO_LANGUAGES } from "./photoTranslations";
 import "./PhotosPage.css";
 
 const PHOTO_QUALITY = 0.9;
@@ -26,20 +25,7 @@ const ITALIAN_COUNTDOWN_LABELS = {
   secondPlural: "secondi",
   ariaLabel: "Tempo all'apertura della pagina foto",
 };
-const POLISH_COUNTDOWN_LABELS = {
-  label: "Otwiera sie za",
-  daySingular: "dzien",
-  dayPlural: "dni",
-  hourSingular: "godz.",
-  hourPlural: "godz.",
-  minuteSingular: "min",
-  minutePlural: "min",
-  secondSingular: "sek",
-  secondPlural: "sek",
-  ariaLabel: "Czas do otwarcia strony zdjec",
-};
-
-const getCountdownEvent = (availableFrom, language) => {
+const getCountdownEvent = availableFrom => {
   if (!availableFrom) {
     return null;
   }
@@ -48,7 +34,7 @@ const getCountdownEvent = (availableFrom, language) => {
     calendar: {
       start: availableFrom,
     },
-    countdown: language === "pl" ? POLISH_COUNTDOWN_LABELS : ITALIAN_COUNTDOWN_LABELS,
+    countdown: ITALIAN_COUNTDOWN_LABELS,
   };
 };
 
@@ -220,10 +206,8 @@ const cleanName = value => String(value || "")
 const getPhotoExtension = mimeType => MIME_EXTENSIONS[mimeType] || "jpg";
 
 export default function PhotosPage({ config }) {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const language = getPhotoLanguage(searchParams);
-  const labels = getPhotoLabels(config, language);
-  const countdownEvent = getCountdownEvent(config.availableFrom, language);
+  const labels = config;
+  const countdownEvent = getCountdownEvent(config.availableFrom);
   const frameTitle = config.frameTitle || labels.frameTitle;
   const frameDate = config.frameDate || labels.frameDate;
   const photoAccess = usePhotoAccess(config.availableFrom);
@@ -317,7 +301,7 @@ export default function PhotosPage({ config }) {
       setStatus("ready");
     } catch (error) {
       setStatus("camera");
-      setMessage(language === "pl" ? labels.cameraErrorMessage : error.message || labels.cameraErrorMessage);
+      setMessage(error.message || labels.cameraErrorMessage);
     }
   };
 
@@ -416,7 +400,7 @@ export default function PhotosPage({ config }) {
       const payload = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(language === "pl" ? labels.errorMessage : payload.error || labels.errorMessage);
+        throw new Error(payload.error || labels.errorMessage);
       }
 
       if (photo.previewUrl) {
@@ -435,12 +419,8 @@ export default function PhotosPage({ config }) {
       }
     } catch (error) {
       setStatus("error");
-      setMessage(language === "pl" ? labels.errorMessage : error.message || labels.errorMessage);
+      setMessage(error.message || labels.errorMessage);
     }
-  };
-
-  const switchLanguage = nextLanguage => {
-    setSearchParams(nextLanguage === "pl" ? { lang: "pl" } : {});
   };
 
   if (photoAccess.isLocked) {
@@ -448,9 +428,6 @@ export default function PhotosPage({ config }) {
       <PhotoAccessGate
         cardClassName="photos-card invitation-card"
         labels={labels}
-        language={language}
-        languageSwitchClassName="photos-language-switch"
-        onSwitchLanguage={switchLanguage}
         pageClassName="photos-page"
         countdownEvent={countdownEvent}
       />
@@ -467,20 +444,6 @@ export default function PhotosPage({ config }) {
   return (
     <main className="photos-page">
       <section className="photos-card invitation-card" aria-label="Foto del matrimonio">
-        <div className="photos-language-switch" aria-label="Lingua">
-          {Object.entries(PHOTO_LANGUAGES).map(([code, label]) => (
-            <button
-              type="button"
-              key={code}
-              className={language === code ? "is-active" : ""}
-              onClick={() => switchLanguage(code)}
-              aria-pressed={language === code}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
         <div className="photos-icon" aria-hidden="true">
           <Camera size={26} />
         </div>
@@ -632,7 +595,7 @@ export default function PhotosPage({ config }) {
         )}
 
         <div className="photos-bottom-actions">
-          <Link to={getPhotoPath("/foto/galleria", language)} className="photos-secondary-button photos-link-button">
+          <Link to="/foto/galleria" className="photos-secondary-button photos-link-button">
             <Images size={18} aria-hidden="true" />
             {labels.galleryButtonLabel}
           </Link>

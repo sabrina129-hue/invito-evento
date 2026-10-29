@@ -123,8 +123,9 @@ const normalizePhotoList = photos => photos
   .filter(Boolean)
   .map((photo, index) => {
     const id = String(photo.id || photo.fileId || "").trim();
+    const cacheVersion = encodeURIComponent(String(photo.createdTime || photo.createdAt || photo.date || Date.now()));
     const imageUrl = id
-      ? `/api/photos?id=${encodeURIComponent(id)}`
+      ? `/api/photos?id=${encodeURIComponent(id)}&v=${cacheVersion}`
       : String(photo.url || photo.imageUrl || photo.thumbnailUrl || "").trim();
 
     return {

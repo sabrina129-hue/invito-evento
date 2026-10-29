@@ -1,21 +1,20 @@
 import { Camera, ChevronLeft, ChevronRight, Images, Loader2, RefreshCw, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import PhotoAccessGate from "./PhotoAccessGate";
 import { usePhotoAccess } from "./photoAccess";
-import { getPhotoLabels, getPhotoLanguage, getPhotoPath, PHOTO_LANGUAGES } from "./photoTranslations";
 import "./PhotosGalleryPage.css";
 
 const DEFAULT_PHOTO_ENDPOINT = "/api/photos";
 
-const formatPhotoDate = (value, language) => {
+const formatPhotoDate = value => {
   if (!value) return "";
 
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
 
-  return new Intl.DateTimeFormat(language === "pl" ? "pl-PL" : "it-IT", {
+  return new Intl.DateTimeFormat("it-IT", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -25,9 +24,7 @@ const formatPhotoDate = (value, language) => {
 };
 
 export default function PhotosGalleryPage({ config }) {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const language = getPhotoLanguage(searchParams);
-  const labels = getPhotoLabels(config, language);
+  const labels = config;
   const photoAccess = usePhotoAccess(config.availableFrom);
   const [photos, setPhotos] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -46,7 +43,7 @@ export default function PhotosGalleryPage({ config }) {
       const payload = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(language === "pl" ? labels.galleryErrorMessage : payload.error || labels.galleryErrorMessage);
+        throw new Error(payload.error || labels.galleryErrorMessage);
       }
 
       const nextPhotos = Array.isArray(payload.photos) ? payload.photos : [];
@@ -56,9 +53,9 @@ export default function PhotosGalleryPage({ config }) {
       setStatus(nextPhotos.length ? "ready" : "empty");
     } catch (error) {
       setStatus("error");
-      setMessage(language === "pl" ? labels.galleryErrorMessage : error.message || labels.galleryErrorMessage);
+      setMessage(error.message || labels.galleryErrorMessage);
     }
-  }, [galleryEndpoint, labels.galleryErrorMessage, language]);
+  }, [galleryEndpoint, labels.galleryErrorMessage]);
 
   useEffect(() => {
     if (photoAccess.isLocked) return;
@@ -92,10 +89,6 @@ export default function PhotosGalleryPage({ config }) {
       filteredPhotos.length ? (currentIndex + 1) % filteredPhotos.length : currentIndex
     ));
   }, [filteredPhotos.length]);
-  const switchLanguage = nextLanguage => {
-    setSearchParams(nextLanguage === "pl" ? { lang: "pl" } : {});
-  };
-
   useEffect(() => {
     if (!isDetailOpen) return undefined;
 
@@ -121,9 +114,6 @@ export default function PhotosGalleryPage({ config }) {
         availableAt={photoAccess.availableAt}
         cardClassName="gallery-card invitation-card"
         labels={labels}
-        language={language}
-        languageSwitchClassName="gallery-language-switch"
-        onSwitchLanguage={switchLanguage}
         pageClassName="gallery-page"
       />
     );
@@ -132,20 +122,6 @@ export default function PhotosGalleryPage({ config }) {
   return (
     <main className="gallery-page">
       <section className="gallery-card invitation-card" aria-label={labels.galleryTitle}>
-        <div className="gallery-language-switch" aria-label="Lingua">
-          {Object.entries(PHOTO_LANGUAGES).map(([code, label]) => (
-            <button
-              type="button"
-              key={code}
-              className={language === code ? "is-active" : ""}
-              onClick={() => switchLanguage(code)}
-              aria-pressed={language === code}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
         <div className="gallery-icon" aria-hidden="true">
           <Images size={26} />
         </div>
@@ -255,7 +231,7 @@ export default function PhotosGalleryPage({ config }) {
               <div className="gallery-meta">
                 {selectedPhoto.guestName && <span>{selectedPhoto.guestName}</span>}
                 {selectedPhoto.photoType !== "upload" && selectedPhoto.createdTime && (
-                  <span>{formatPhotoDate(selectedPhoto.createdTime, language)}</span>
+                  <span>{formatPhotoDate(selectedPhoto.createdTime)}</span>
                 )}
               </div>
             </div>
@@ -264,7 +240,7 @@ export default function PhotosGalleryPage({ config }) {
         )}
 
         <div className="gallery-actions">
-          <Link to={getPhotoPath("/foto", language)}>
+          <Link to="/foto">
             <Camera size={18} aria-hidden="true" />
             {labels.galleryCameraLabel}
           </Link>
