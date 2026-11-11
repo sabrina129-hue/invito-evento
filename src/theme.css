@@ -5,11 +5,11 @@
 /* Modifica qui colori, font e forme dell'invito.
    In VS Code clicca sui quadratini colore accanto ai valori HEX per aprire il color picker. */
 :root {
-  --color-primary: #22310f;
-  --color-secondary: #7a8754;
-  --color-background: #FAFAFA;
-  --color-surface: #f4f8da;
-  --color-text: #0f1010;
+  --color-primary: #182449;
+  --color-secondary: #b48d43;
+  --color-background: #f6f3ed;
+  --color-surface: #fffdf7;
+  --color-text: #242436;
   --color-muted: #6B7280;
   --font-title: "Playfair Display", serif;
   --font-body: "Inter", system-ui, sans-serif;

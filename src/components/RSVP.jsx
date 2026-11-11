@@ -1,45 +1,36 @@
 import { useState } from "react";
 
 export default function RSVP({ config }) {
-  const [form, setForm] = useState({ name: "", guests: 1, attending: true, notes: "" });
+  const [form, setForm] = useState({ name: "", attending: "si", notes: "" });
   const [showSuccess, setShowSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  const handleChange = e => {
-    const { name, value, type, checked } = e.target;
-
-    setForm(prev => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-      ...(name === "attending" && !checked ? { guests: 0 } : {}),
-      ...(name === "attending" && checked ? { guests: 1 } : {}),
-    }));
+  const handleChange = event => {
+    const { name, value } = event.target;
+    setForm(previous => ({ ...previous, [name]: value }));
   };
 
-  const handleSubmit = async e => {
-    e.preventDefault();
+  const handleSubmit = async event => {
+    event.preventDefault();
     setSubmitting(true);
     setError("");
 
     try {
-      const res = await fetch("/api/rsvp", {
+      const response = await fetch("/api/rsvp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: form.name,
-          partecipa: form.attending,
-          guests: form.attending ? Number(form.guests) : 0,
+          partecipa: form.attending === "si",
+          guests: form.attending === "si" ? 1 : 0,
           message: form.notes,
         }),
       });
 
-      if (!res.ok) {
-        throw new Error("Invio non riuscito");
-      }
-
+      if (!response.ok) throw new Error("Invio non riuscito");
       setShowSuccess(true);
-      setForm({ name: "", guests: 1, attending: true, notes: "" });
+      setForm({ name: "", attending: "si", notes: "" });
     } catch {
       setError(config.errorMessage);
     } finally {
@@ -48,82 +39,66 @@ export default function RSVP({ config }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="section">
+    <form onSubmit={handleSubmit} className="section rsvp-form">
       <h2 className="h2">{config.title}</h2>
 
-      <input
-        className="w-full border rounded-input px-4 py-2 text-body"
-        placeholder={config.namePlaceholder}
-        name="name"
-        value={form.name}
-        onChange={handleChange}
-        required
-      />
-
-      <label className="flex items-center justify-center gap-2 text-body">
-        <input type="checkbox" name="attending" checked={form.attending} onChange={handleChange} /> {config.attendingLabel}
+      <label className="form-field">
+        <span>{config.nameLabel}</span>
+        <input
+          className="w-full border rounded-input px-4 py-2 text-body"
+          placeholder={config.namePlaceholder}
+          name="name"
+          value={form.name}
+          onChange={handleChange}
+          autoComplete="name"
+          required
+        />
       </label>
 
-      {form.attending && (
-        <div className="space-y-2 text-left">
-          <label className="sr-only" htmlFor="guests">
-            {config.guestsLabel}
-          </label>
-          <input
-            id="guests"
-            className="w-full border rounded-input px-4 py-2 text-body"
-            type="number"
-            min="1"
-            name="guests"
-            value={form.guests}
-            onChange={handleChange}
-            aria-describedby="guests-help"
-          />
-          <p id="guests-help" className="text-xs leading-relaxed text-muted">
-            {config.guestsHelpText}
-          </p>
+      <fieldset className="attendance-fieldset">
+        <legend>{config.attendanceQuestion}</legend>
+        <div className="attendance-options">
+          {[{ value: "si", label: config.attendingLabel }, { value: "no", label: config.notAttendingLabel }].map(option => (
+            <label className={`attendance-option${form.attending === option.value ? " is-selected" : ""}`} key={option.value}>
+              <input
+                type="radio"
+                name="attending"
+                value={option.value}
+                checked={form.attending === option.value}
+                onChange={handleChange}
+                required
+              />
+              <span>{option.label}</span>
+            </label>
+          ))}
         </div>
-      )}
+      </fieldset>
 
-      <textarea
-        className="w-full border rounded-input px-4 py-2 text-body"
-        name="notes"
-        value={form.notes}
-        onChange={handleChange}
-        placeholder={config.notesPlaceholder}
-      />
+      <label className="form-field">
+        <span>{config.notesLabel}</span>
+        <textarea
+          className="w-full border rounded-input px-4 py-3 text-body"
+          name="notes"
+          value={form.notes}
+          onChange={handleChange}
+          placeholder={config.notesPlaceholder}
+          rows="3"
+        />
+      </label>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p role="alert" className="form-error">{error}</p>}
 
-      <button type="submit" disabled={submitting} className="btn w-full mt-2 flex items-center justify-center disabled:opacity-60">
+      <button type="submit" disabled={submitting} className="btn submit-rsvp">
         {submitting ? config.submittingLabel : config.submitLabel}
       </button>
 
       {showSuccess && (
-        <div
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 animate-fade-in"
-          onClick={() => setShowSuccess(false)}
-        >
-          <div
-            className="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full text-center space-y-4"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="text-4xl">{config.successIcon}</div>
-
-            <h2 className="text-xl font-bold text-gray-900">
-              {config.successTitle}
-            </h2>
-
-            <p className="text-gray-600">
-              {config.successMessage}
-            </p>
-
-            <button
-              onClick={() => setShowSuccess(false)}
-              className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
-            >
-              {config.successButton}
-            </button>
+        <div className="rsvp-success-backdrop" onClick={() => setShowSuccess(false)}>
+          <div className="rsvp-success-card" role="dialog" aria-modal="true" aria-labelledby="rsvp-success-title" onClick={event => event.stopPropagation()}>
+            <div className="rsvp-success-icon">{config.successIcon}</div>
+            <h2 id="rsvp-success-title">{config.successTitle}</h2>
+            <p>{config.successMessage}</p>
+            <button type="button" onClick={() => setShowSuccess(false)}>{config.successButton}</button>
           </div>
         </div>
       )}
