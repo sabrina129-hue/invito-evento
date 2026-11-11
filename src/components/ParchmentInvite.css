@@ -354,7 +354,7 @@
   .event-detail-card h2 { font-size: 20px; }
   .rsvp-form { gap: 20px; }
 }
-.submit-rsvp {
+.rsvp-form .submit-rsvp {
   display: flex;
   min-height: 48px;
   align-items: center;
@@ -371,7 +371,7 @@
   box-shadow: 0 4px 10px rgba(29, 42, 73, .16);
   transition: background .2s ease, transform .2s ease, box-shadow .2s ease;
 }
-.submit-rsvp:hover:not(:disabled) {
+.rsvp-form .submit-rsvp:hover:not(:disabled) {
   background: #2a3a63;
   box-shadow: 0 6px 14px rgba(29, 42, 73, .22);
   transform: translateY(-1px);
