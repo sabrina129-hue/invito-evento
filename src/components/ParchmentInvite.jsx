@@ -1,10 +1,27 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import RSVP from "./RSVP";
 import PhotoSnapshot from "./PhotoSnapshot.jsx";
 import { event } from "../data/event";
 import "./ParchmentInvite.css";
 
+function useRsvpAvailability(deadline) {
+  const deadlineTime = Date.parse(deadline);
+  const [isOpen, setIsOpen] = useState(() => !Number.isFinite(deadlineTime) || Date.now() <= deadlineTime);
+
+  useEffect(() => {
+    if (!Number.isFinite(deadlineTime)) return undefined;
+    const remaining = deadlineTime - Date.now();
+    if (remaining < 0) {
+      setIsOpen(false);
+      return undefined;
+    }
+    const timeoutId = window.setTimeout(() => setIsOpen(Date.now() <= deadlineTime), remaining + 1);
+    return () => window.clearTimeout(timeoutId);
+  }, [deadlineTime]);
+
+  return isOpen;
+}
 function RolledParchment({ onOpen, reduceMotion }) {
   return (
     <motion.button
@@ -45,6 +62,7 @@ function EventDetails({ details }) {
 }
 
 function UnrolledParchment({ reduceMotion }) {
+  const rsvpOpen = useRsvpAvailability(event.rsvp.deadline);
   return (
     <motion.article
       className="unrolled-parchment"
@@ -67,14 +85,12 @@ function UnrolledParchment({ reduceMotion }) {
         <span className="parchment-flourish" aria-hidden="true">✦</span>
         <p className="parchment-kicker">Un traguardo importante, una festa da condividere</p>
         <h1 id="invite-title">La laurea di <span>Corrado</span></h1>
-        <p className="parchment-intro">{event.content.subtitle}</p>
+        {rsvpOpen && <p className="parchment-intro">{event.content.subtitle}</p>}
         <div className="parchment-divider" aria-hidden="true"><span>✦</span></div>
         <EventDetails details={event.content} />
-        <div className="rsvp-panel">
-          <RSVP config={event.rsvp} />
-        </div>
-        {import.meta.env.VITE_PHOTO_SNAPSHOTS_ENABLED === "true" && <PhotoSnapshot />}
-        <p className="parchment-signoff">Ti aspetto!</p>
+        {rsvpOpen && <div className="rsvp-panel"><RSVP config={event.rsvp} /></div>}
+        <PhotoSnapshot />
+        {rsvpOpen && <p className="parchment-signoff">Ti aspetto!</p>}
       </motion.div>
     </motion.article>
   );

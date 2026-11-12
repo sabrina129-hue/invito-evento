@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { inviteTable as configuredInviteTable } from "../lib/inviteConfig.js";
+import { event } from "../src/data/event.js";
 
 function getErrorCategory(error) {
   if (error?.status === 401 || error?.status === 403 || error?.code === "42501") return "DATABASE_AUTH_OR_RLS";
@@ -28,6 +29,10 @@ export default async function handler(req, res) {
 
   if (req.method !== "POST") {
     return fail(405, "METHOD_NOT_ALLOWED", "Metodo non consentito");
+  }
+  const rsvpDeadline = Date.parse(event.rsvp.deadline);
+  if (Number.isFinite(rsvpDeadline) && Date.now() > rsvpDeadline) {
+    return fail(410, "RSVP_CLOSED", "Il termine per inviare la risposta è scaduto");
   }
 
   // Accept either the project URL or the REST URL copied from Supabase.

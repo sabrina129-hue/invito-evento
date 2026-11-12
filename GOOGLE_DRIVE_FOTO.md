@@ -22,9 +22,10 @@ In **Project → Settings → Environment Variables**, per Production (e Preview
 ```env
 PHOTO_UPLOAD_WEBHOOK_URL="URL_WEB_APP_TERMINA_CON_exec"
 PHOTO_UPLOAD_SECRET="valore_PHOTO_UPLOAD_SECRET_copiato_dai_log"
-VITE_PHOTO_SNAPSHOTS_ENABLED="true"
 ```
 
 Salva le variabili e ridistribuisci il progetto. Il segreto va tenuto solo nelle proprietà dello script e nelle variabili server Vercel; non inserirlo nel codice frontend o in Git.
 
 La fotocamera funziona su HTTPS (il dominio Vercel) o su `localhost`. Per aggiornare il codice dello script dopo una modifica, crea una nuova versione da **Deploy → Manage deployments → Edit → New version**.
+
+Le risposte RSVP si possono inviare fino al 30 novembre 2026 incluso. Dopo la scadenza il modulo scompare; restano le informazioni dell'evento e la sezione per le istantanee.

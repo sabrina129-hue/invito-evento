@@ -31,6 +31,7 @@ export const event = {
   },
 
   rsvp: {
+    deadline: "2026-11-30T23:59:59+01:00",
     title: "Conferma la tua presenza",
     nameLabel: "Nome e cognome",
     namePlaceholder: "Scrivi il tuo nome e cognome",
