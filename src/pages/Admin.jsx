@@ -192,16 +192,21 @@ export default function Admin({ labels, onLogout }) {
         fetch("/api/rsvps", {
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` }
         })
-            .then(res => {
-                if (!res.ok) throw new Error("Caricamento non riuscito");
-                return res.json();
+            .then(async res => {
+                const result = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    const code = result.code || `HTTP_${res.status}`;
+                    const requestId = result.requestId || res.headers.get("X-Request-Id");
+                    throw new Error(`Non sono riuscito a caricare le risposte. Codice: ${code}${requestId ? ` · Riferimento: ${requestId}` : ""}`);
+                }
+                return result;
             })
             .then(result => {
                 setPartecipanti(result.data || []);
                 setLoading(false);
             })
-            .catch(() => {
-                setError("Non sono riuscito a caricare le risposte.");
+            .catch((loadError) => {
+                setError(loadError.message || "Non sono riuscito a caricare le risposte.");
                 setPartecipanti([]);
                 setLoading(false);
             });
