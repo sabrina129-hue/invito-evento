@@ -35,7 +35,10 @@ export default async function handler(req, res) {
       .select()
       .single();
 
-    if (error) {
+    // Support older invite tables only when the current column is missing.
+    // Retrying on every error can hide the real cause (for example bad credentials
+    // or RLS denial) behind a second, misleading missing-column error.
+    if (error?.code === "PGRST204" && /partecipa/i.test(error.message || "")) {
       ({ data, error } = await supabase
         .from(inviteTable)
         .insert([{
@@ -49,6 +52,11 @@ export default async function handler(req, res) {
     }
 
     if (error) {
+      console.error("RSVP Supabase insert failed", {
+        code: error.code,
+        message: error.message,
+        table: inviteTable,
+      });
       return res.status(500).json({
         error: "Non sono riuscito a salvare la risposta",
         details: error.message,
