@@ -323,6 +323,7 @@
   background: #211d1a;
   object-fit: cover;
 }
+.snapshot-video.is-mirrored { transform: scaleX(-1); }
 .snapshot-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
 .snapshot-button {
   display: inline-flex;

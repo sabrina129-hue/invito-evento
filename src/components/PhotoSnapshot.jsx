@@ -17,6 +17,7 @@ export default function PhotoSnapshot() {
   const streamRef = useRef(null);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
+  const [facingMode, setFacingMode] = useState("environment");
   const [photo, setPhoto] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [saving, setSaving] = useState(false);
@@ -34,7 +35,7 @@ export default function PhotoSnapshot() {
           throw new Error("La fotocamera non è disponibile in questo browser.");
         }
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "user" }, width: { ideal: 1280 } },
+          video: { facingMode: { ideal: facingMode }, width: { ideal: 1600 }, height: { ideal: 1200 } },
           audio: false,
         });
         if (cancelled) {
@@ -57,7 +58,7 @@ export default function PhotoSnapshot() {
       streamRef.current?.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     };
-  }, [cameraOpen]);
+  }, [cameraOpen, facingMode]);
 
   useEffect(() => () => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -70,6 +71,8 @@ export default function PhotoSnapshot() {
     setCameraOpen(false);
   };
 
+  const switchCamera = () => setFacingMode(mode => mode === "environment" ? "user" : "environment");
+
   const handleCapture = async () => {
     const video = videoRef.current;
     if (!video?.videoWidth || !video?.videoHeight) {
@@ -81,7 +84,12 @@ export default function PhotoSnapshot() {
     const canvas = document.createElement("canvas");
     canvas.width = Math.round(video.videoWidth * scale);
     canvas.height = Math.round(video.videoHeight * scale);
-    canvas.getContext("2d")?.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const context = canvas.getContext("2d");
+    if (context && facingMode === "user") {
+      context.translate(canvas.width, 0);
+      context.scale(-1, 1);
+    }
+    context?.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     try {
       let captured = null;
@@ -147,7 +155,7 @@ export default function PhotoSnapshot() {
         <div className="snapshot-camera-panel">
           <video
             ref={videoRef}
-            className="snapshot-video"
+            className={`snapshot-video ${facingMode === "user" ? "is-mirrored" : ""}`}
             autoPlay
             muted
             playsInline
@@ -155,6 +163,9 @@ export default function PhotoSnapshot() {
             aria-label="Anteprima della fotocamera"
           />
           <div className="snapshot-actions">
+            <button type="button" className="snapshot-button snapshot-secondary" onClick={switchCamera}>
+              Cambia fotocamera
+            </button>
             <button type="button" className="snapshot-button snapshot-primary" onClick={handleCapture} disabled={!cameraReady}>
               Scatta foto
             </button>
@@ -172,7 +183,7 @@ export default function PhotoSnapshot() {
             <button type="button" className="snapshot-button snapshot-primary" onClick={handleSave} disabled={saving}>
               {saving ? "Salvataggio…" : "Salva su Drive"}
             </button>
-            <button type="button" className="snapshot-button snapshot-secondary" onClick={() => { setPhoto(null); setPreviewUrl(""); setError(""); }} disabled={saving}>
+            <button type="button" className="snapshot-button snapshot-secondary" onClick={() => { setPhoto(null); setPreviewUrl(""); setError(""); setCameraOpen(true); }} disabled={saving}>
               Scatta di nuovo
             </button>
           </div>
