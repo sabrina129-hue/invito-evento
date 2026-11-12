@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import RSVP from "./RSVP";
+import PhotoSnapshot from "./PhotoSnapshot.jsx";
 import { event } from "../data/event";
 import "./ParchmentInvite.css";
 
@@ -72,6 +73,7 @@ function UnrolledParchment({ reduceMotion }) {
         <div className="rsvp-panel">
           <RSVP config={event.rsvp} />
         </div>
+        {import.meta.env.VITE_PHOTO_SNAPSHOTS_ENABLED === "true" && <PhotoSnapshot />}
         <p className="parchment-signoff">Ti aspetto!</p>
       </motion.div>
     </motion.article>

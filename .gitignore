@@ -28,3 +28,5 @@ dist-ssr
 .vercel
 .env*.local
 recovery-codes*
+google-oauth-client.json
+client_secret_*.json
