@@ -89,7 +89,7 @@ function UnrolledParchment({ reduceMotion }) {
         <div className="parchment-divider" aria-hidden="true"><span>✦</span></div>
         <EventDetails details={event.content} />
         {rsvpOpen && <div className="rsvp-panel"><RSVP config={event.rsvp} /></div>}
-        <PhotoSnapshot />
+        {!rsvpOpen && <PhotoSnapshot />}
         {rsvpOpen && <p className="parchment-signoff">Ti aspetto!</p>}
       </motion.div>
     </motion.article>

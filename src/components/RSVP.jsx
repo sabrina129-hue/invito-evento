@@ -47,6 +47,7 @@ export default function RSVP({ config }) {
   return (
     <form onSubmit={handleSubmit} className="section rsvp-form">
       <h2 className="h2">{config.title}</h2>
+      <p className="rsvp-deadline-note">{config.deadlineNotice}</p>
 
       <label className="form-field">
         <span>{config.nameLabel}</span>

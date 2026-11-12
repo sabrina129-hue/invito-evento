@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { event } from "../src/data/event.js";
 
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 
@@ -13,6 +14,10 @@ export default async function handler(req, res) {
 
   if (req.method !== "POST") {
     return fail(405, "METHOD_NOT_ALLOWED", "Metodo non consentito");
+  }
+  const rsvpDeadline = Date.parse(event.rsvp.deadline);
+  if (Number.isFinite(rsvpDeadline) && Date.now() <= rsvpDeadline) {
+    return fail(403, "SNAPSHOT_NOT_AVAILABLE", "Le istantanee saranno disponibili dopo la scadenza RSVP");
   }
 
   const { PHOTO_UPLOAD_WEBHOOK_URL, PHOTO_UPLOAD_SECRET } = process.env;
