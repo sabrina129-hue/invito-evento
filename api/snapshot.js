@@ -1,6 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { Readable } from "node:stream";
-import { google } from "googleapis";
 
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 
@@ -17,16 +15,14 @@ export default async function handler(req, res) {
     return fail(405, "METHOD_NOT_ALLOWED", "Metodo non consentito");
   }
 
-  const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_DRIVE_REFRESH_TOKEN, GOOGLE_DRIVE_FOLDER_ID } = process.env;
+  const { PHOTO_UPLOAD_WEBHOOK_URL, PHOTO_UPLOAD_SECRET } = process.env;
   const missing = [
-    ["GOOGLE_CLIENT_ID", GOOGLE_CLIENT_ID],
-    ["GOOGLE_CLIENT_SECRET", GOOGLE_CLIENT_SECRET],
-    ["GOOGLE_DRIVE_REFRESH_TOKEN", GOOGLE_DRIVE_REFRESH_TOKEN],
-    ["GOOGLE_DRIVE_FOLDER_ID", GOOGLE_DRIVE_FOLDER_ID],
+    ["PHOTO_UPLOAD_WEBHOOK_URL", PHOTO_UPLOAD_WEBHOOK_URL],
+    ["PHOTO_UPLOAD_SECRET", PHOTO_UPLOAD_SECRET],
   ].filter(([, value]) => !value).map(([name]) => name);
 
   if (missing.length) {
-    return fail(500, "DRIVE_CONFIG_MISSING", "Il salvataggio foto non è ancora configurato", { missing });
+    return fail(500, "SCRIPT_CONFIG_MISSING", "Il salvataggio foto non è ancora configurato", { missing });
   }
 
   const dataUrl = req.body?.photo;
@@ -41,28 +37,30 @@ export default async function handler(req, res) {
   }
 
   try {
-    const auth = new google.auth.OAuth2(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
-    auth.setCredentials({ refresh_token: GOOGLE_DRIVE_REFRESH_TOKEN });
-    const drive = google.drive({ version: "v3", auth });
-    const suffix = randomUUID().slice(0, 8);
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-
-    await drive.files.create({
-      requestBody: {
-        name: `istantanea-laurea-corrado-${timestamp}-${suffix}.jpg`,
+    const response = await fetch(PHOTO_UPLOAD_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "upload",
+        secret: PHOTO_UPLOAD_SECRET,
+        base64: match[1],
         mimeType: "image/jpeg",
-        parents: [GOOGLE_DRIVE_FOLDER_ID],
-      },
-      media: { mimeType: "image/jpeg", body: Readable.from(image) },
-      fields: "id",
+      }),
     });
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok || result.success !== true) {
+      return fail(502, "SCRIPT_UPLOAD_FAILED", "Google Apps Script non è riuscito a salvare la foto", {
+        upstreamStatus: response.status,
+        upstreamError: String(result.error || "Risposta del webhook non valida").slice(0, 200),
+      });
+    }
 
     console.info(JSON.stringify({ event: "snapshot.success", requestId, imageBytes: image.length }));
     return res.status(201).json({ success: true, requestId });
   } catch (error) {
-    return fail(500, "DRIVE_UPLOAD_FAILED", "Google Drive non è riuscito a salvare la foto", {
-      googleStatus: error?.response?.status || null,
-      message: String(error?.message || "Unknown error").slice(0, 400),
+    return fail(502, "SCRIPT_CONNECTION_FAILED", "Non riesco a raggiungere Google Apps Script", {
+      message: String(error?.message || "Unknown error").slice(0, 300),
     });
   }
 }

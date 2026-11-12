@@ -1,22 +1,30 @@
 # Foto ricordo su Google Drive
 
-L’invito acquisisce una foto dalla fotocamera, mostra un’anteprima e la carica solo quando l’ospite preme **Salva su Drive**. Il browser non riceve credenziali Google.
+L’invito apre la fotocamera, mostra l’anteprima e invia la foto solo dopo aver premuto **Salva su Drive**. Il server Vercel inoltra lo scatto al webhook Apps Script; la foto resta nella cartella Drive privata indicata sotto.
 
-## Collegare il Drive dell’organizzatore
+## Google Apps Script
 
-1. In Google Cloud Console crea un progetto e abilita **Google Drive API**.
-2. Configura la schermata di consenso OAuth e crea un client OAuth di tipo **Web application**.
-3. Aggiungi questo URI tra gli URI di reindirizzamento autorizzati: `http://localhost:8787/oauth2callback`.
-4. Scarica il JSON del client OAuth e salvalo nella cartella del progetto come `google-oauth-client.json`. Il file è escluso da Git.
-5. Nel terminale del progetto esegui `pnpm connect:drive`, apri il link stampato, accedi con l’account Drive dell’organizzatore e autorizza l’accesso. Lo script crea la cartella **Istantanee Laurea Corrado** nel Drive selezionato.
-6. Lo script stampa quattro variabili. Inseriscile in **Vercel → Project Settings → Environment Variables** per Production e Preview:
+1. Apri [script.google.com](https://script.google.com/) e crea un progetto.
+2. Incolla il contenuto di `scripts/drive-photo-webhook.gs` nel file `Code.gs`.
+3. Seleziona `initializeDriveWebhook` e premi **Esegui**. Autorizza l’accesso a Drive. La funzione controlla la cartella e crea una chiave segreta una sola volta: copiala dai log di esecuzione.
+4. In **Deploy → New deployment**, scegli **Web app**. Imposta **Execute as: Me** e accesso **Anyone**, quindi fai **Deploy** e autorizza quando richiesto.
+5. Copia l’URL della Web App che termina in `/exec`.
 
-   - `GOOGLE_CLIENT_ID`
-   - `GOOGLE_CLIENT_SECRET`
-   - `GOOGLE_DRIVE_REFRESH_TOKEN`
-   - `GOOGLE_DRIVE_FOLDER_ID`
+La cartella configurata nello script è quella condivisa per questa integrazione:
+`https://drive.google.com/drive/folders/1TGrE-60Fxc4hYbZVzWwv3Q2KFoWpMj_k`
 
-7. Imposta anche `VITE_PHOTO_SNAPSHOTS_ENABLED=true` in Vercel per mostrare il pulsante.
-8. Ridistribuisci il progetto. Le credenziali e il refresh token devono restare solo in Vercel e nei file locali ignorati da Git.
+L’account che esegue il deploy deve poter scrivere in quella cartella. Le foto non vengono rese pubbliche: lo script le salva senza cambiare le autorizzazioni del file.
 
-Se la schermata OAuth è in modalità test, aggiungi l’account Drive dell’organizzatore come utente di test. La fotocamera richiede HTTPS (già disponibile sul dominio Vercel) oppure `localhost` in sviluppo.
+## Variabili Vercel
+
+In **Project → Settings → Environment Variables**, per Production (e Preview se necessario), aggiungi:
+
+```env
+PHOTO_UPLOAD_WEBHOOK_URL="URL_WEB_APP_TERMINA_CON_exec"
+PHOTO_UPLOAD_SECRET="valore_PHOTO_UPLOAD_SECRET_copiato_dai_log"
+VITE_PHOTO_SNAPSHOTS_ENABLED="true"
+```
+
+Salva le variabili e ridistribuisci il progetto. Il segreto va tenuto solo nelle proprietà dello script e nelle variabili server Vercel; non inserirlo nel codice frontend o in Git.
+
+La fotocamera funziona su HTTPS (il dominio Vercel) o su `localhost`. Per aggiornare il codice dello script dopo una modifica, crea una nuova versione da **Deploy → Manage deployments → Edit → New version**.
