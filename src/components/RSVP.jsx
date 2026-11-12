@@ -28,11 +28,17 @@ export default function RSVP({ config }) {
         }),
       });
 
-      if (!response.ok) throw new Error("Invio non riuscito");
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const code = result.code || `HTTP_${response.status}`;
+        const requestId = result.requestId || response.headers.get("X-Request-Id");
+        setError(`${config.errorMessage} Codice: ${code}${requestId ? ` · Riferimento: ${requestId}` : ""}`);
+        return;
+      }
       setShowSuccess(true);
       setForm({ name: "", attending: "si", notes: "" });
     } catch {
-      setError(config.errorMessage);
+      setError(`${config.errorMessage} Verifica la connessione e riprova.`);
     } finally {
       setSubmitting(false);
     }
